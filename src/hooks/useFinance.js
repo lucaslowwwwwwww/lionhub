@@ -34,7 +34,7 @@ export function useFinance(troupeId) {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel(`finance-${troupeId || 'all'}`)
+      .channel(`finance-${troupeId || 'all'}-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'finance' },

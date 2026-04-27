@@ -48,7 +48,7 @@ export function useSettings() {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel('settings-changes')
+      .channel(`settings-changes-${Date.now()}`)
       .on(
         'postgres_changes',
         {

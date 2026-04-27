@@ -78,8 +78,14 @@ export function useItinerary(troupeId, date) {
 
     // 3. Subscribe to stops changes
     const subscribeToStops = (itinId) => {
+      // Clean up any existing stops channel before creating a new one
+      if (stopsChannel) {
+        supabase.removeChannel(stopsChannel)
+        stopsChannel = null
+      }
+
       stopsChannel = supabase
-        .channel(`stops-${itinId}`)
+        .channel(`stops-${itinId}-${Date.now()}`)
         .on(
           'postgres_changes',
           {
@@ -105,7 +111,7 @@ export function useItinerary(troupeId, date) {
 
     // 4. Subscribe to itinerary changes
     itinChannel = supabase
-      .channel(`itin-${troupeId}-${date}`)
+      .channel(`itin-${troupeId}-${date}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -127,7 +133,6 @@ export function useItinerary(troupeId, date) {
             if (payload.eventType === 'INSERT' && payload.new.id !== currentItinId) {
               currentItinId = payload.new.id
               fetchStops(payload.new.id)
-              if (stopsChannel) supabase.removeChannel(stopsChannel)
               subscribeToStops(payload.new.id)
             }
           } else if (payload.eventType === 'DELETE') {
@@ -477,7 +482,7 @@ export function useAllPerformanceDates(troupeId) {
 
     // Subscribe to realtime changes on itineraries
     const channel = supabase
-      .channel('all-itineraries')
+      .channel(`all-itineraries-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'itineraries' },

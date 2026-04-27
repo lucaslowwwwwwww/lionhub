@@ -174,7 +174,7 @@ export function useDashboardStats() {
 
     // Realtime subscriptions
     const itinChannel = supabase
-      .channel('dashboard-itineraries')
+      .channel(`dashboard-itineraries-${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' }, async () => {
         const { data } = await supabase.from('itineraries').select('*').gte('date', startIso)
         if (data) processItineraries(data)
@@ -182,7 +182,7 @@ export function useDashboardStats() {
       .subscribe()
 
     const finChannel = supabase
-      .channel('dashboard-finance')
+      .channel(`dashboard-finance-${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, async () => {
         const { data } = await supabase.from('finance').select('*').gte('date', startIso)
         if (data) processFinance(data)
@@ -190,7 +190,7 @@ export function useDashboardStats() {
       .subscribe()
 
     const troupeChannel = supabase
-      .channel('dashboard-troupes')
+      .channel(`dashboard-troupes-${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes' }, async () => {
         const { count } = await supabase.from('troupes').select('id', { count: 'exact', head: true })
         setStats(prev => ({ ...prev, activeTroupes: count || 0 }))
@@ -198,7 +198,7 @@ export function useDashboardStats() {
       .subscribe()
 
     const memberChannel = supabase
-      .channel('dashboard-members')
+      .channel(`dashboard-members-${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async () => {
         const { count } = await supabase.from('users').select('id', { count: 'exact', head: true })
         setStats(prev => ({ ...prev, totalMembers: count || 0 }))

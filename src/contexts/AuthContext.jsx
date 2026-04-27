@@ -83,8 +83,15 @@ export function AuthProvider({ children }) {
     const subscribeToProfile = (authUser) => {
       if (!authUser) return
 
+      // Clean up any existing channel BEFORE creating a new one
+      // This prevents the "cannot add callbacks after subscribe" error
+      if (profileChannel) {
+        supabase.removeChannel(profileChannel)
+        profileChannel = null
+      }
+
       profileChannel = supabase
-        .channel(`profile-${authUser.id}`)
+        .channel(`profile-${authUser.id}-${Date.now()}`)
         .on(
           'postgres_changes',
           {

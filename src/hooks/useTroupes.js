@@ -42,7 +42,7 @@ export function useTroupes() {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel('troupes-changes')
+      .channel(`troupes-changes-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'troupes' },
