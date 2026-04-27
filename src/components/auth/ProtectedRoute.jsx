@@ -7,11 +7,10 @@ import { useAuth } from '../../hooks/useAuth'
  * If not logged in, redirects to /login (preserving the intended URL).
  */
 export default function ProtectedRoute({ children }) {
-  const { user, userProfile, loading } = useAuth()
+  const { user, loading } = useAuth()
   const location = useLocation()
 
-  // Wait until both auth state AND user profile are resolved
-  if (loading || (user && !userProfile)) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-3">
