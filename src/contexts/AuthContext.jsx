@@ -98,7 +98,7 @@ export function AuthProvider({ children }) {
       }
 
       profileChannel = supabase
-        .channel(`profile-${authUser.id}-${Date.now()}`)
+        .channel(`profile-${authUser.id}-${crypto.randomUUID()}`)
         .on(
           'postgres_changes',
           {

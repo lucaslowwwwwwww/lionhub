@@ -32,7 +32,7 @@ export function useInventory() {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel(`inventory-changes-${Date.now()}`)
+      .channel(`inventory-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'inventory' },

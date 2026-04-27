@@ -48,7 +48,7 @@ export function useSettings() {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel(`settings-changes-${Date.now()}`)
+      .channel(`settings-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {

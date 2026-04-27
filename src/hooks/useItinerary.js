@@ -85,7 +85,7 @@ export function useItinerary(troupeId, date) {
       }
 
       stopsChannel = supabase
-        .channel(`stops-${itinId}-${Date.now()}`)
+        .channel(`stops-${itinId}-${crypto.randomUUID()}`)
         .on(
           'postgres_changes',
           {
@@ -111,7 +111,7 @@ export function useItinerary(troupeId, date) {
 
     // 4. Subscribe to itinerary changes
     itinChannel = supabase
-      .channel(`itin-${troupeId}-${date}-${Date.now()}`)
+      .channel(`itin-${troupeId}-${date}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {
@@ -482,7 +482,7 @@ export function useAllPerformanceDates(troupeId) {
 
     // Subscribe to realtime changes on itineraries
     const channel = supabase
-      .channel(`all-itineraries-${Date.now()}`)
+      .channel(`all-itin-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'itineraries' },

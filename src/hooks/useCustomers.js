@@ -45,7 +45,7 @@ export function useCustomers() {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel(`customers-changes-${Date.now()}`)
+      .channel(`customers-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'customers' },

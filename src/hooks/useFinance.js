@@ -33,24 +33,22 @@ export function useFinance(troupeId) {
     fetchTransactions()
 
     // Subscribe to realtime changes
+    // CRITICAL: .on() MUST come before .subscribe()
+    const channelName = `finance-${crypto.randomUUID()}`
     const channel = supabase
-      .channel(`finance-${troupeId || 'all'}-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'finance' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newRow = payload.new
-            // Apply troupeId filter for realtime events
-            if (troupeId && troupeId !== 'all' && newRow.troupeId !== troupeId) return
-            setTransactions(prev => [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100))
-          } else if (payload.eventType === 'UPDATE') {
-            setTransactions(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
-          } else if (payload.eventType === 'DELETE') {
-            setTransactions(prev => prev.filter(t => t.id !== payload.old.id))
-          }
+      .channel(channelName)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newRow = payload.new
+          // Apply troupeId filter for realtime events
+          if (troupeId && troupeId !== 'all' && newRow.troupeId !== troupeId) return
+          setTransactions(prev => [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100))
+        } else if (payload.eventType === 'UPDATE') {
+          setTransactions(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
+        } else if (payload.eventType === 'DELETE') {
+          setTransactions(prev => prev.filter(t => t.id !== payload.old.id))
         }
-      )
+      })
       .subscribe()
 
     return () => {

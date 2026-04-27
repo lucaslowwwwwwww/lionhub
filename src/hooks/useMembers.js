@@ -27,21 +27,19 @@ export function useMembers() {
     fetchMembers()
 
     // Subscribe to realtime changes
+    // CRITICAL: .on() MUST come before .subscribe()
+    const channelName = `members-${crypto.randomUUID()}`
     const channel = supabase
-      .channel(`users-changes-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'users' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setMembers(prev => [...prev, payload.new])
-          } else if (payload.eventType === 'UPDATE') {
-            setMembers(prev => prev.map(m => m.id === payload.new.id ? payload.new : m))
-          } else if (payload.eventType === 'DELETE') {
-            setMembers(prev => prev.filter(m => m.id !== payload.old.id))
-          }
+      .channel(channelName)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setMembers(prev => [...prev, payload.new])
+        } else if (payload.eventType === 'UPDATE') {
+          setMembers(prev => prev.map(m => m.id === payload.new.id ? payload.new : m))
+        } else if (payload.eventType === 'DELETE') {
+          setMembers(prev => prev.filter(m => m.id !== payload.old.id))
         }
-      )
+      })
       .subscribe()
 
     return () => {

@@ -41,21 +41,19 @@ export function useTroupes() {
     fetchTroupes()
 
     // Subscribe to realtime changes
+    // CRITICAL: .on() MUST come before .subscribe()
+    const channelName = `troupes-${crypto.randomUUID()}`
     const channel = supabase
-      .channel(`troupes-changes-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'troupes' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setTroupes(prev => [...prev, payload.new].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
-          } else if (payload.eventType === 'UPDATE') {
-            setTroupes(prev => prev.map(t => t.id === payload.new.id ? payload.new : t).sort((a, b) => (a.name || '').localeCompare(b.name || '')))
-          } else if (payload.eventType === 'DELETE') {
-            setTroupes(prev => prev.filter(t => t.id !== payload.old.id))
-          }
+      .channel(channelName)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setTroupes(prev => [...prev, payload.new].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
+        } else if (payload.eventType === 'UPDATE') {
+          setTroupes(prev => prev.map(t => t.id === payload.new.id ? payload.new : t).sort((a, b) => (a.name || '').localeCompare(b.name || '')))
+        } else if (payload.eventType === 'DELETE') {
+          setTroupes(prev => prev.filter(t => t.id !== payload.old.id))
         }
-      )
+      })
       .subscribe()
 
     return () => {
