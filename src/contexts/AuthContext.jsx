@@ -27,7 +27,9 @@ export function AuthProvider({ children }) {
         return
       }
 
-      const isMaster = authUser.email === 'chuancheng2020@gmail.com'
+      // Master email check — case-insensitive, check both auth email and profile email
+      const MASTER_EMAIL = 'chuancheng2020@gmail.com'
+      const authEmail = (authUser.email || '').toLowerCase().trim()
 
       const { data: profileData, error } = await supabase
         .from('users')
@@ -39,12 +41,17 @@ export function AuthProvider({ children }) {
         console.error('Failed to fetch user profile:', error)
       }
 
-      // If they are the hardcoded master, override role
+      // Check master status from both the auth object AND the database row
+      const profileEmail = (profileData?.email || '').toLowerCase().trim()
+      const isMaster = authEmail === MASTER_EMAIL || profileEmail === MASTER_EMAIL
+
+      // If they are the hardcoded master, override role but keep all profile fields
       if (isMaster) {
         setUserProfile({
+          ...(profileData || {}),
           uid: authUser.id,
           displayName: profileData?.displayName || 'Master Admin',
-          email: authUser.email,
+          email: authUser.email || profileData?.email,
           role: 'master',
           troupeId: null
         })
@@ -120,8 +127,12 @@ export function AuthProvider({ children }) {
                 return
               }
 
-              // Master override
-              if (authUser.email === 'chuancheng2020@gmail.com') {
+              // Master override — check both auth email and updated row email
+              const updEmail = (updated.email || '').toLowerCase().trim()
+              const aEmail = (authUser.email || '').toLowerCase().trim()
+              const isMasterUser = aEmail === 'chuancheng2020@gmail.com' || updEmail === 'chuancheng2020@gmail.com'
+              
+              if (isMasterUser) {
                 setUserProfile(prev => ({
                   ...prev,
                   ...updated,
