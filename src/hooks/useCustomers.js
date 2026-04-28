@@ -10,20 +10,24 @@ import { sanitizeObject } from '../utils/sanitize'
 export function useCustomers() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [timeoutError, setTimeoutError] = useState(false)
   const [error, setError] = useState(null)
   
   const { userProfile, user } = useAuth()
-  const troupeId = userProfile?.troupeId
+  const troupeId = userProfile?.troupeid
 
-  useEffect(() => {
-    if (!user) {
-      setLoading(false)
-      return
-    }
+  const fetchCustomers = async () => {
+    setLoading(true)
+    setTimeoutError(false)
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn("Customers fetch timed out. Forcing loading to false.")
+        setTimeoutError(true)
+        setLoading(false)
+      }
+    }, 10000)
 
-    // Fetch initial customers
-    // SHARED CUSTOMER DATABASE: No filtering by troupeId. Everyone sees all accounts.
-    const fetchCustomers = async () => {
+    try {
       const { data, error: fetchError } = await supabase
         .from('customers')
         .select('*')
@@ -33,19 +37,31 @@ export function useCustomers() {
         console.error('Error fetching global customer list:', fetchError)
         setError(fetchError)
       } else {
-        // Ensure consistent alphabetical sorting
         const sorted = (data || []).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
         setCustomers(sorted)
         setError(null)
       }
+    } catch (err) {
+      console.error('Unexpected customers error:', err)
+      setError(err)
+    } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false)
+      return
     }
 
     fetchCustomers()
 
     // Subscribe to realtime changes
+    const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const channel = supabase
-      .channel(`customers-${crypto.randomUUID()}`)
+      .channel(`customers-${safeId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'customers' },
@@ -72,9 +88,9 @@ export function useCustomers() {
       .from('customers')
       .insert({
         ...sanitizeObject(customerData),
-        troupeId: troupeId || 'system',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        troupeid: troupeId || null,
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
       })
       .select('id')
       .single()
@@ -89,7 +105,7 @@ export function useCustomers() {
       .from('customers')
       .update({
         ...sanitizeObject(updates),
-        updatedAt: new Date().toISOString()
+        updatedat: new Date().toISOString()
       })
       .eq('id', customerId)
 
@@ -109,9 +125,11 @@ export function useCustomers() {
   return { 
     customers, 
     loading, 
+    timeoutError,
     error, 
     addCustomer, 
     updateCustomer, 
-    deleteCustomer 
+    deleteCustomer,
+    refresh: fetchCustomers
   }
 }

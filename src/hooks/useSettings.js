@@ -7,28 +7,39 @@ const SETTINGS_DOC_ID = 'general'
 export function useSettings() {
   const { logAction } = useAudit()
   const [settings, setSettings] = useState({
-    baseLocation: '23, Jalan Imj 2, Melaka',
-    defaultDuration: 30,
-    lionColors: ['黑', '黄', '紫', '橙', '青', '红'],
-    cnyOverrides: {},
-    // Club Profile/Receipt Metadata
-    clubNameEn: 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka',
-    clubNameCn: '馬來西亞馬六甲傳承龍獅體育會',
-    clubRegistrationNo: '(PPM-015-04-30122019)',
-    clubAddress: 'NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA',
-    clubPhone: '012-328 2862 / 013-666 0979',
-    receiptPreparedBy: 'REX YONG',
-    signatoryPhone: '60136660979',
-    bankName: 'PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA',
-    bankType: 'CIMB',
-    bankNumber: '8011396083'
+    baselocation: '23, Jalan Imj 2, Melaka',
+    defaultduration: 30,
+    lioncolors: ['黑', '黄', '紫', '橙', '青', '红'],
+    cnyoverrides: {},
+    clubnameen: 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka',
+    clubnamecn: '馬來西亞馬六甲傳承龍獅體育會',
+    clubregistrationno: '(PPM-015-04-30122019)',
+    clubaddress: 'NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA',
+    clubphone: '012-328 2862 / 013-666 0979',
+    receiptpreparedby: 'REX YONG',
+    signatoryphone: '60136660979',
+    bankname: 'PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA',
+    banktype: 'CIMB',
+    banknumber: '8011396083'
   })
   const [loading, setLoading] = useState(true)
+  const [timeoutError, setTimeoutError] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    // Fetch initial settings
-    const fetchSettings = async () => {
+  const fetchSettings = async () => {
+    setLoading(true)
+    setTimeoutError(false)
+    
+    // Rule #29: Safety timeout to prevent indefinite loading
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn("Settings fetch timed out. Forcing loading to false.")
+        setTimeoutError(true)
+        setLoading(false)
+      }
+    }, 10000)
+
+    try {
       const { data, error: fetchError } = await supabase
         .from('settings')
         .select('*')
@@ -40,15 +51,24 @@ export function useSettings() {
         setError(fetchError)
       } else if (data) {
         setSettings(prev => ({ ...prev, ...data }))
+        setError(null)
       }
+    } catch (err) {
+      console.error("Unexpected settings error:", err)
+      setError(err)
+    } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchSettings()
 
     // Subscribe to realtime changes
+    const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const channel = supabase
-      .channel(`settings-${crypto.randomUUID()}`)
+      .channel(`settings-${safeId}`)
       .on(
         'postgres_changes',
         {
@@ -84,5 +104,5 @@ export function useSettings() {
     }
   }
 
-  return { settings, loading, error, updateSettings }
+  return { settings, loading, timeoutError, error, updateSettings, refresh: fetchSettings }
 }

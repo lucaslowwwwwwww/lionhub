@@ -28,12 +28,15 @@ export function sanitizeObject(obj) {
 
   const sanitized = {}
   for (const [key, value] of Object.entries(obj)) {
+    // Rule #10: Force lowercase keys for Supabase compatibility
+    const lowercaseKey = key.toLowerCase()
+    
     if (typeof value === 'string') {
-      sanitized[key] = sanitizeText(value)
+      sanitized[lowercaseKey] = sanitizeText(value)
     } else if (typeof value === 'object' && value !== null) {
-      sanitized[key] = sanitizeObject(value)
+      sanitized[lowercaseKey] = sanitizeObject(value)
     } else {
-      sanitized[key] = value
+      sanitized[lowercaseKey] = value
     }
   }
   return sanitized

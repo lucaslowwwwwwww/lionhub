@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { supabase } from '../supabase'
 import { loadChineseFont } from './exportUtils'
 
 export const generateAndShareReceipt = async (stop, settings, userProfile) => {
@@ -134,11 +135,11 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
     }
     return s.split(' — ')[0].trim();
   }
-  const houseName = stripTrailingNotes(stop.householdName || stop.name || "Customer Name")
+  const houseName = stripTrailingNotes(stop.householdname || stop.name || "Customer Name")
   const safeAddress = stripTrailingNotes(stop.address || "Address omitted")
   const safePhone = stop.phone || "N/A"
-  const safeAmount = (stop.actualAmount !== undefined && stop.actualAmount !== null)
-    ? String(stop.actualAmount)
+  const safeAmount = (stop.actualamount !== undefined && stop.actualamount !== null)
+    ? String(stop.actualamount)
     : (stop.amount ? String(stop.amount) : "0")
 
   const billingY = headerPhoneY + 12
@@ -194,7 +195,7 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   // ITEMS TABLE
   // ---------------------------------------------------------
   
-  const lQty = stop.lionQuantity || 2
+  const lQty = stop.lionquantity || 2
   const lionText = `${lQty} LION${lQty > 1 ? 'S' : ''}`
   
   const colorMap = {
@@ -211,17 +212,17 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   }
   
   let descriptionLines = [`CNY LION DANCE PERFORMANCE - ${lionText}`]
-  if (stop.lionColor) {
-    const colors = (Array.isArray(stop.lionColor) ? stop.lionColor : [stop.lionColor])
+  if (stop.lioncolor) {
+    const colors = (Array.isArray(stop.lioncolor) ? stop.lioncolor : [stop.lioncolor])
       .map(c => colorMap[c] || c.toUpperCase())
     descriptionLines.push(`COLOR: ${colors.join(', ')}`)
   }
 
-  if (stop.hasGodOfWealth) descriptionLines.push(`+ GOD OF WEALTH`)
-  if (stop.hasBigHeadBuddha) descriptionLines.push(`+ BIG HEAD BUDDHA`)
+  if (stop.hasgodofwealth) descriptionLines.push(`+ GOD OF WEALTH`)
+  if (stop.hasbigheadbuddha) descriptionLines.push(`+ BIG HEAD BUDDHA`)
   
-  if (stop.pluckingType) {
-    const types = (Array.isArray(stop.pluckingType) ? stop.pluckingType : [stop.pluckingType])
+  if (stop.pluckingtype) {
+    const types = (Array.isArray(stop.pluckingtype) ? stop.pluckingtype : [stop.pluckingtype])
       .map(t => pluckingMap[t] || t.toUpperCase())
     descriptionLines.push(`+ PLUCKING: ${types.join(', ')}`)
   }
@@ -229,8 +230,8 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   descriptionLines.push(``)
   
   let displayDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  if (stop.scheduledDate) {
-    const sDate = new Date(stop.scheduledDate)
+  if (stop.scheduleddate) {
+    const sDate = new Date(stop.scheduleddate)
     if (!isNaN(sDate.getTime())) {
       displayDate = sDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
     }
@@ -322,15 +323,15 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   // Auditing the export
   try {
     if (userProfile?.uid) {
-      await addDoc(collection(db, 'audit_logs'), {
-        actionType: 'EXPORT_RECEIPT',
-        details: { stopId: stop.id, invoice: `INV-${String(stop.id).slice(0, 6).toUpperCase()}` },
-        performedBy: {
+      await supabase.from('audit_logs').insert({
+        actiontype: 'EXPORT_RECEIPT',
+        details: { stopid: stop.id, invoice: `INV-${String(stop.id).slice(0, 6).toUpperCase()}` },
+        performedby: {
           uid: userProfile.uid,
-          name: userProfile.displayName || userProfile.email,
+          name: userProfile.displayname || userProfile.email,
           role: userProfile.role
         },
-        timestamp: serverTimestamp()
+        timestamp: new Date().toISOString()
       })
     }
   } catch(e) { console.warn('Failed to audit log receipt export', e) }

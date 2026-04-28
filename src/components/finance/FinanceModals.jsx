@@ -33,9 +33,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
         amount: initialData.amount || '',
         category: initialData.category || CATEGORIES[0],
         date: initialData.date || localDateStr,
-        paymentMethod: initialData.paymentMethod || 'Cash',
+        paymentmethod: initialData.paymentmethod || initialData.paymentMethod || 'Cash',
         description: initialData.description || '',
-        troupeId: initialData.troupeId || 'all'
+        troupeid: initialData.troupeid || initialData.troupeId || null
       }
     }
     return {
@@ -43,9 +43,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
       amount: '',
       category: CATEGORIES[0],
       date: localDateStr,
-      paymentMethod: 'Cash',
+      paymentmethod: 'Cash',
       description: '',
-      troupeId: 'all'
+      troupeid: null
     }
   })
 
@@ -56,9 +56,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
         amount: initialData.amount || '',
         category: initialData.category || CATEGORIES[0],
         date: initialData.date || localDateStr,
-        paymentMethod: initialData.paymentMethod || 'Cash',
+        paymentmethod: initialData.paymentmethod || initialData.paymentMethod || 'Cash',
         description: initialData.description || '',
-        troupeId: initialData.troupeId || 'all'
+        troupeid: initialData.troupeid || initialData.troupeId || null
       })
     } else {
       setFormData({
@@ -66,9 +66,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
         amount: '',
         category: CATEGORIES[0],
         date: localDateStr,
-        paymentMethod: 'Cash',
+        paymentmethod: 'Cash',
         description: '',
-        troupeId: 'all'
+        troupeid: null
       })
     }
   }, [initialData, isOpen, localDateStr])
@@ -87,17 +87,22 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
       ...formData, 
       type: newType,
       category: newCategories[0], // Reset to default for the new type
-      troupeId: newType === 'sponsorship' ? 'all' : formData.troupeId
+      troupeid: newType === 'sponsorship' ? null : formData.troupeid
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSave({
-      ...formData,
-      amount: Number(formData.amount)
-    })
-    onClose()
+    try {
+      await onSave({
+        ...formData,
+        amount: Number(formData.amount)
+      })
+      onClose()
+    } catch (err) {
+      console.error('Failed to save transaction:', err)
+      alert('Error: ' + (err.message || 'Failed to save transaction'))
+    }
   }
 
   return (
@@ -206,9 +211,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
               <div className="flex bg-surface-950/50 p-1 rounded-xl border border-surface-800 h-[46px] box-border">
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, paymentMethod: 'Cash' })}
+                  onClick={() => setFormData({ ...formData, paymentmethod: 'Cash' })}
                   className={`flex-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
-                    formData.paymentMethod === 'Cash' 
+                    formData.paymentmethod === 'Cash' 
                       ? 'bg-surface-800 text-gold-400 shadow-md' 
                       : 'text-surface-500 hover:text-surface-300'
                   }`}
@@ -217,9 +222,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, paymentMethod: 'Bank In' })}
+                  onClick={() => setFormData({ ...formData, paymentmethod: 'Bank In' })}
                   className={`flex-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
-                    formData.paymentMethod === 'Bank In' 
+                    formData.paymentmethod === 'Bank In' 
                       ? 'bg-surface-800 text-gold-400 shadow-md' 
                       : 'text-surface-500 hover:text-surface-300'
                   }`}
@@ -246,11 +251,11 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
               <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Attribute to Team</label>
               <div className="overflow-hidden rounded-xl border border-surface-800">
                 <select
-                  value={formData.troupeId}
-                  onChange={(e) => setFormData({ ...formData, troupeId: e.target.value })}
+                  value={formData.troupeid}
+                  onChange={(e) => setFormData({ ...formData, troupeid: e.target.value })}
                   className="block w-full h-[46px] bg-surface-950 px-4 text-sm font-bold text-surface-100 focus:outline-none focus:border-crimson-600 appearance-none transition-all shadow-inner border-none"
                 >
-                  <option value="all">General / All Teams</option>
+                  <option value="">General / All Teams</option>
                   {availableTroupes.map(troupe => (
                     <option key={troupe.id} value={troupe.id}>{troupe.name}</option>
                   ))}

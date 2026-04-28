@@ -23,19 +23,19 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
   };
 
   const [formData, setFormData] = useState({
-    householdName: '',
+    householdname: '',
     address: '',
     phone: '',
     amount: '',
-    scheduledTime: '',
+    scheduledtime: '',
     duration: 30,
-    lionColor: ['黄'],
-    lionQuantity: 2,
-    hasGodOfWealth: false,
-    hasBigHeadBuddha: false,
-    pluckingType: [],
+    lioncolor: ['黄'],
+    lionquantity: 2,
+    hasgodofwealth: false,
+    hasbigheadbuddha: false,
+    pluckingtype: [],
     remarks: '',
-    mapLink: ''
+    maplink: ''
   })
 
   const [conflict, setConflict] = useState(null)
@@ -53,7 +53,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
       const addresses = Array.isArray(matchedCustomer.addresses) ? matchedCustomer.addresses : [matchedCustomer.address || '']
       const phones = Array.isArray(matchedCustomer.phones) ? matchedCustomer.phones : [matchedCustomer.phone || '']
       
-      const newFormData = { ...formData, householdName: inputValue }
+      const newFormData = { ...formData, householdname: inputValue }
 
       // Handle Addresses
       if (addresses.length > 1) {
@@ -62,7 +62,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
       } else {
         const addr = addresses[0]
         newFormData.address = typeof addr === 'object' ? addr.value : addr
-        newFormData.mapLink = typeof addr === 'object' ? addr.mapLink || '' : ''
+        newFormData.maplink = typeof addr === 'object' ? addr.mapLink || '' : ''
         setAddressOptions([])
       }
 
@@ -77,7 +77,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
       setFormData(newFormData)
     } else {
-      setFormData({ ...formData, householdName: inputValue })
+      setFormData({ ...formData, householdname: inputValue })
       setAddressOptions([])
       setPhoneOptions([])
     }
@@ -98,32 +98,32 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
   const handleTimeChange = (e) => {
     const time24 = e.target.value
     if (!time24) {
-      setFormData({ ...formData, scheduledTime: "" })
+      setFormData({ ...formData, scheduledtime: "" })
       return
     }
     const [h, m] = time24.split(':').map(Number)
     const period = h >= 12 ? 'PM' : 'AM'
     const h12 = h % 12 || 12
     const time12 = `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`
-    setFormData({ ...formData, scheduledTime: time12 })
+    setFormData({ ...formData, scheduledtime: time12 })
   }
 
   const handleQuantityChange = (newQty) => {
     // If user deleted the input, allow it to be empty for typing
     if (newQty === '') {
-      setFormData(prev => ({ ...prev, lionQuantity: '' }))
+      setFormData(prev => ({ ...prev, lionquantity: '' }))
       return
     }
 
     const qty = Math.max(1, Math.min(20, Number(newQty)))
     setFormData(prev => {
-      const newColors = [...prev.lionColor]
+      const newColors = [...prev.lioncolor]
       if (newColors.length < qty) {
         while (newColors.length < qty) newColors.push(settings?.lionColors?.[0] || '黄')
       } else if (newColors.length > qty) {
         newColors.length = qty
       }
-      return { ...prev, lionQuantity: qty, lionColor: newColors }
+      return { ...prev, lionquantity: qty, lioncolor: newColors }
     })
   }
 
@@ -134,46 +134,46 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
       const colors = settings?.lionColors || ['黑', '黄', '紫', '橙', '青', '红']
       
       if (stop) {
-        // Normalize lionColor to array
+        // Normalize lioncolor to array
         let initialColors = []
-        if (Array.isArray(stop.lionColor)) {
-          initialColors = stop.lionColor
-        } else if (stop.lionColor) {
-          initialColors = [stop.lionColor]
+        if (Array.isArray(stop.lioncolor || stop.lionColor)) {
+          initialColors = stop.lioncolor || stop.lionColor
+        } else if (stop.lioncolor || stop.lionColor) {
+          initialColors = [stop.lioncolor || stop.lionColor]
         } else {
           initialColors = [colors[1] || '黄']
         }
 
         setFormData({
-          householdName: stop.householdName || '',
+          householdname: stop.householdname || stop.householdName || '',
           address: stop.address || '',
           phone: stop.phone || '',
           amount: stop.amount || '',
-          scheduledTime: stop.scheduledTime || '',
+          scheduledtime: stop.scheduledtime || stop.scheduledTime || '',
           duration: stop.duration || 30,
-          lionColor: initialColors,
-          lionQuantity: stop.lionQuantity || initialColors.length || 1,
-          hasGodOfWealth: stop.hasGodOfWealth || false,
-          hasBigHeadBuddha: stop.hasBigHeadBuddha || false,
-          pluckingType: Array.isArray(stop.pluckingType) ? stop.pluckingType : (stop.pluckingType ? [stop.pluckingType] : []),
+          lioncolor: initialColors,
+          lionquantity: stop.lionquantity || stop.lionQuantity || initialColors.length || 1,
+          hasgodofwealth: stop.hasgodofwealth || stop.hasGodOfWealth || false,
+          hasbigheadbuddha: stop.hasbigheadbuddha || stop.hasBigHeadBuddha || false,
+          pluckingtype: Array.isArray(stop.pluckingtype || stop.pluckingType) ? (stop.pluckingtype || stop.pluckingType) : (stop.pluckingtype || stop.pluckingType ? [stop.pluckingtype || stop.pluckingType] : []),
           remarks: stop.remarks || '',
-          mapLink: stop.mapLink || ''
+          maplink: stop.maplink || stop.mapLink || ''
         })
       } else {
         setFormData({
-          householdName: '',
+          householdname: '',
           address: '',
           phone: '',
           amount: '',
-          scheduledTime: '',
+          scheduledtime: '',
           duration: settings?.defaultDuration || 30,
-          lionColor: [colors[1] || '黄', colors[1] || '黄'],
-          lionQuantity: 2,
-          hasGodOfWealth: false,
-          hasBigHeadBuddha: false,
-          pluckingType: [],
+          lioncolor: [colors[1] || '黄', colors[1] || '黄'],
+          lionquantity: 2,
+          hasgodofwealth: false,
+          hasbigheadbuddha: false,
+          pluckingtype: [],
           remarks: '',
-          mapLink: ''
+          maplink: ''
         })
         setAddressOptions([])
         setPhoneOptions([])
@@ -186,12 +186,12 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
   // Real-time Conflict Detection
   useEffect(() => {
-    if (!formData.scheduledTime || stops.length === 0) {
+    if (!formData.scheduledtime || stops.length === 0) {
       setConflict(null)
       return
     }
 
-    const newMinutes = parseTimeToMinutes(formData.scheduledTime)
+    const newMinutes = parseTimeToMinutes(formData.scheduledtime)
     if (newMinutes === null) {
       setConflict(null)
       return
@@ -199,32 +199,32 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
     const found = stops.find(s => {
       if (stop && s.id === stop.id) return false
-      const existingMinutes = parseTimeToMinutes(s.scheduledTime)
+      const existingMinutes = parseTimeToMinutes(s.scheduledtime || s.scheduledTime)
       if (existingMinutes === null) return false
       const diff = Math.abs(newMinutes - existingMinutes)
       return diff < 45 // 45 min threshold
     })
 
     if (found) {
-      const isExact = parseTimeToMinutes(found.scheduledTime) === newMinutes
+      const isExact = parseTimeToMinutes(found.scheduledtime || found.scheduledTime) === newMinutes
       setConflict({
         type: isExact ? 'CRASH' : 'TIGHT',
         stop: found,
         message: isExact 
-          ? `⚠️ TIME CRASH: Already at ${found.scheduledTime} (${found.householdName})`
-          : `⚠️ TIGHT GAP: Near ${found.scheduledTime} (${found.householdName}). Min 45m recom.`
+          ? `⚠️ TIME CRASH: Already at ${found.scheduledtime || found.scheduledTime} (${found.householdname || found.householdName})`
+          : `⚠️ TIGHT GAP: Near ${found.scheduledtime || found.scheduledTime} (${found.householdname || found.householdName}). Min 45m recom.`
       })
     } else {
       setConflict(null)
     }
-  }, [formData.scheduledTime, stops, stop])
+  }, [formData.scheduledtime, stops, stop])
 
   if (!isOpen) return null
 
   const handleSubmit = (e) => {
     e.preventDefault()
     
-    if (!formData.scheduledTime) {
+    if (!formData.scheduledtime) {
       alert("Please choose a specific time for the performance.")
       return
     }
@@ -235,7 +235,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
     onAdd({
       ...formData,
-      lionQuantity: Number(formData.lionQuantity) || 1,
+      lionquantity: Number(formData.lionquantity) || 1,
       amount: Number(formData.amount)
     })
     onClose()
@@ -260,7 +260,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               required
               type="text" 
               list="customers-list"
-              value={formData.householdName}
+              value={formData.householdname}
               onChange={(e) => handleSelectCustomer(e.target.value)}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-12 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all box-border"
               placeholder="Type to search saved customers..."
@@ -359,7 +359,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <input 
                 required
                 type="time" 
-                value={convertTo24h(formData.scheduledTime)}
+                value={convertTo24h(formData.scheduledtime)}
                 onChange={handleTimeChange}
                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-12 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all box-border"
               />
@@ -398,7 +398,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                 <div className="flex items-center gap-1 bg-surface-950 p-1 rounded-xl border border-surface-800">
                   <button 
                     type="button"
-                    onClick={() => handleQuantityChange(Number(formData.lionQuantity || 1) - 1)}
+                    onClick={() => handleQuantityChange(Number(formData.lionquantity || 1) - 1)}
                     className="w-10 h-10 flex items-center justify-center bg-surface-800 hover:bg-surface-700 text-surface-300 rounded-lg transition-all active:scale-90"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
@@ -407,13 +407,13 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                     type="number" 
                     min="1"
                     max="20"
-                    value={formData.lionQuantity}
+                    value={formData.lionquantity}
                     onChange={(e) => handleQuantityChange(e.target.value)}
                     className="w-14 bg-transparent border-none text-surface-100 focus:outline-none text-base font-black text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <button 
                     type="button"
-                    onClick={() => handleQuantityChange(Number(formData.lionQuantity || 1) + 1)}
+                    onClick={() => handleQuantityChange(Number(formData.lionquantity || 1) + 1)}
                     className="w-10 h-10 flex items-center justify-center bg-surface-800 hover:bg-surface-700 text-surface-300 rounded-lg transition-all active:scale-90"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
@@ -425,7 +425,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Assign Colors</label>
                 <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar-thin">
-                  {formData.lionColor.map((color, idx) => (
+                  {formData.lioncolor.map((color, idx) => (
                     <div key={idx} className="relative flex items-center animate-in fade-in slide-in-from-bottom-1" style={{ animationDelay: `${idx * 30}ms` }}>
                       <div className="absolute left-2.5 z-10 pointer-events-none flex items-center h-full">
                          <span className="text-[8px] font-black text-surface-500 bg-surface-900 border border-surface-800 px-1 py-0.5 rounded">#{idx + 1}</span>
@@ -433,9 +433,9 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                       <select
                         value={color}
                         onChange={(e) => {
-                          const newColors = [...formData.lionColor]
+                          const newColors = [...formData.lioncolor]
                           newColors[idx] = e.target.value
-                          setFormData({ ...formData, lionColor: newColors })
+                          setFormData({ ...formData, lioncolor: newColors })
                         }}
                         className="w-full bg-surface-900/50 border border-surface-800 rounded-xl pl-8 pr-8 h-[44px] text-surface-200 focus:outline-none focus:border-crimson-500/50 transition-all text-[11px] font-bold appearance-none cursor-pointer"
                       >
@@ -461,7 +461,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                       key={type}
                       type="button"
                       onClick={() => {
-                        setFormData({ ...formData, pluckingType: [...formData.pluckingType, type] })
+                        setFormData({ ...formData, pluckingtype: [...formData.pluckingtype, type] })
                       }}
                       className="px-3 py-2.5 rounded-xl border border-surface-800 bg-surface-900 text-surface-400 text-xs font-bold hover:border-green-500/50 hover:bg-surface-800 hover:text-green-400 transition-all text-center"
                     >
@@ -470,18 +470,18 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                   ))}
                 </div>
 
-                {formData.pluckingType.length > 0 && (
+                {formData.pluckingtype.length > 0 && (
                   <div className="bg-surface-950/40 border border-surface-800/50 rounded-2xl p-3 animate-in fade-in slide-in-from-top-1">
                     <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest mb-2 pl-1">Current Selection (Click to remove)</p>
                     <div className="flex flex-wrap gap-2">
-                       {formData.pluckingType.map((type, i) => (
+                       {formData.pluckingtype.map((type, i) => (
                          <button
                            key={`${type}-${i}`}
                            type="button"
                            onClick={() => {
-                             const newTypes = [...formData.pluckingType]
+                             const newTypes = [...formData.pluckingtype]
                              newTypes.splice(i, 1)
-                             setFormData({ ...formData, pluckingType: newTypes })
+                             setFormData({ ...formData, pluckingtype: newTypes })
                            }}
                            className="px-2.5 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-black uppercase tracking-tight flex items-center gap-1.5 hover:bg-crimson-500/10 hover:border-crimson-500/30 hover:text-crimson-400 transition-all group"
                          >
@@ -499,8 +499,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <label className="flex items-center gap-3 cursor-pointer">
                 <input 
                   type="checkbox" 
-                  checked={formData.hasGodOfWealth}
-                  onChange={(e) => setFormData({...formData, hasGodOfWealth: e.target.checked})}
+                  checked={formData.hasgodofwealth}
+                  onChange={(e) => setFormData({...formData, hasgodofwealth: e.target.checked})}
                   className="w-5 h-5 rounded accent-crimson-600 bg-surface-900 cursor-pointer"
                 />
                 <span className="text-sm font-bold text-surface-200">财神爷 (God of Wealth)</span>
@@ -508,8 +508,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <label className="flex items-center gap-3 cursor-pointer">
                 <input 
                   type="checkbox" 
-                  checked={formData.hasBigHeadBuddha}
-                  onChange={(e) => setFormData({...formData, hasBigHeadBuddha: e.target.checked})}
+                  checked={formData.hasbigheadbuddha}
+                  onChange={(e) => setFormData({...formData, hasbigheadbuddha: e.target.checked})}
                   className="w-5 h-5 rounded accent-crimson-600 bg-surface-900 cursor-pointer"
                 />
                 <span className="text-sm font-bold text-surface-200">大头佛 (Big Head Buddha)</span>

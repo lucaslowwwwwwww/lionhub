@@ -33,7 +33,7 @@ export default function BillingPage() {
         const { data, error } = await supabase
           .from('stops')
           .select('*')
-          .eq('scheduledDate', selectedDate)
+          .eq('scheduleddate', selectedDate)
           .order('order', { ascending: true })
 
         if (error) throw error
@@ -53,13 +53,13 @@ export default function BillingPage() {
 
   const handleQuickGenerate = async (stop, type) => {
     const data = {
-      customerName: stop.householdName,
+      customerName: stop.householdname,
       customerAddress: stop.address || '',
       customerPhone: stop.phone || '',
       performanceDate: selectedDate,
       description: formatPerformanceDescription(stop),
-      amount: stop.actualAmount || stop.amount || 0,
-      quantity: stop.lionQuantity || 1,
+      amount: stop.actualamount || stop.amount || 0,
+      quantity: stop.lionquantity || 1,
       id: stop.id
     }
     
@@ -136,15 +136,15 @@ export default function BillingPage() {
               ) : (
                 itineraryStops.map((stop) => (
                   <tr key={stop.id} className="hover:bg-surface-800/30 transition-colors group">
-                    <td className="px-6 py-6 text-sm font-black text-surface-400">{stop.scheduledTime || 'N/A'}</td>
+                    <td className="px-6 py-6 text-sm font-black text-surface-400">{stop.scheduledtime || 'N/A'}</td>
                     <td className="px-6 py-6">
                       <div className="flex flex-col">
-                        <span className="text-sm font-black text-surface-100">{stop.householdName}</span>
+                        <span className="text-sm font-black text-surface-100">{stop.householdname}</span>
                         <span className="text-[10px] text-surface-500 font-bold truncate max-w-[250px] uppercase tracking-tighter mt-0.5">{stop.address}</span>
                       </div>
                     </td>
                     <td className="px-6 py-6 text-right text-sm font-black text-surface-100 font-numeric">
-                      RM {Number(stop.actualAmount || stop.amount || 0).toFixed(2)}
+                      RM {Number(stop.actualamount || stop.amount || 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-6">
                       <div className="flex items-center justify-center gap-3">
@@ -172,11 +172,11 @@ export default function BillingPage() {
                <div key={stop.id} className="bg-surface-900 border border-surface-800 rounded-2xl p-5 space-y-4 shadow-xl">
                   <div className="flex justify-between items-start">
                      <div>
-                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{stop.scheduledTime || 'N/A'}</p>
-                        <h3 className="text-lg font-black text-surface-50 mt-1">{stop.householdName}</h3>
+                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{stop.scheduledtime || 'N/A'}</p>
+                        <h3 className="text-lg font-black text-surface-50 mt-1">{stop.householdname}</h3>
                         <p className="text-[10px] text-surface-500 font-bold uppercase tracking-tighter line-clamp-1 mt-0.5">{stop.address}</p>
                      </div>
-                     <p className="text-lg font-black text-surface-100 font-numeric">RM{Number(stop.actualAmount || stop.amount || 0).toFixed(0)}</p>
+                     <p className="text-lg font-black text-surface-100 font-numeric">RM{Number(stop.actualamount || stop.amount || 0).toFixed(0)}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 pt-2">
                      <button onClick={() => handleQuickGenerate(stop, 'QUOTATION')} className="py-3.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Quotation</button>

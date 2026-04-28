@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 import { sanitizeObject } from '../utils/sanitize'
 
@@ -9,11 +9,28 @@ import { sanitizeObject } from '../utils/sanitize'
 export function useInventory() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [timeoutError, setTimeoutError] = useState(false)
   const [error, setError] = useState(null)
+  const itemsRef = useRef([])
 
+  // Keep ref in sync for use in callbacks
   useEffect(() => {
-    // Fetch initial inventory
-    const fetchInventory = async () => {
+    itemsRef.current = items
+  }, [items])
+
+  const fetchInventory = async () => {
+    setLoading(true)
+    setTimeoutError(false)
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn("Inventory fetch timed out. Forcing loading to false.")
+        setTimeoutError(true)
+        setLoading(false)
+        setError(new Error("Request timed out. Please check your connection."))
+      }
+    }, 10000)
+
+    try {
       const { data, error: fetchError } = await supabase
         .from('inventory')
         .select('*')
@@ -24,15 +41,24 @@ export function useInventory() {
         setError(fetchError)
       } else {
         setItems(data || [])
+        setError(null)
       }
+    } catch (err) {
+      console.error("Unexpected inventory error:", err)
+      setError(err)
+    } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchInventory()
 
     // Subscribe to realtime changes
+    const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const channel = supabase
-      .channel(`inventory-${crypto.randomUUID()}`)
+      .channel(`inventory-${safeId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'inventory' },
@@ -58,22 +84,32 @@ export function useInventory() {
    * Reads current quantity then updates. Safe for single-user workloads.
    */
   const updateQuantity = async (itemId, delta) => {
+    // 1. Capture current state for rollback
+    const previousItems = [...items]
+    const item = previousItems.find(i => i.id === itemId)
+    if (!item) return
+
+    const newQty = (item.currentquantity || 0) + delta
+    
+    // 2. Optimistic Update (Immediate UI response)
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, currentquantity: newQty, lastupdated: new Date().toISOString() } : i))
+
     try {
-      const item = items.find(i => i.id === itemId)
-      if (!item) throw new Error('Item not found')
+      // 3. Atomic Database Update (Prevents race conditions)
+      const { error } = await supabase.rpc('increment_inventory', { 
+        row_id: itemId, 
+        amt: delta 
+      })
 
-      const { error } = await supabase
-        .from('inventory')
-        .update({
-          currentQuantity: (item.currentQuantity || 0) + delta,
-          lastUpdated: new Date().toISOString()
-        })
-        .eq('id', itemId)
-
-      if (error) throw error
+      if (error) {
+        console.error("Supabase RPC error:", error)
+        setItems(previousItems)
+        alert(`Inventory Update Failed: ${error.message}`)
+      }
     } catch (err) {
       console.error("Failed to update inventory:", err)
-      throw err
+      setItems(previousItems)
+      alert(`System Error: ${err.message}`)
     }
   }
 
@@ -87,9 +123,9 @@ export function useInventory() {
         .from('inventory')
         .update({
           ...sanitizeObject(itemData),
-          currentQuantity: Number(itemData.currentQuantity),
-          lowStockThreshold: Number(itemData.lowStockThreshold),
-          lastUpdated: new Date().toISOString()
+          currentquantity: Number(itemData.currentquantity),
+          lowstockthreshold: Number(itemData.lowstockthreshold),
+          lastupdated: new Date().toISOString()
         })
         .eq('id', itemId)
 
@@ -110,12 +146,12 @@ export function useInventory() {
         .from('inventory')
         .insert({
           ...sanitizeObject(itemData),
-          currentQuantity: Number(itemData.currentQuantity) || 0,
-          lowStockThreshold: Number(itemData.lowStockThreshold) || 5,
+          currentquantity: Number(itemData.currentquantity) || 0,
+          lowstockthreshold: Number(itemData.lowstockthreshold) || 5,
           unit: itemData.unit || 'pcs',
           notes: itemData.notes || '',
-          createdAt: new Date().toISOString(),
-          lastUpdated: new Date().toISOString()
+          createdat: new Date().toISOString(),
+          lastupdated: new Date().toISOString()
         })
 
       if (error) throw error
@@ -157,10 +193,12 @@ export function useInventory() {
     items,
     groupedItems,
     loading,
+    timeoutError,
     error,
     updateQuantity,
     updateItem,
     addItem,
-    deleteItem
+    deleteItem,
+    refresh: fetchInventory
   }
 }

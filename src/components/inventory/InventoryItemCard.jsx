@@ -5,7 +5,12 @@ import React from 'react'
  * Individual item card with controls for quantity adjustment.
  */
 export default function InventoryItemCard({ item, onUpdate, onEdit, onDelete }) {
-  const { id, itemName, currentQuantity, lowStockThreshold, unit, lastUpdated, notes } = item
+  const { id, name, currentquantity, lowstockthreshold, unit, lastupdated, notes } = item
+  const itemName = name || item.itemName || 'Unnamed'
+  const currentQuantity = currentquantity || item.currentQuantity || 0
+  const lowStockThreshold = lowstockthreshold || item.lowStockThreshold || 0
+  const lastUpdated = lastupdated || item.lastUpdated
+  
   const isOutOfStock = currentQuantity <= 0
   const isLowStock = !isOutOfStock && currentQuantity <= lowStockThreshold
 

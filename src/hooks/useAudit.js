@@ -12,19 +12,26 @@ export function useAudit() {
     if (!userProfile) return
 
     try {
-      await supabase.from('audit_logs').insert({
-        actionType, // e.g., 'DELETE_ITINERARY', 'UPDATE_FINANCE', 'CHANGE_ROLE'
-        details,    // Any relevant metadata (ID of affected object, etc.)
-        performedBy: {
+      // Rule #29: Add a safety timeout to audit logging so it never blocks the main UI flow
+      const logPromise = supabase.from('audit_logs').insert({
+        actiontype: actionType,
+        details,
+        performedby: {
           uid: userProfile.uid,
-          name: userProfile.displayName || userProfile.email,
+          name: userProfile.displayname || userProfile.email,
           role: userProfile.role
         },
         timestamp: new Date().toISOString()
       })
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Audit logging timed out')), 5000)
+      )
+
+      await Promise.race([logPromise, timeoutPromise])
     } catch (err) {
       // We don't want to crash the main app if logging fails, but we should know
-      console.warn("Audit logging failed:", err)
+      console.warn("Audit logging failed or timed out:", err)
     }
   }
 

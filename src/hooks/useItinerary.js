@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
@@ -9,7 +9,80 @@ export function useItinerary(troupeId, date) {
   const [attendance, setAttendance] = useState([])
   const [attendanceDetails, setAttendanceDetails] = useState({})
   const [loading, setLoading] = useState(true)
+  const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
+  
+  const itinRef = useRef(null)
+  const stopsRef = useRef([])
+
+  // Move fetch functions outside useEffect so they are accessible for the 'refresh' method
+  const fetchStops = async (itinId) => {
+    try {
+      const { data, error } = await supabase
+        .from('stops')
+        .select('*')
+        .eq('itinerary_id', itinId)
+        .order('order', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching stops:', error)
+      } else {
+        setStops(data || [])
+      }
+    } catch (err) {
+      console.error('Unexpected stops error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchItinerary = async () => {
+    if (!troupeId || !date) return
+
+    setLoading(true)
+    // Rule #29: Safety timeout to prevent indefinite loading
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn("Itinerary fetch timed out. Forcing loading to false.")
+        setTimeoutError(true)
+        setLoading(false)
+      }
+    }, 10000)
+
+    try {
+      const { data, error } = await supabase
+        .from('itineraries')
+        .select('*')
+        .eq('troupeid', troupeId)
+        .eq('date', date)
+        .limit(1)
+        .maybeSingle()
+
+      if (error) {
+        console.error('Error fetching itinerary:', error)
+        setLoading(false)
+        return
+      }
+
+      if (data) {
+        setItinerary(data)
+        setAttendance(data.attendance || [])
+        setAttendanceDetails(data.attendancedetails || {})
+        await fetchStops(data.id)
+      } else {
+        setItinerary(null)
+        setStops([])
+        setAttendance([])
+        setAttendanceDetails({})
+        setLoading(false)
+      }
+    } catch (err) {
+      console.error('Unexpected itinerary error:', err)
+      setLoading(false)
+    } finally {
+      clearTimeout(timeoutId)
+    }
+  }
 
   useEffect(() => {
     // Reset state immediately when parameters change to avoid showing stale data
@@ -26,120 +99,46 @@ export function useItinerary(troupeId, date) {
 
     let itinChannel = null
     let stopsChannel = null
-    let currentItinId = null
-
-    // 1. Fetch itinerary for this troupe & date
-    const fetchItinerary = async () => {
-      const { data, error } = await supabase
-        .from('itineraries')
-        .select('*')
-        .eq('troupeId', troupeId)
-        .eq('date', date)
-        .limit(1)
-        .maybeSingle()
-
-      if (error) {
-        console.error('Error fetching itinerary:', error)
-        setLoading(false)
-        return
-      }
-
-      if (data) {
-        currentItinId = data.id
-        setItinerary(data)
-        setAttendance(data.attendance || [])
-        setAttendanceDetails(data.attendanceDetails || {})
-        await fetchStops(data.id)
-        subscribeToStops(data.id)
-      } else {
-        setItinerary(null)
-        setStops([])
-        setAttendance([])
-        setAttendanceDetails({})
-        setLoading(false)
-      }
-    }
-
-    // 2. Fetch stops for the itinerary (flat table with itinerary_id FK)
-    const fetchStops = async (itinId) => {
-      const { data, error } = await supabase
-        .from('stops')
-        .select('*')
-        .eq('itinerary_id', itinId)
-        .order('order', { ascending: true })
-
-      if (error) {
-        console.error('Error fetching stops:', error)
-      } else {
-        setStops(data || [])
-      }
-      setLoading(false)
-    }
 
     // 3. Subscribe to stops changes
     const subscribeToStops = (itinId) => {
-      // Clean up any existing stops channel before creating a new one
-      if (stopsChannel) {
-        supabase.removeChannel(stopsChannel)
-        stopsChannel = null
-      }
-
+      if (stopsChannel) supabase.removeChannel(stopsChannel)
+      const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
       stopsChannel = supabase
-        .channel(`stops-${itinId}-${crypto.randomUUID()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'stops',
-            filter: `itinerary_id=eq.${itinId}`
-          },
-          (payload) => {
-            if (payload.eventType === 'INSERT') {
-              setStops(prev => [...prev, payload.new].sort((a, b) => (a.order || 0) - (b.order || 0)))
-            } else if (payload.eventType === 'UPDATE') {
-              setStops(prev => prev.map(s => s.id === payload.new.id ? payload.new : s))
-            } else if (payload.eventType === 'DELETE') {
-              setStops(prev => prev.filter(s => s.id !== payload.old.id))
-            }
+        .channel(`stops-${itinId}-${safeId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'stops', filter: `itinerary_id=eq.${itinId}` }, 
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setStops(prev => [...prev, payload.new].sort((a, b) => (a.order || 0) - (b.order || 0)))
+          } else if (payload.eventType === 'UPDATE') {
+            setStops(prev => prev.map(s => s.id === payload.new.id ? payload.new : s))
+          } else if (payload.eventType === 'DELETE') {
+            setStops(prev => prev.filter(s => s.id !== payload.old.id))
           }
-        )
+        })
         .subscribe()
     }
 
-    fetchItinerary()
+    fetchItinerary().then(() => {
+      if (itinRef.current?.id) subscribeToStops(itinRef.current.id)
+    })
 
     // 4. Subscribe to itinerary changes
+    const itinSafeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     itinChannel = supabase
-      .channel(`itin-${troupeId}-${date}-${crypto.randomUUID()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'itineraries'
-        },
+      .channel(`itin-${troupeId}-${date}-${itinSafeId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' },
         (payload) => {
           const row = payload.new || payload.old
-          // Only react to this troupe+date combo
-          if (row?.troupeId !== troupeId || row?.date !== date) return
+          if (row?.troupeid !== troupeId || row?.date !== date) return
 
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          if (payload.eventType === 'UPDATE') {
             setItinerary(payload.new)
             setAttendance(payload.new.attendance || [])
-            setAttendanceDetails(payload.new.attendanceDetails || {})
-
-            // If this is a new itinerary (INSERT), start listening to its stops
-            if (payload.eventType === 'INSERT' && payload.new.id !== currentItinId) {
-              currentItinId = payload.new.id
-              fetchStops(payload.new.id)
-              subscribeToStops(payload.new.id)
-            }
+            setAttendanceDetails(payload.new.attendancedetails || {})
           } else if (payload.eventType === 'DELETE') {
             setItinerary(null)
             setStops([])
-            setAttendance([])
-            setAttendanceDetails({})
           }
         }
       )
@@ -153,21 +152,24 @@ export function useItinerary(troupeId, date) {
 
   // Helper to mark a stop as in-progress, completed, or skipped
   const updateStopStatus = async (stopId, newStatus, extraData = {}) => {
-    if (!itinerary) return
-    const stopData = stops.find(s => s.id === stopId)
+    const currentItin = itinRef.current
+    const currentStops = stopsRef.current
+    if (!currentItin) return
+    
+    const stopData = currentStops.find(s => s.id === stopId)
     const oldStatus = stopData?.status || 'pending'
 
-    if (oldStatus === newStatus) return
+    if (oldStatus === newStatus && newStatus !== 'completed') return
 
     const now = new Date().toISOString()
-    const stopUpdates = { status: newStatus, updatedAt: now }
+    const stopUpdates = { status: newStatus, updatedat: now }
 
     // Status timestamps
-    if (newStatus === 'performing') stopUpdates.performanceStartedAt = now
+    if (newStatus === 'performing') stopUpdates.performancestartedat = now
     else if (newStatus === 'completed') {
-      stopUpdates.completedAt = now
-      if (extraData.actualAmount !== undefined) stopUpdates.actualAmount = Number(extraData.actualAmount) || 0
-      if (extraData.paymentMethod) stopUpdates.paymentMethod = extraData.paymentMethod
+      stopUpdates.completedat = now
+      if (extraData.actualamount !== undefined) stopUpdates.actualamount = Number(extraData.actualamount) || 0
+      if (extraData.paymentmethod) stopUpdates.paymentmethod = extraData.paymentmethod
     }
 
     // Update stop
@@ -179,43 +181,43 @@ export function useItinerary(troupeId, date) {
     if (stopError) throw stopError
 
     // ⭐ Counter Updates (sequential read-update since Supabase lacks client-side increment)
-    const itinUpdates = { updatedAt: now }
+    const itinUpdates = { updatedat: now }
     let totalRevDelta = 0
 
     if (oldStatus === 'completed' && newStatus !== 'completed') {
-      itinUpdates.completedStops = Math.max(0, (itinerary.completedStops || 0) - 1)
-      totalRevDelta = -(Number(stopData.actualAmount) || 0)
+      itinUpdates.completedstops = Math.max(0, (currentItin.completedstops || 0) - 1)
+      totalRevDelta = -(Number(stopData.actualamount) || 0)
     } else if (oldStatus !== 'completed' && newStatus === 'completed') {
-      itinUpdates.completedStops = (itinerary.completedStops || 0) + 1
-      totalRevDelta = Number(extraData.actualAmount) || 0
+      itinUpdates.completedstops = (currentItin.completedstops || 0) + 1
+      totalRevDelta = Number(extraData.actualamount) || 0
     } else if (oldStatus === 'completed' && newStatus === 'completed') {
-      totalRevDelta = (Number(extraData.actualAmount) || 0) - (Number(stopData.actualAmount) || 0)
+      totalRevDelta = (Number(extraData.actualamount) || 0) - (Number(stopData.actualamount) || 0)
     }
 
     if (totalRevDelta !== 0) {
-      itinUpdates.totalRevenue = (itinerary.totalRevenue || 0) + totalRevDelta
+      itinUpdates.totalrevenue = (currentItin.totalrevenue || 0) + totalRevDelta
     }
 
     if (oldStatus === 'skipped' && newStatus !== 'skipped') {
-      itinUpdates.skippedStops = Math.max(0, (itinerary.skippedStops || 0) - 1)
+      itinUpdates.skippedstops = Math.max(0, (currentItin.skippedstops || 0) - 1)
     } else if (oldStatus !== 'skipped' && newStatus === 'skipped') {
-      itinUpdates.skippedStops = (itinerary.skippedStops || 0) + 1
+      itinUpdates.skippedstops = (currentItin.skippedstops || 0) + 1
     }
 
-    await supabase.from('itineraries').update(itinUpdates).eq('id', itinerary.id)
+    await supabase.from('itineraries').update(itinUpdates).eq('id', currentItin.id)
 
     // Sync Finance — delete if un-completing
     if (newStatus !== 'completed' && oldStatus === 'completed') {
       try {
-        await supabase.from('finance').delete().eq('sourceStopId', stopId)
+        await supabase.from('finance').delete().eq('sourcestopid', stopId)
       } catch (err) { console.error('Finance cleanup failed:', err) }
     }
 
     // 💰 Deterministic Finance Recording
-    if (newStatus === 'completed' && (Number(extraData.actualAmount) || 0) > 0) {
-      const amount = Number(extraData.actualAmount) || 0
-      const customerName = stopData?.householdName || extraData.customerName || 'Standard Performance'
-      const recordDate = stopData?.scheduledDate || date
+    if (newStatus === 'completed' && (Number(extraData.actualamount) || 0) > 0) {
+      const amount = Number(extraData.actualamount) || 0
+      const customerName = stopData?.householdname || extraData.customerName || 'Standard Performance'
+      const recordDate = stopData?.scheduleddate || date
       const financeId = `FIN_${recordDate}_${stopId}`
 
       await supabase.from('finance').upsert({
@@ -224,11 +226,11 @@ export function useItinerary(troupeId, date) {
         amount: amount,
         category: 'Performances',
         date: recordDate,
-        description: `Performance: ${customerName} (${itinerary.troupeName || 'Unknown'})`,
-        paymentMethod: extraData.paymentMethod || 'Cash',
-        troupeId: itinerary.troupeId,
-        sourceStopId: stopId,
-        createdAt: now
+        description: `Performance: ${customerName} (${itinerary.troupename || 'Unknown'})`,
+        paymentmethod: extraData.paymentmethod || 'Cash',
+        troupeid: currentItin.troupeid,
+        sourcestopid: stopId,
+        createdat: now
       })
     }
   }
@@ -241,7 +243,7 @@ export function useItinerary(troupeId, date) {
         .from('stops')
         .update({
           ...sanitizeObject(updatedData),
-          updatedAt: new Date().toISOString()
+          updatedat: new Date().toISOString()
         })
         .eq('id', stopId)
 
@@ -260,17 +262,17 @@ export function useItinerary(troupeId, date) {
         .from('itineraries')
         .upsert({
           id: docId,
-          troupeId,
+          troupeid: troupeId,
           date,
           status: 'published',
           attendance: [],
-          attendanceDetails: {},
-          totalStops: 0,
-          completedStops: 0,
-          skippedStops: 0,
-          totalRevenue: 0,
-          createdAt: new Date().toISOString(),
-          ...itinData
+          attendancedetails: {},
+          totalstops: 0,
+          completedstops: 0,
+          skippedstops: 0,
+          totalrevenue: 0,
+          createdat: new Date().toISOString(),
+          ...sanitizeObject(itinData)
         })
 
       if (error) throw error
@@ -300,9 +302,9 @@ export function useItinerary(troupeId, date) {
           itinerary_id: activeItinId,
           order: stops.length,
           status: 'pending',
-          createdBy: userId,
-          createdAt: now,
-          updatedAt: now
+          createdby: userId,
+          createdat: now,
+          updatedat: now
         })
 
       if (stopError) throw stopError
@@ -311,8 +313,8 @@ export function useItinerary(troupeId, date) {
       await supabase
         .from('itineraries')
         .update({
-          totalStops: (itinerary?.totalStops || 0) + 1,
-          updatedAt: now
+          totalstops: (itinerary?.totalstops || 0) + 1,
+          updatedat: now
         })
         .eq('id', activeItinId)
     } catch (err) {
@@ -329,7 +331,7 @@ export function useItinerary(troupeId, date) {
       const now = new Date().toISOString()
 
       // 1. Delete associated finance records
-      await supabase.from('finance').delete().eq('sourceStopId', stopId)
+      await supabase.from('finance').delete().eq('sourcestopid', stopId)
 
       // 2. Delete the stop
       const { error: stopError } = await supabase
@@ -341,15 +343,15 @@ export function useItinerary(troupeId, date) {
 
       // 3. ⭐ Counter Updates
       const itinUpdates = {
-        totalStops: Math.max(0, (itinerary.totalStops || 0) - 1),
-        updatedAt: now
+        totalstops: Math.max(0, (itinerary.totalstops || 0) - 1),
+        updatedat: now
       }
 
       if (stopData?.status === 'completed') {
-        itinUpdates.completedStops = Math.max(0, (itinerary.completedStops || 0) - 1)
-        itinUpdates.totalRevenue = (itinerary.totalRevenue || 0) - (Number(stopData.actualAmount) || 0)
+        itinUpdates.completedstops = Math.max(0, (itinerary.completedstops || 0) - 1)
+        itinUpdates.totalrevenue = (itinerary.totalrevenue || 0) - (Number(stopData.actualamount) || 0)
       } else if (stopData?.status === 'skipped') {
-        itinUpdates.skippedStops = Math.max(0, (itinerary.skippedStops || 0) - 1)
+        itinUpdates.skippedstops = Math.max(0, (itinerary.skippedstops || 0) - 1)
       }
 
       await supabase.from('itineraries').update(itinUpdates).eq('id', itinerary.id)
@@ -369,7 +371,7 @@ export function useItinerary(troupeId, date) {
       const updates = newStops.map((stop, index) =>
         supabase
           .from('stops')
-          .update({ order: index, updatedAt: now })
+          .update({ order: index, updatedat: now })
           .eq('id', stop.id)
       )
       await Promise.all(updates)
@@ -391,8 +393,8 @@ export function useItinerary(troupeId, date) {
         .from('itineraries')
         .update({
           attendance: memberIds,
-          attendanceDetails: details,
-          updatedAt: new Date().toISOString()
+          attendancedetails: details,
+          updatedat: new Date().toISOString()
         })
         .eq('id', itinerary.id)
 
@@ -410,7 +412,7 @@ export function useItinerary(troupeId, date) {
       // 1. Delete all finance records linked to any stop in this itinerary
       const stopIds = stops.map(s => s.id)
       if (stopIds.length > 0) {
-        await supabase.from('finance').delete().in('sourceStopId', stopIds)
+        await supabase.from('finance').delete().in('sourcestopid', stopIds)
       }
 
       // 2. Delete all stops for this itinerary
@@ -419,14 +421,14 @@ export function useItinerary(troupeId, date) {
       // 3. Delete the itinerary
       await supabase.from('itineraries').delete().eq('id', itinerary.id)
 
-      logAction('DELETE_FULL_ITINERARY', { itinId: itinerary.id, date: itinerary.date, troupeName: itinerary.troupeName })
+      logAction('DELETE_FULL_ITINERARY', { itinId: itinerary.id, date: itinerary.date, troupeName: itinerary.troupename })
     } catch (err) {
       console.error('Error deleting full itinerary:', err)
       throw err
     }
   }
 
-  return { itinerary, stops, attendance, attendanceDetails, loading, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary }
+  return { itinerary, stops, attendance, attendanceDetails, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary, refresh: fetchItinerary }
 }
 
 export function useAllPerformanceDates(troupeId) {
@@ -481,8 +483,9 @@ export function useAllPerformanceDates(troupeId) {
     fetchItineraries()
 
     // Subscribe to realtime changes on itineraries
+    const allItinSafeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const channel = supabase
-      .channel(`all-itin-${crypto.randomUUID()}`)
+      .channel(`all-itin-${allItinSafeId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'itineraries' },
@@ -510,18 +513,18 @@ export function useAllPerformanceDates(troupeId) {
 
     allItineraries.forEach(itin => {
       if (!itin.date) return
-      const total = Math.max(0, Number(itin.totalStops) || 0)
-      const comp = Math.max(0, Number(itin.completedStops) || 0)
+      const total = Math.max(0, Number(itin.totalstops) || 0)
+      const comp = Math.max(0, Number(itin.completedstops) || 0)
 
       counts[itin.date] = (counts[itin.date] || 0) + total
       if (comp < total) {
         unfinishedSet.add(itin.date)
       }
 
-      if (itin.troupeId) {
+      if (itin.troupeid) {
         if (!troupesMap[itin.date]) troupesMap[itin.date] = []
-        if (!troupesMap[itin.date].includes(itin.troupeId)) {
-          troupesMap[itin.date].push(itin.troupeId)
+        if (!troupesMap[itin.date].includes(itin.troupeid)) {
+          troupesMap[itin.date].push(itin.troupeid)
         }
       }
     })

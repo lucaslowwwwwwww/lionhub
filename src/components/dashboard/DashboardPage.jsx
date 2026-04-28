@@ -11,10 +11,10 @@ export default function DashboardPage() {
   const { userProfile } = useAuth()
   const { settings } = useSettings()
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-  const { stats, availableYears, loading } = useDashboardStats()
+  const { stats, availableYears, loading, timeoutError } = useDashboardStats()
   const { pathname } = useLocation()
 
-  const troupeId = userProfile?.troupeId || 'DEMO_TROUPE'
+  const troupeId = userProfile?.troupeid || 'DEMO_TROUPE'
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
   
   const getActiveView = () => {
@@ -28,6 +28,25 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-8 animate-fade-in pb-12">
+      {timeoutError && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-[2rem] p-5 flex items-center gap-4 animate-in slide-in-from-top-2 duration-500">
+          <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+            <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 15c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-amber-200 text-base font-black uppercase tracking-tight">Performance Statistics Delayed</p>
+            <p className="text-amber-500/70 text-sm font-bold">Metrics took longer than expected to load. Visual charts may be incomplete.</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-amber-500 text-black text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-amber-400 transition-all shadow-xl shadow-amber-500/20 active:scale-95"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
       {/* Dynamic Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-surface-900/40 border border-surface-800/50 rounded-[2.5rem] p-6 sm:p-8 shadow-sm backdrop-blur-md">
         <div className="space-y-1 text-center lg:text-left">

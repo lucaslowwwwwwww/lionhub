@@ -28,15 +28,15 @@ export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds 
   const searchLower = (searchTerm || '').toLowerCase()
 
   const filtered = memList.filter(m => {
-    const name = (m.displayName || '').toLowerCase()
-    const troupe = trpList.find(t => t.id === m.troupeId)
+    const name = (m.displayname || m.displayName || '').toLowerCase()
+    const troupe = trpList.find(t => t.id === m.troupeid)
     const tName = (troupe?.name || 'Unassigned').toLowerCase()
     return name.includes(searchLower) || tName.includes(searchLower)
   })
 
   // Separate and sort
-  const admins = filtered.filter(m => m.role === 'admin').sort((a,b) => (a.displayName || '').localeCompare(b.displayName || ''))
-  const regular = filtered.filter(m => m.role !== 'admin').sort((a,b) => (a.displayName || '').localeCompare(b.displayName || ''))
+  const admins = filtered.filter(m => m.role === 'admin').sort((a,b) => (a.displayname || a.displayName || '').localeCompare(b.displayname || b.displayName || ''))
+  const regular = filtered.filter(m => m.role !== 'admin').sort((a,b) => (a.displayname || a.displayName || '').localeCompare(b.displayname || b.displayName || ''))
 
 
   const handleToggle = (id) => {
@@ -55,10 +55,10 @@ export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds 
     setIsAdding(true)
     try {
       const nid = await addMember({
-        displayName: searchTerm.trim(),
+        displayname: searchTerm.trim(),
         role: 'member',
-        troupeId: currentTroupeId || 'unassigned',
-        requiresAuth: false
+        troupeid: currentTroupeId || 'unassigned',
+        requiresauth: false
       })
       if (nid) setTempSelected(p => ({ ...p, [nid]: 'full' }))
       setSearchTerm('')
@@ -125,11 +125,11 @@ export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds 
                       </div>
                       <div className="flex-1 text-left">
                         <div className="flex justify-between items-center">
-                          <p className={`font-black text-sm ${isSelected ? (isHalf ? 'text-orange-400' : 'text-gold-400') : 'text-surface-100'}`}>{m.displayName}</p>
+                          <p className={`font-black text-sm ${isSelected ? (isHalf ? 'text-orange-400' : 'text-gold-400') : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
                           {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-500 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
                           {isHalf && <span className="text-[8px] font-black text-orange-400 uppercase bg-orange-500/20 px-1.5 py-0.5 rounded ml-2">Half Day</span>}
                         </div>
-                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeId)?.name || 'Unassigned'} • Admin</p>
+                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • Admin</p>
                       </div>
                     </button>
                     )
@@ -151,11 +151,11 @@ export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds 
                       </div>
                       <div className="flex-1 text-left">
                         <div className="flex justify-between items-center">
-                          <p className={`font-black text-sm ${isSelected ? (isHalf ? 'text-orange-400' : 'text-crimson-400') : 'text-surface-100'}`}>{m.displayName}</p>
+                          <p className={`font-black text-sm ${isSelected ? (isHalf ? 'text-orange-400' : 'text-crimson-400') : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
                           {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-500 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
                           {isHalf && <span className="text-[8px] font-black text-orange-400 uppercase bg-orange-500/20 px-1.5 py-0.5 rounded ml-2">Half Day</span>}
                         </div>
-                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeId)?.name || 'Unassigned'} • Member</p>
+                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • Member</p>
                       </div>
                     </button>
                     )

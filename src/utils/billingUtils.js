@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { supabase } from '../supabase'
 import { loadChineseFont } from './exportUtils'
 
 export const formatPerformanceDescription = (stop) => {
@@ -46,15 +47,15 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
   doc.setFont("helvetica")
   
   // Configuration Overrides
-  const clubNameEn = settings?.clubNameEn || "Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka"
-  const clubNameCn = settings?.clubNameCn || "馬來西亞馬六甲傳承龍獅體育會"
-  const clubRegNo = settings?.clubRegistrationNo || "(PPM-015-04-30122019)"
-  const clubAddress = settings?.clubAddress || "NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA"
-  const clubPhone = settings?.clubPhone || "012-328 2862 / 013-666 0979"
-  const prepName = settings?.receiptPreparedBy || userProfile?.displayName || "ADMIN"
-  const bankName = settings?.bankName || "PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA"
-  const bankType = settings?.bankType || "CIMB"
-  const bankNumber = settings?.bankNumber || "8011396083"
+  const clubNameEn = settings?.clubnameen || "Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka"
+  const clubNameCn = settings?.clubnamecn || "馬來西亞馬六甲傳承龍獅體育會"
+  const clubRegNo = settings?.clubregistrationno || "(PPM-015-04-30122019)"
+  const clubAddress = settings?.clubaddress || "NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA"
+  const clubPhone = settings?.clubphone || "012-328 2862 / 013-666 0979"
+  const prepName = settings?.receiptpreparedby || userProfile?.displayname || "ADMIN"
+  const bankName = settings?.bankname || "PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA"
+  const bankType = settings?.banktype || "CIMB"
+  const bankNumber = settings?.banknumber || "8011396083"
 
   // Load and add Chinese font
   const fontBase64 = await loadChineseFont()
@@ -117,13 +118,13 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
   doc.text(`HP: ${clubPhone}`, 105, headerPhoneY, { align: "center" })
 
   // Billing Details
-  const customerName = data.customerName || "Customer Name"
-  const customerAddress = data.customerAddress || "Address omitted"
-  const customerPhone = data.customerPhone || "N/A"
+  const customerName = data.customername || "Customer Name"
+  const customerAddress = data.customeraddress || "Address omitted"
+  const customerPhone = data.customerphone || "N/A"
   const amount = data.amount || 0
   const qty = data.quantity || 1
   const docId = data.id || Math.random().toString(36).substr(2, 9).toUpperCase()
-  const dateStr = data.performanceDate || new Date().toISOString().split('T')[0]
+  const dateStr = data.performancedate || new Date().toISOString().split('T')[0]
 
   let billingY = headerPhoneY + 12
   
@@ -178,7 +179,7 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
   doc.text("PHONE :", 120, phoneLabelY)
   doc.line(120, phoneLabelY + 1, 135, phoneLabelY + 1)
   doc.setFont(defaultFont, "normal")
-  const sigPhone = settings?.signatoryPhone || clubPhone.split('/')[0].trim()
+  const sigPhone = settings?.signatoryphone || clubPhone.split('/')[0].trim()
   doc.text(sigPhone.replace(/\s/g, ''), 140, phoneLabelY)
 
   // Items Table
@@ -260,13 +261,13 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
   // Audit log
   try {
     if (userProfile?.uid) {
-      await addDoc(collection(db, 'billing_docs'), {
+      await supabase.from('billing_docs').insert({
         type,
-        customerName,
+        customername: customerName,
         amount: Number(amount),
-        performanceDate: dateStr,
-        generatedBy: userProfile.uid,
-        createdAt: serverTimestamp()
+        performancedate: dateStr,
+        generatedby: userProfile.uid,
+        createdat: new Date().toISOString()
       })
     }
   } catch(e) { console.warn('Failed to audit log billing export', e) }

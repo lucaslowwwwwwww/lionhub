@@ -12,10 +12,10 @@ export default function InventoryItemModal({
   editingItem = null 
 }) {
   const [formData, setFormData] = useState({
-    itemName: '',
+    name: '',
     category: '',
-    currentQuantity: 0,
-    lowStockThreshold: 5,
+    currentquantity: 0,
+    lowstockthreshold: 5,
     unit: 'pcs',
     notes: ''
   })
@@ -24,19 +24,19 @@ export default function InventoryItemModal({
   useEffect(() => {
     if (editingItem) {
       setFormData({
-        itemName: editingItem.itemName || '',
+        name: editingItem.name || editingItem.itemName || '',
         category: editingItem.category || '',
-        currentQuantity: editingItem.currentQuantity || 0,
-        lowStockThreshold: editingItem.lowStockThreshold || 5,
+        currentquantity: editingItem.currentquantity || editingItem.currentQuantity || 0,
+        lowstockthreshold: editingItem.lowstockthreshold || editingItem.lowStockThreshold || 5,
         unit: editingItem.unit || 'pcs',
         notes: editingItem.notes || ''
       })
     } else {
       setFormData({
-        itemName: '',
+        name: '',
         category: '',
-        currentQuantity: 0,
-        lowStockThreshold: 5,
+        currentquantity: 0,
+        lowstockthreshold: 5,
         unit: 'pcs',
         notes: ''
       })
@@ -47,7 +47,7 @@ export default function InventoryItemModal({
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!formData.itemName.trim()) return
+    if (!formData.name.trim()) return
     onSave(formData)
     onClose()
   }
@@ -84,8 +84,8 @@ export default function InventoryItemModal({
                 <input 
                   required
                   type="text" 
-                  value={formData.itemName}
-                  onChange={(e) => setFormData({...formData, itemName: e.target.value})}
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
                   className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 focus:outline-none focus:border-gold-500/50 transition-all font-bold shadow-inner"
                   placeholder="e.g. Lion Head (New)"
                 />
@@ -114,8 +114,8 @@ export default function InventoryItemModal({
                     required
                     type="number"
                     min="0"
-                    value={formData.currentQuantity}
-                    onChange={(e) => setFormData({...formData, currentQuantity: e.target.value})}
+                    value={formData.currentquantity}
+                    onChange={(e) => setFormData({...formData, currentquantity: e.target.value})}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 focus:outline-none focus:border-gold-500/50 transition-all font-black text-xl tabular-nums shadow-inner"
                   />
                 </div>
@@ -141,8 +141,8 @@ export default function InventoryItemModal({
                   required
                   type="number"
                   min="0"
-                  value={formData.lowStockThreshold}
-                  onChange={(e) => setFormData({...formData, lowStockThreshold: e.target.value})}
+                  value={formData.lowstockthreshold}
+                  onChange={(e) => setFormData({...formData, lowstockthreshold: e.target.value})}
                   className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-crimson-500 focus:outline-none focus:border-crimson-500/50 transition-all font-black text-xl tabular-nums shadow-inner"
                 />
                 <p className="text-[9px] text-surface-600 font-bold mt-2 ml-1 italic">Alert triggers when count reaches this value.</p>

@@ -23,7 +23,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
 
   // Calculate duration if completed
   let recordedMinutes = null
-  if (isCompleted && stop.performanceStartedAt && stop.completedAt) {
+  if (isCompleted && (stop.performancestartedat || stop.performanceStartedAt) && (stop.completedat || stop.completedAt)) {
     try {
       const getMs = (ts) => {
         if (!ts) return 0
@@ -32,8 +32,8 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
         if (ts.seconds) return ts.seconds * 1000
         return new Date(ts).getTime()
       }
-      const startMs = getMs(stop.performanceStartedAt)
-      const endMs = getMs(stop.completedAt)
+      const startMs = getMs(stop.performancestartedat || stop.performanceStartedAt)
+      const endMs = getMs(stop.completedat || stop.completedAt)
       if (startMs && endMs) {
         recordedMinutes = Math.max(1, Math.round((endMs - startMs) / 60000))
       }
@@ -42,7 +42,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
 
   const renderNavModal = () => {
     if (!isNavigating) return null
-    const query = encodeURIComponent(stop.address || stop.householdName)
+    const query = encodeURIComponent(stop.address || stop.householdname || stop.householdName)
     const gmapsLink = `https://www.google.com/maps/search/?api=1&query=${query}`
     const wazeLink = `https://waze.com/ul?q=${query}&navigate=yes`
   
@@ -112,7 +112,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
             
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black text-surface-50 tracking-tight leading-none">{stop.householdName}</h3>
+                <h3 className="text-xl font-black text-surface-50 tracking-tight leading-none">{stop.householdname || stop.householdName}</h3>
                 {isAdmin && (
                   <div className="flex items-center gap-1 transition-opacity">
                     <button 
@@ -136,7 +136,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
               </div>
               <div className="flex items-center gap-2 mt-1.5">
                 <StatusBadge status={stop.status} />
-                <span className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">{stop.scheduledTime}</span>
+                <span className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">{stop.scheduledtime || stop.scheduledTime}</span>
               </div>
             </div>
           </div>
@@ -199,14 +199,14 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
               <span className="text-sm text-surface-200 font-bold font-numeric tracking-tight">{stop.phone}</span>
               <div className="flex flex-col items-end">
                 <p className="text-lg font-black text-gold-400 font-numeric leading-none tracking-tighter">
-                  {isCompleted && stop.actualAmount !== undefined && stop.actualAmount !== Number(stop.amount) ? (
-                    <span className="text-green-400">RM{stop.actualAmount}</span>
+                  {isCompleted && (stop.actualamount !== undefined || stop.actualAmount !== undefined) && (stop.actualamount !== Number(stop.amount) || stop.actualAmount !== Number(stop.amount)) ? (
+                    <span className="text-green-400">RM{stop.actualamount || stop.actualAmount}</span>
                   ) : (
-                    `RM${stop.actualAmount || stop.amount}`
+                    `RM${stop.actualamount || stop.actualAmount || stop.amount}`
                   )}
                 </p>
-                {isCompleted && stop.paymentMethod && (
-                   <span className="text-[8px] font-black text-surface-500 uppercase tracking-widest mt-0.5">{stop.paymentMethod}</span>
+                {isCompleted && (stop.paymentmethod || stop.paymentMethod) && (
+                   <span className="text-[8px] font-black text-surface-500 uppercase tracking-widest mt-0.5">{stop.paymentmethod || stop.paymentMethod}</span>
                 )}
               </div>
             </div>
@@ -214,26 +214,26 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
         </div>
 
         {/* PERFORMANCE TAGS: Horizontal Scrollable List */}
-        {(stop.lionColor || stop.hasGodOfWealth || stop.hasBigHeadBuddha || stop.pluckingType) && (
+        {(stop.lioncolor || stop.lionColor || stop.hasgodofwealth || stop.hasGodOfWealth || stop.hasbigheadbuddha || stop.hasBigHeadBuddha || stop.pluckingtype || stop.pluckingType) && (
           <div className="flex flex-wrap gap-2 pt-2">
-            {stop.lionColor && (
+            {(stop.lioncolor || stop.lionColor) && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface-800 text-surface-200 text-[10px] font-black border border-surface-700/50 shadow-sm uppercase tracking-tight gap-1.5">
                 <svg className="w-3 h-3 text-surface-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
-                {Array.isArray(stop.lionColor) ? stop.lionColor.join(' & ') : stop.lionColor} Lion
+                {Array.isArray(stop.lioncolor || stop.lionColor) ? (stop.lioncolor || stop.lionColor).join(' & ') : (stop.lioncolor || stop.lionColor)} Lion
               </span>
             )}
-            {stop.hasGodOfWealth && (
+            {(stop.hasgodofwealth || stop.hasGodOfWealth) && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight gap-1.5">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 God of Wealth
               </span>
             )}
-            {stop.hasBigHeadBuddha && (
+            {(stop.hasbigheadbuddha || stop.hasBigHeadBuddha) && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight text-center">
                 Buddha
               </span>
             )}
-            {stop.pluckingType && (Array.isArray(stop.pluckingType) ? stop.pluckingType : [stop.pluckingType]).map((type, i) => (
+            {(stop.pluckingtype || stop.pluckingType) && (Array.isArray(stop.pluckingtype || stop.pluckingType) ? (stop.pluckingtype || stop.pluckingType) : [stop.pluckingtype || stop.pluckingType]).map((type, i) => (
               <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight gap-1.5">
                 <svg className="w-3 h-3 text-green-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
                 {type}

@@ -16,6 +16,7 @@ export function useDashboardStats() {
   })
   const [availableYears, setAvailableYears] = useState([new Date().getFullYear()])
   const [loading, setLoading] = useState(true)
+  const [timeoutError, setTimeoutError] = useState(false)
 
   useEffect(() => {
     const currentYear = new Date().getFullYear()
@@ -54,9 +55,9 @@ export function useDashboardStats() {
                 const m = dateObj.getMonth()
                 yearSet.add(y)
 
-                let dStop = Math.max(0, Number(data.totalStops) || 0)
-                let dComp = Math.max(0, Number(data.completedStops) || 0)
-                let dSkip = Math.max(0, Number(data.skippedStops) || 0)
+                let dStop = Math.max(0, Number(data.totalstops) || 0)
+                let dComp = Math.max(0, Number(data.completedstops) || 0)
+                let dSkip = Math.max(0, Number(data.skippedstops) || 0)
 
                 if (y === currentYear) {
                   totalStops += dStop
@@ -150,31 +151,51 @@ export function useDashboardStats() {
       })
     }
 
-    // Initial fetch all data
+    // Initial fetch all data with safety timeout
     const fetchAll = async () => {
-      const [itinRes, finRes, troupeRes, memberRes] = await Promise.all([
-        supabase.from('itineraries').select('*').gte('date', startIso),
-        supabase.from('finance').select('*').gte('date', startIso),
-        supabase.from('troupes').select('id', { count: 'exact', head: true }),
-        supabase.from('users').select('id', { count: 'exact', head: true })
-      ])
+      setLoading(true)
+      setTimeoutError(false)
 
-      if (itinRes.data) processItineraries(itinRes.data)
-      if (finRes.data) processFinance(finRes.data)
+      // Rule #29: Safety timeout to prevent indefinite loading
+      const timeoutId = setTimeout(() => {
+        if (loading) {
+          console.warn("Dashboard stats fetch timed out. Forcing loading to false.")
+          setTimeoutError(true)
+          setLoading(false)
+        }
+      }, 10000)
 
-      setStats(prev => ({
-        ...prev,
-        activeTroupes: troupeRes.count || 0,
-        totalMembers: memberRes.count || 0
-      }))
-      setLoading(false)
+      try {
+        const [itinRes, finRes, troupeRes, memberRes] = await Promise.all([
+          supabase.from('itineraries').select('*').gte('date', startIso),
+          supabase.from('finance').select('*').gte('date', startIso),
+          supabase.from('troupes').select('id', { count: 'exact', head: true }),
+          supabase.from('users').select('id', { count: 'exact', head: true })
+        ])
+
+        if (itinRes.data) processItineraries(itinRes.data)
+        if (finRes.data) processFinance(finRes.data)
+
+        setStats(prev => ({
+          ...prev,
+          activeTroupes: troupeRes.count || 0,
+          totalMembers: memberRes.count || 0
+        }))
+      } catch (err) {
+        console.error("Unexpected dashboard stats error:", err)
+      } finally {
+        clearTimeout(timeoutId)
+        setLoading(false)
+      }
     }
 
     fetchAll()
 
     // Realtime subscriptions
+    const safeId = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
+    
     const itinChannel = supabase
-      .channel(`dash-itin-${crypto.randomUUID()}`)
+      .channel(`dash-itin-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' }, async () => {
         const { data } = await supabase.from('itineraries').select('*').gte('date', startIso)
         if (data) processItineraries(data)
@@ -182,7 +203,7 @@ export function useDashboardStats() {
       .subscribe()
 
     const finChannel = supabase
-      .channel(`dash-fin-${crypto.randomUUID()}`)
+      .channel(`dash-fin-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, async () => {
         const { data } = await supabase.from('finance').select('*').gte('date', startIso)
         if (data) processFinance(data)
@@ -190,7 +211,7 @@ export function useDashboardStats() {
       .subscribe()
 
     const troupeChannel = supabase
-      .channel(`dash-troupes-${crypto.randomUUID()}`)
+      .channel(`dash-troupes-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes' }, async () => {
         const { count } = await supabase.from('troupes').select('id', { count: 'exact', head: true })
         setStats(prev => ({ ...prev, activeTroupes: count || 0 }))
@@ -198,7 +219,7 @@ export function useDashboardStats() {
       .subscribe()
 
     const memberChannel = supabase
-      .channel(`dash-members-${crypto.randomUUID()}`)
+      .channel(`dash-members-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async () => {
         const { count } = await supabase.from('users').select('id', { count: 'exact', head: true })
         setStats(prev => ({ ...prev, totalMembers: count || 0 }))
@@ -213,5 +234,5 @@ export function useDashboardStats() {
     }
   }, [])
 
-  return { stats, availableYears, loading }
+  return { stats, availableYears, loading, timeoutError }
 }

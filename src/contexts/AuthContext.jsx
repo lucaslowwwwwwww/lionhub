@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 
 export const AuthContext = createContext(null)
@@ -15,21 +15,33 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [connectionError, setConnectionError] = useState(false)
+  const profileChannelRef = useRef(null)
 
-  useEffect(() => {
-    let profileChannel = null
+  // Fetch the user profile from the 'users' table with safety timeout
+  const fetchProfile = async (authUser) => {
+    if (!authUser) {
+      setUserProfile(null)
+      setLoading(false)
+      return
+    }
 
-    // Fetch the user profile from the 'users' table
-    const fetchProfile = async (authUser) => {
-      if (!authUser) {
-        setUserProfile(null)
+    setLoading(true)
+    setConnectionError(false)
+    let isPending = true
+
+    // Rule #29: Safety timeout
+    const timeoutId = setTimeout(() => {
+      if (isPending) {
+        console.warn("Profile fetch timed out.")
+        setConnectionError(true)
         setLoading(false)
-        return
       }
+    }, 15000)
 
-      // Master email check — case-insensitive, check both auth email and profile email
-      const MASTER_EMAIL = 'chuancheng2020@gmail.com'
+    try {
       const authEmail = (authUser.email || '').toLowerCase().trim()
+      const MASTER_EMAIL = 'chuancheng2020@gmail.com'
 
       const { data: profileData, error } = await supabase
         .from('users')
@@ -41,34 +53,22 @@ export function AuthProvider({ children }) {
         console.error('Failed to fetch user profile:', error)
       }
 
-      // Check master status from both the auth object AND the database row
       const profileEmail = (profileData?.email || '').toLowerCase().trim()
       const isMaster = authEmail === MASTER_EMAIL || profileEmail === MASTER_EMAIL
 
-      // If they are the hardcoded master, override role but keep all profile fields
       if (isMaster) {
         setUserProfile({
           ...(profileData || {}),
           uid: authUser.id,
-          displayName: profileData?.displayName || 'Master Admin',
+          displayname: profileData?.displayname || 'Master Admin',
           email: authUser.email || profileData?.email,
           role: 'master',
-          troupeId: null
+          troupeid: null
         })
-        setLoading(false)
-        return
-      }
-
-      if (profileData) {
-        if (profileData.status === 'deleted') {
-          console.warn('Deleted user blocked:', authUser.email)
-          sessionStorage.setItem('login_error', 'Account Disabled.')
-          await supabase.auth.signOut()
-          setUser(null)
-          setUserProfile(null)
-        } else if (profileData.role === 'member') {
-          console.warn('Member blocked:', authUser.email)
-          sessionStorage.setItem('login_error', 'Access Denied: Members cannot log in.')
+      } else if (profileData) {
+        if (profileData.status === 'deleted' || profileData.role === 'member') {
+          console.warn('User blocked:', authUser.email)
+          sessionStorage.setItem('login_error', 'Access Denied.')
           await supabase.auth.signOut()
           setUser(null)
           setUserProfile(null)
@@ -76,85 +76,94 @@ export function AuthProvider({ children }) {
           setUserProfile({ uid: authUser.id, ...profileData })
         }
       } else {
-        // No profile found, and not the master
         console.warn('No profile found for user:', authUser.email)
-        sessionStorage.setItem('login_error', 'Access Denied: No profile found.')
+        sessionStorage.setItem('login_error', 'No profile found.')
         await supabase.auth.signOut()
         setUser(null)
         setUserProfile(null)
       }
+      setConnectionError(false)
+    } catch (err) {
+      console.error("Unexpected error in fetchProfile:", err)
+      setConnectionError(true)
+    } finally {
+      isPending = false
+      clearTimeout(timeoutId)
       setLoading(false)
     }
+  }
 
-    // Subscribe to profile changes (role, status updates) via Supabase Realtime
-    const subscribeToProfile = (authUser) => {
-      if (!authUser) return
+  // Subscribe to profile changes (role, status updates) via Supabase Realtime
+  const subscribeToProfile = (authUser) => {
+    if (!authUser) return
 
-      // Clean up any existing channel BEFORE creating a new one
-      // This prevents the "cannot add callbacks after subscribe" error
-      if (profileChannel) {
-        supabase.removeChannel(profileChannel)
-        profileChannel = null
-      }
+    // Clean up any existing channel BEFORE creating a new one
+    // This prevents the "cannot add callbacks after subscribe" error
+    if (profileChannelRef.current) {
+      supabase.removeChannel(profileChannelRef.current)
+      profileChannelRef.current = null
+    }
 
-      profileChannel = supabase
-        .channel(`profile-${authUser.id}-${crypto.randomUUID()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'users',
-            filter: `id=eq.${authUser.id}`
-          },
-          (payload) => {
-            if (payload.eventType === 'UPDATE') {
-              const updated = payload.new
+    const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
+    profileChannelRef.current = supabase
+      .channel(`profile-${authUser.id}-${safeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${authUser.id}`
+        },
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            const updated = payload.new
 
-              if (updated.status === 'deleted') {
-                sessionStorage.setItem('login_error', 'Account Disabled.')
-                supabase.auth.signOut()
-                setUser(null)
-                setUserProfile(null)
-                return
-              }
-
-              if (updated.role === 'member') {
-                sessionStorage.setItem('login_error', 'Access Denied: Members cannot log in.')
-                supabase.auth.signOut()
-                setUser(null)
-                setUserProfile(null)
-                return
-              }
-
-              // Master override — check both auth email and updated row email
-              const updEmail = (updated.email || '').toLowerCase().trim()
-              const aEmail = (authUser.email || '').toLowerCase().trim()
-              const isMasterUser = aEmail === 'chuancheng2020@gmail.com' || updEmail === 'chuancheng2020@gmail.com'
-              
-              if (isMasterUser) {
-                setUserProfile(prev => ({
-                  ...prev,
-                  ...updated,
-                  uid: authUser.id,
-                  role: 'master',
-                  troupeId: null
-                }))
-              } else {
-                setUserProfile(prev => ({ ...prev, ...updated, uid: authUser.id }))
-              }
-            }
-
-            if (payload.eventType === 'DELETE') {
+            if (updated.status === 'deleted') {
+              sessionStorage.setItem('login_error', 'Account Disabled.')
               supabase.auth.signOut()
               setUser(null)
               setUserProfile(null)
+              return
+            }
+
+            if (updated.role === 'member') {
+              sessionStorage.setItem('login_error', 'Access Denied: Members cannot log in.')
+              supabase.auth.signOut()
+              setUser(null)
+              setUserProfile(null)
+              return
+            }
+
+            // Master override — check both auth email and updated row email
+            const updEmail = (updated.email || '').toLowerCase().trim()
+            const aEmail = (authUser.email || '').toLowerCase().trim()
+            const isMasterUser = aEmail === 'chuancheng2020@gmail.com' || updEmail === 'chuancheng2020@gmail.com'
+            
+            if (isMasterUser) {
+              setUserProfile(prev => ({
+                ...prev,
+                ...updated,
+                uid: authUser.id,
+                role: 'master',
+                troupeid: null
+              }))
+            } else {
+              setUserProfile(prev => ({ ...prev, ...updated, uid: authUser.id }))
             }
           }
-        )
-        .subscribe()
-    }
 
+          if (payload.eventType === 'DELETE') {
+            supabase.auth.signOut()
+            setUser(null)
+            setUserProfile(null)
+          }
+        }
+      )
+      .subscribe()
+  }
+
+  useEffect(() => {
     // Timeout fallback in case auth takes too long
     const timer = setTimeout(() => {
       setLoading(false)
@@ -186,8 +195,8 @@ export function AuthProvider({ children }) {
 
     return () => {
       subscription.unsubscribe()
-      if (profileChannel) {
-        supabase.removeChannel(profileChannel)
+      if (profileChannelRef.current) {
+        supabase.removeChannel(profileChannelRef.current)
       }
       clearTimeout(timer)
     }
@@ -207,11 +216,11 @@ export function AuthProvider({ children }) {
       if (userProfile) {
         try {
           await supabase.from('audit_logs').insert({
-            actionType: 'DELETE_ACCOUNT',
+            actiontype: 'DELETE_ACCOUNT',
             details: { uid },
-            performedBy: {
+            performedby: {
               uid: userProfile.uid,
-              name: userProfile.displayName || userProfile.email,
+              name: userProfile.displayname || userProfile.email,
               role: userProfile.role
             },
             timestamp: new Date().toISOString()
@@ -222,7 +231,7 @@ export function AuthProvider({ children }) {
       // 1. Soft-delete user profile
       await supabase
         .from('users')
-        .update({ status: 'deleted', deletedAt: new Date().toISOString() })
+        .update({ status: 'deleted', deletedat: new Date().toISOString() })
         .eq('id', uid)
       
       // 2. Sign out (cannot delete Supabase Auth user client-side)
@@ -236,7 +245,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const value = { user, userProfile, loading, logout, deleteAccount }
+  const value = { user, userProfile, loading, connectionError, logout, deleteAccount, refreshProfile: () => user && fetchProfile(user) }
 
   return (
     <AuthContext.Provider value={value}>

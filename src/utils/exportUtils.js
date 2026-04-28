@@ -39,10 +39,10 @@ const addImageToPdf = (doc, url, x, y, w, h, opacity = 1) => {
 
 /** Adds the standard club header to a jsPDF document. Returns the Y position after the header. */
 const addClubHeader = async (doc, settings, reportTitle) => {
-  const clubNameEn = settings?.clubNameEn || 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka'
-  const clubNameCn = settings?.clubNameCn || '馬來西亞馬六甲傳承龍獅體育會'
-  const clubRegNo = settings?.clubRegistrationNo || '(PPM-015-04-30122019)'
-  const clubPhone = settings?.clubPhone || '012-328 2862 / 013-666 0979'
+  const clubNameEn = settings?.clubnameen || 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka'
+  const clubNameCn = settings?.clubnamecn || '馬來西亞馬六甲傳承龍獅體育會'
+  const clubRegNo = settings?.clubregistrationno || '(PPM-015-04-30122019)'
+  const clubPhone = settings?.clubphone || '012-328 2862 / 013-666 0979'
   const logoUrl = '/logo1.jpeg'
 
   const pageW = doc.internal.pageSize.width
@@ -159,8 +159,8 @@ const calcDuration = (stop) => {
 
 const buildPerformanceDetails = (stop) => {
   const parts = []
-  if (stop.hasGodOfWealth) parts.push('财神爷 (GOW)')
-  if (stop.hasBigHeadBuddha) parts.push('大头佛 (BHB)')
+  if (stop.hasgodofwealth) parts.push('财神爷 (GOW)')
+  if (stop.hasbigheadbuddha) parts.push('大头佛 (BHB)')
   return parts.length > 0 ? parts.join(', ') : '-'
 }
 
@@ -199,12 +199,12 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
     const aStatus = attendanceDetails[a.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
     const bStatus = attendanceDetails[b.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
     if (aStatus !== bStatus) return aStatus === 'FULL DAY' ? -1 : 1
-    return (a.displayName || '').localeCompare(b.displayName || '')
+    return (a.displayname || '').localeCompare(b.displayname || '')
   })
 
   const rosterRows = sortedMembers.map((m, i) => [
     i + 1,
-    m.displayName || '-',
+    m.displayname || '-',
     attendanceDetails[m.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
   ])
 
@@ -240,17 +240,17 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
 
   const itinRows = stops.map((s, i) => [
     i + 1,
-    s.scheduledTime || '-',
-    s.householdName || '-',
+    s.scheduledtime || '-',
+    s.householdname || '-',
     s.address || '-',
     s.phone || '-',
-    s.lionQuantity || '-',
-    formatColorsPDF(s.lionColor),
-    formatPluckingPDF(s.pluckingType),
+    s.lionquantity || '-',
+    formatColorsPDF(s.lioncolor),
+    formatPluckingPDF(s.pluckingtype),
     buildPerformanceDetails(s),
     `RM${s.amount || 0}`,
-    s.status === 'completed' ? `RM${s.actualAmount ?? s.amount ?? 0}` : '-',
-    s.status === 'completed' ? (s.paymentMethod || 'Cash') : '-',
+    s.status === 'completed' ? `RM${s.actualamount ?? s.amount ?? 0}` : '-',
+    s.status === 'completed' ? (s.paymentmethod || 'Cash') : '-',
     buildDuration(s),
     (s.status || 'pending').toUpperCase(),
     s.remarks || '-'
@@ -299,7 +299,7 @@ export const exportDayReportExcel = (stops, members, attendanceDetails, meta) =>
     const aStatus = attendanceDetails[a.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
     const bStatus = attendanceDetails[b.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
     if (aStatus !== bStatus) return aStatus === 'FULL DAY' ? -1 : 1
-    return (a.displayName || '').localeCompare(b.displayName || '')
+    return (a.displayname || '').localeCompare(b.displayname || '')
   })
 
   // Sheet 1: Roster
@@ -309,7 +309,7 @@ export const exportDayReportExcel = (stops, members, attendanceDetails, meta) =>
     ['#', 'NAME', 'ATTENDANCE'],
     ...sortedMembers.map((m, i) => [
       i + 1,
-      m.displayName || '-',
+      m.displayname || '-',
       attendanceDetails[m.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
     ])
   ]
@@ -324,17 +324,17 @@ export const exportDayReportExcel = (stops, members, attendanceDetails, meta) =>
     ['#', 'TIME', 'CUSTOMER', 'ADDRESS', 'PHONE', 'LION QTY', 'LION COLORS', 'CAI QING (采青)', 'DETAILS', 'QUOTE (RM)', 'ACTUAL (RM)', 'PAYMENT', 'EST. DURATION', 'PERF. DURATION', 'STATUS', 'REMARKS'],
     ...stops.map((s, i) => [
       i + 1,
-      s.scheduledTime || '-',
-      s.householdName || '-',
+      s.scheduledtime || '-',
+      s.householdname || '-',
       s.address || '-',
       s.phone || '-',
-      s.lionQuantity || '-',
-      formatColorsExcel(s.lionColor),
-      formatPluckingExcel(s.pluckingType),
+      s.lionquantity || '-',
+      formatColorsExcel(s.lioncolor),
+      formatPluckingExcel(s.pluckingtype),
       buildPerformanceDetails(s),
       Number(s.amount) || 0,
-      s.status === 'completed' ? (Number(s.actualAmount) || Number(s.amount) || 0) : '-',
-      s.status === 'completed' ? (s.paymentMethod || 'Cash') : '-',
+      s.status === 'completed' ? (Number(s.actualamount) || Number(s.amount) || 0) : '-',
+      s.status === 'completed' ? (s.paymentmethod || 'Cash') : '-',
       `${s.duration || 30}m`,
       calcDuration(s),
       (s.status || 'pending').toUpperCase(),
@@ -343,7 +343,7 @@ export const exportDayReportExcel = (stops, members, attendanceDetails, meta) =>
   ]
 
   const totalQuote = stops.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
-  const totalActual = stops.filter(s => s.status === 'completed').reduce((sum, s) => sum + (Number(s.actualAmount) || Number(s.amount) || 0), 0)
+  const totalActual = stops.filter(s => s.status === 'completed').reduce((sum, s) => sum + (Number(s.actualamount) || Number(s.amount) || 0), 0)
 
   itinData.push([])
   itinData.push(['', '', '', '', '', '', '', '', 'TOTAL', totalQuote, totalActual, '', '', '', '', ''])
@@ -384,7 +384,7 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
       new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       t.category || '-',
       t.description || '-',
-      t.paymentMethod || 'Cash',
+      t.paymentmethod || 'Cash',
       isDebit ? `RM ${amount.toFixed(2)}` : '-',
       !isDebit ? `RM ${amount.toFixed(2)}` : '-',
       `RM ${runningBalance.toFixed(2)}`
@@ -447,7 +447,7 @@ export const exportFinanceExcel = (transactions, periodStats, meta) => {
       new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       t.category || '-',
       t.description || '-',
-      t.paymentMethod || 'Cash',
+      t.paymentmethod || 'Cash',
       isDebit ? amount : 0,
       !isDebit ? amount : 0,
       runningBalance

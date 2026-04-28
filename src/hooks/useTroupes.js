@@ -16,10 +16,22 @@ export function useTroupes() {
     return []
   })
   const [loading, setLoading] = useState(!troupes.length)
+  const [timeoutError, setTimeoutError] = useState(false)
 
-  useEffect(() => {
-    // Fetch initial troupes
-    const fetchTroupes = async () => {
+  const fetchTroupes = async () => {
+    setLoading(true)
+    setTimeoutError(false)
+
+    // Rule #29: Safety timeout to prevent indefinite loading
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn("Troupes fetch timed out. Forcing loading to false.")
+        setTimeoutError(true)
+        setLoading(false)
+      }
+    }, 10000)
+
+    try {
       const { data, error } = await supabase
         .from('troupes')
         .select('*')
@@ -30,19 +42,25 @@ export function useTroupes() {
         console.error('Error fetching troupes:', error)
       } else {
         setTroupes(data || [])
-        setLoading(false)
         // Update Cache
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
         } catch (e) { console.warn("Troupe cache write failed:", e) }
       }
+    } catch (err) {
+      console.error("Unexpected troupes error:", err)
+    } finally {
+      clearTimeout(timeoutId)
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchTroupes()
 
     // Subscribe to realtime changes
-    // CRITICAL: .on() MUST come before .subscribe()
-    const channelName = `troupes-${crypto.randomUUID()}`
+    const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
+    const channelName = `troupes-${safeId}`
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes' }, (payload) => {
@@ -66,8 +84,8 @@ export function useTroupes() {
       .from('troupes')
       .insert({
         ...troupeData,
-        memberIds: [],
-        createdAt: new Date().toISOString()
+        memberids: [],
+        createdat: new Date().toISOString()
       })
 
     if (error) throw error
@@ -76,20 +94,52 @@ export function useTroupes() {
   const updateTroupe = async (id, data) => {
     const { error } = await supabase
       .from('troupes')
-      .update({ ...data, updatedAt: new Date().toISOString() })
+      .update({ ...data, updatedat: new Date().toISOString() })
       .eq('id', id)
 
     if (error) throw error
   }
 
   const deleteTroupe = async (id) => {
-    const { error } = await supabase
-      .from('troupes')
-      .delete()
-      .eq('id', id)
+    try {
+      // 1. Unlink members from this troupe
+      await supabase
+        .from('users')
+        .update({ troupeid: null })
+        .eq('troupeid', id)
 
-    if (error) throw error
+      // 2. Unlink customers from this troupe
+      await supabase
+        .from('customers')
+        .update({ troupeid: null })
+        .eq('troupeid', id)
+
+      // 3. Delete itineraries and their stops (cascade manually)
+      const { data: itins } = await supabase
+        .from('itineraries')
+        .select('id')
+        .eq('troupeid', id)
+
+      if (itins && itins.length > 0) {
+        const itinIds = itins.map(i => i.id)
+        // Delete stops linked to these itineraries
+        await supabase.from('stops').delete().in('itinerary_id', itinIds)
+        // Delete the itineraries
+        await supabase.from('itineraries').delete().in('id', itinIds)
+      }
+
+      // 4. Now safe to delete the troupe
+      const { error } = await supabase
+        .from('troupes')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+    } catch (err) {
+      console.error('Failed to delete troupe:', err)
+      throw err
+    }
   }
 
-  return { troupes, loading, addTroupe, updateTroupe, deleteTroupe }
+  return { troupes, loading, timeoutError, addTroupe, updateTroupe, deleteTroupe, refresh: fetchTroupes }
 }

@@ -229,7 +229,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
               </svg>
             </div>
             <div className={`flex-1 min-w-0 transition-all duration-300 ${isCollapsed ? 'md:w-0 md:opacity-0 md:overflow-hidden' : 'opacity-100'}`}>
-              <p className="text-xs font-semibold text-surface-200 truncate">{userProfile?.displayName || 'Admin User'}</p>
+              <p className="text-xs font-semibold text-surface-200 truncate">{userProfile?.displayname || userProfile?.displayName || 'Admin User'}</p>
               <p className="text-[10px] text-surface-500 uppercase tracking-widest truncate">{userRole}</p>
             </div>
             {!isCollapsed && (

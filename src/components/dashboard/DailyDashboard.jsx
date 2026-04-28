@@ -128,11 +128,11 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     const grossRevenue = dayTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
     const totalExpenses = dayTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
     const generalExpenses = dayTransactions
-      .filter(t => t.type === 'expense' && (t.troupeId === 'all' || !t.troupeId))
+      .filter(t => t.type === 'expense' && (t.troupeid === 'all' || !t.troupeid))
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
 
-    const rawTotalStops = dayItins.reduce((sum, itin) => sum + (Number(itin.totalStops) || 0), 0)
-    const rawCompletedStops = dayItins.reduce((sum, itin) => sum + (Number(itin.completedStops) || 0), 0)
+    const rawTotalStops = dayItins.reduce((sum, itin) => sum + (Number(itin.totalstops) || 0), 0)
+    const rawCompletedStops = dayItins.reduce((sum, itin) => sum + (Number(itin.completedstops) || 0), 0)
 
     return {
       totalStops: Math.max(0, rawTotalStops),
@@ -146,7 +146,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
 
   const busyMemberIds = useMemo(() => {
     return allItineraries
-      .filter(itin => itin.date === dateKey && itin.troupeId !== activeTroupeId)
+      .filter(itin => itin.date === dateKey && itin.troupeid !== activeTroupeId)
       .flatMap(itin => itin.attendance || [])
   }, [allItineraries, dateKey, activeTroupeId])
 
@@ -170,15 +170,22 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     try {
       const troupe = troupes.find(t => t.id === tId)
       const docId = `${dateKey}_${tId}`
-      const newItinRef = doc(db, 'itineraries', docId)
-      await setDoc(newItinRef, {
-        troupeId: tId,
-        troupeName: troupe?.name || 'Unknown',
-        date: dateKey,
-        status: 'published',
-        attendance: [],
-        createdAt: serverTimestamp()
-      })
+      await supabase
+        .from('itineraries')
+        .upsert({
+          id: docId,
+          troupeid: tId,
+          troupename: troupe?.name || 'Unknown',
+          date: dateKey,
+          status: 'published',
+          attendance: [],
+          attendancedetails: {},
+          totalstops: 0,
+          completedstops: 0,
+          skippedstops: 0,
+          totalrevenue: 0,
+          createdat: new Date().toISOString()
+        })
       setActiveTroupeId(tId)
     } catch (err) {
       console.error("Error activating troupe:", err)
@@ -202,19 +209,19 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     const troupe = troupes.find(t => t.id === tid)
     if (troupe) return troupe.name
     // Fallback to denormalized name from itinerary if available
-    return itinerary?.troupeName || 'Unknown'
+    return itinerary?.troupename || 'Unknown'
   }
   const participatingMembers = members.filter(m => attendance.includes(m.id))
 
   const completedStops = stops.filter(s => s.status === 'completed').length
   const totalRevenue = stops
     .filter(s => s.status === 'completed')
-    .reduce((sum, s) => sum + (Number(s.actualAmount) || 0), 0)
+    .reduce((sum, s) => sum + (Number(s.actualamount) || 0), 0)
   
   const teamExpenses = useMemo(() => {
     if (!activeTroupeId) return 0
     return transactions
-      .filter(t => (t.date === dateKey || t.date === localIsoDate) && t.troupeId === activeTroupeId && t.type === 'expense')
+      .filter(t => (t.date === dateKey || t.date === localIsoDate) && t.troupeid === activeTroupeId && t.type === 'expense')
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
   }, [transactions, dateKey, localIsoDate, activeTroupeId])
 
@@ -337,7 +344,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
           <div className="flex gap-2 p-1.5 bg-surface-950/50 rounded-2xl border border-surface-800/50 overflow-x-auto no-scrollbar">
             {activeTroupesOnDate.map(tId => {
               const tName = troupes.find(t => t.id === tId)?.name || 
-                           allItineraries.find(i => i.date === dateKey && i.troupeId === tId)?.troupeName || 
+                           allItineraries.find(i => i.date === dateKey && i.troupeid === tId)?.troupename || 
                            'Unknown'
               return (
                 <button 
@@ -419,9 +426,9 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
               {participatingMembers.map(member => (
                 <div key={member.id} className="px-4 py-3 rounded-2xl bg-surface-950/40 border border-surface-800 flex items-center gap-3 group/member hover:border-brand-500/50 transition-all shadow-sm">
                   <div className="w-8 h-8 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-[10px] font-black text-surface-400 group-hover/member:bg-brand-600 group-hover/member:text-white transition-colors">
-                    {member.displayName?.charAt(0)}
+                    {(member.displayname || member.displayName)?.charAt(0)}
                   </div>
-                  <p className="text-[11px] font-bold text-surface-200 tracking-tight truncate">{member.displayName}</p>
+                  <p className="text-[11px] font-bold text-surface-200 tracking-tight truncate">{member.displayname || member.displayName}</p>
                   {attendanceDetails[member.id] === 'half' && (
                     <span className="text-[8px] font-black text-orange-400 uppercase bg-orange-500/20 px-1.5 py-0.5 rounded ml-auto">Half</span>
                   )}
@@ -440,7 +447,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
         onSave={async (ids, details) => {
           if (!itinerary && activeTroupeId) {
             const troupe = troupes.find(t => t.id === activeTroupeId)
-            await createItinerary({ troupeName: troupe?.name || 'Unknown' })
+            await createItinerary({ troupename: troupe?.name || 'Unknown' })
           }
           await updateAttendance(ids, details)
         }} 

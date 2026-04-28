@@ -8,7 +8,7 @@ import { DatabaseStats } from './DatabaseStats'
  * Professional tabbed interface for managing application-wide configurations.
  */
 export default function GeneralSettings() {
-  const { settings, loading, updateSettings } = useSettings()
+  const { settings, loading, timeoutError, updateSettings } = useSettings()
   const { userProfile, deleteAccount } = useAuth()
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
 
@@ -130,7 +130,24 @@ export default function GeneralSettings() {
   ]
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-32">
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+      {timeoutError && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3 animate-in slide-in-from-top-2 duration-500 mb-6">
+          <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 15c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-amber-200 text-sm font-bold">Slow connection detected</p>
+            <p className="text-amber-500/70 text-xs font-medium">The system settings took longer than expected to load. Try refreshing.</p>
+          </div>
+          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20">
+            Refresh
+          </button>
+        </div>
+      )}
+      
       {/* Header Section */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>

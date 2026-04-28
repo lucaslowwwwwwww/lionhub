@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
@@ -6,10 +6,23 @@ import { sanitizeObject } from '../utils/sanitize'
 export function useFinance(troupeId) {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
+    setLoading(true)
+    setTimeoutError(false)
+
+    // Rule #29: Safety timeout to prevent indefinite loading
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn("Finance fetch timed out. Forcing loading to false.")
+        setTimeoutError(true)
+        setLoading(false)
+      }
+    }, 10000)
+
+    try {
       let query = supabase
         .from('finance')
         .select('*')
@@ -17,7 +30,7 @@ export function useFinance(troupeId) {
         .limit(100)
 
       if (troupeId && troupeId !== 'all') {
-        query = query.eq('troupeId', troupeId)
+        query = query.eq('troupeid', troupeId)
       }
 
       const { data, error } = await query
@@ -27,21 +40,26 @@ export function useFinance(troupeId) {
       } else {
         setTransactions(data || [])
       }
+    } catch (err) {
+      console.error("Unexpected finance error:", err)
+    } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
+  }, [troupeId])
 
+  useEffect(() => {
     fetchTransactions()
 
     // Subscribe to realtime changes
-    // CRITICAL: .on() MUST come before .subscribe()
-    const channelName = `finance-${crypto.randomUUID()}`
+    const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
+    const channelName = `finance-${safeId}`
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, (payload) => {
         if (payload.eventType === 'INSERT') {
           const newRow = payload.new
-          // Apply troupeId filter for realtime events
-          if (troupeId && troupeId !== 'all' && newRow.troupeId !== troupeId) return
+          if (troupeId && troupeId !== 'all' && newRow.troupeid !== troupeId) return
           setTransactions(prev => [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100))
         } else if (payload.eventType === 'UPDATE') {
           setTransactions(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
@@ -54,7 +72,7 @@ export function useFinance(troupeId) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [troupeId])
+  }, [fetchTransactions, troupeId])
 
   const stats = useMemo(() => {
     let income = 0
@@ -73,29 +91,48 @@ export function useFinance(troupeId) {
   }, [transactions])
 
   const addTransaction = async (data) => {
+    const now = new Date().toISOString()
+    const generatedId = `FIN_${data.date || now.split('T')[0]}_${Date.now()}`
+    
+    // Normalize troupeid: if 'all' or empty, it must be null for the UUID column
+    let tid = data.troupeid
+    if (tid === undefined) tid = data.troupeId
+    if (tid === undefined) tid = troupeId
+    
+    if (tid === 'all' || tid === '') tid = null
+
     const { error } = await supabase
       .from('finance')
       .insert({
+        id: generatedId,
         ...sanitizeObject(data),
-        troupeId: data.troupeId || troupeId,
-        createdAt: new Date().toISOString()
+        troupeid: tid,
+        createdat: now
       })
 
     if (error) throw error
-    logAction('ADD_FINANCE_RECORD', { type: data.type, amount: data.amount, date: data.date })
+    await logAction('ADD_FINANCE_RECORD', { type: data.type, amount: data.amount, date: data.date })
   }
 
   const updateTransaction = async (id, data) => {
+    // Normalize troupeid: if 'all' or empty, it must be null for the UUID column
+    let tid = data.troupeid
+    if (tid === undefined) tid = data.troupeId
+    if (tid === undefined) tid = troupeId
+    
+    if (tid === 'all' || tid === '') tid = null
+
     const { error } = await supabase
       .from('finance')
       .update({
         ...sanitizeObject(data),
-        updatedAt: new Date().toISOString()
+        troupeid: tid,
+        updatedat: new Date().toISOString()
       })
       .eq('id', id)
 
     if (error) throw error
-    logAction('UPDATE_FINANCE_RECORD', { id, ...data })
+    await logAction('UPDATE_FINANCE_RECORD', { id, ...data })
   }
 
   const deleteTransaction = async (id) => {
@@ -105,8 +142,17 @@ export function useFinance(troupeId) {
       .eq('id', id)
 
     if (error) throw error
-    logAction('DELETE_FINANCE_RECORD', { id })
+    await logAction('DELETE_FINANCE_RECORD', { id })
   }
 
-  return { transactions, loading, stats, addTransaction, updateTransaction, deleteTransaction }
+  return { 
+    transactions, 
+    loading, 
+    timeoutError,
+    stats, 
+    addTransaction, 
+    deleteTransaction, 
+    updateTransaction,
+    refresh: fetchTransactions
+  }
 }

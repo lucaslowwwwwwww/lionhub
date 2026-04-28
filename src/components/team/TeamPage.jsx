@@ -3,6 +3,20 @@ import { useTroupes } from '../../hooks/useTroupes'
 import { useMembers } from '../../hooks/useMembers'
 import { useAudit } from '../../hooks/useAudit'
 import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../supabase'
+// Helper to create a one-time non-persistent client for admin creation
+const createAuthClient = () => createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      storageKey: `auth-temp-${Math.random().toString(36).substring(7)}`
+    }
+  }
+)
 
 // ─── Add Troupe Modal ───
 function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
@@ -86,38 +100,44 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
       let uid = null
       
       if (isAdmin) {
-        // Create the Auth account via Supabase
-        // Supabase signUp does NOT auto-login when another session is active
-        const { supabase } = await import('../../supabase')
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        console.log('Creating Admin Auth account...')
+        const tempClient = createAuthClient()
+        const { data: authData, error: authError } = await tempClient.auth.signUp({
           email,
           password,
           options: { data: { displayName, role } }
         })
+        console.log('Auth signUp result:', { authData, authError })
         if (authError) throw authError
         uid = authData.user?.id || null
       }
 
       // Save the user profile to Supabase
+      console.log('Saving profile to database...', { uid, displayName, role })
       await onAdd({
         uid: uid,
-        displayName,
+        displayname: displayName,
         email: isAdmin ? email : '',
         phone,
         role
       })
+      console.log('Profile saved successfully.')
 
-      // Reset form
-      setDisplayName(''); setEmail(''); setPassword(''); setPhone(''); setRole('member');
+      // Reset form and close
+      setDisplayName('')
+      setEmail('')
+      setPassword('')
+      setPhone('')
+      setRole('member')
       onClose()
     } catch (err) {
-      console.error('Error creating member:', err)
-      if (err.code === 'auth/email-already-in-use') {
+      console.error('Error in handleSubmit:', err)
+      if (err.code === 'auth/email-already-in-use' || err.message?.includes('email-already-in-use')) {
         setError('This email is already registered.')
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (err.code === 'auth/invalid-email' || err.message?.includes('invalid-email')) {
         setError('Invalid email address.')
       } else {
-        setError(err.message || 'Failed to create account.')
+        setError(err.message || 'Failed to create account. Please try again.')
       }
     } finally {
       setSaving(false)
@@ -203,7 +223,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
   // Sync form with member data when modal opens
   useEffect(() => {
     if (member) {
-      setDisplayName(member.displayName || '')
+      setDisplayName(member.displayname || member.displayName || '')
       setEmail(member.email || '')
       setPhone(member.phone || '')
       setRole(member.role || 'member')
@@ -238,25 +258,29 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
       let currentEmail = email || member.email
 
       if (isPromotingToAdmin) {
-        const { supabase } = await import('../../supabase')
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        console.log('Promoting to Admin: Creating Auth account...')
+        const tempClient = createAuthClient()
+        const { data: authData, error: authError } = await tempClient.auth.signUp({
           email,
           password,
           options: { data: { displayName, role } }
         })
+        console.log('Promotion Auth result:', { authData, authError })
         if (authError) throw authError
         uid = authData.user?.id || null
         currentEmail = email
       }
 
       const oldRole = member.role || 'member'
+      console.log('Updating member profile in DB...', { id: member.id, role })
       await onSave(member.id, { 
-        displayName, 
+        displayname: displayName, 
         phone, 
         role, 
         uid, 
         email: currentEmail 
       })
+      console.log('Member profile updated successfully.')
       
       if (oldRole !== role) {
         logAction('CHANGE_ROLE', { userId: member.id, oldRole, newRole: role })
@@ -264,11 +288,11 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
       
       onClose()
     } catch (err) {
-      console.error('Error updating member:', err)
-      if (err.code === 'auth/email-already-in-use') {
+      console.error('Error in EditMemberModal:', err)
+      if (err.code === 'auth/email-already-in-use' || err.message?.includes('email-already-in-use')) {
         setError('This email is already registered.')
       } else {
-        setError(err.message || 'Failed to update member.')
+        setError(err.message || 'Failed to update member. Please try again.')
       }
     } finally {
       setSaving(false)
@@ -367,23 +391,23 @@ export default function TeamPage() {
   const { userProfile } = useAuth()
   const isMaster = userProfile?.role === 'master'
 
-  const { troupes, loading: loadingT, addTroupe, updateTroupe, deleteTroupe } = useTroupes()
-  const { members: rawMembers, loading: loadingM, addMember, updateMember, deleteMember } = useMembers()
+  const { troupes, loading: loadingT, timeoutError: timeoutT, addTroupe, updateTroupe, deleteTroupe } = useTroupes()
+  const { members: rawMembers, loading: loadingM, timeoutError: timeoutM, addMember, updateMember, deleteMember } = useMembers()
   
   const { admins, regularMembers, masters } = useMemo(() => {
     const activeMembers = rawMembers.filter(m => m.status !== 'deleted')
     
     const mastersList = activeMembers
       .filter(m => m.role === 'master')
-      .sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''))
+      .sort((a, b) => ((a.displayname || a.displayName) || '').localeCompare((b.displayname || b.displayName) || ''))
       
     const adminsList = activeMembers
       .filter(m => m.role === 'admin')
-      .sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''))
+      .sort((a, b) => ((a.displayname || a.displayName) || '').localeCompare((b.displayname || b.displayName) || ''))
     
     const membersList = activeMembers
       .filter(m => m.role !== 'admin' && m.role !== 'master')
-      .sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''))
+      .sort((a, b) => ((a.displayname || a.displayName) || '').localeCompare((b.displayname || b.displayName) || ''))
       
     return { admins: adminsList, regularMembers: membersList, masters: mastersList }
   }, [rawMembers])
@@ -395,7 +419,7 @@ export default function TeamPage() {
   const getTroupeName = (troupeId) => troupes.find(t => t.id === troupeId)?.name || 'Unassigned'
 
   const confirmDeleteMember = (m) => {
-    if (window.confirm(`Are you sure you want to remove ${m.displayName || 'this member'} from the system?`)) {
+    if (window.confirm(`Are you sure you want to remove ${m.displayname || m.displayName || 'this member'} from the system?`)) {
       deleteMember(m.id)
     }
   }
@@ -428,6 +452,22 @@ export default function TeamPage() {
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
+      {(timeoutT || timeoutM) && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3 animate-in slide-in-from-top-2 duration-500 mb-6">
+          <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 15c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-amber-200 text-sm font-bold">Slow connection detected</p>
+            <p className="text-amber-500/70 text-xs font-medium">The team records took longer than expected to load. Try refreshing.</p>
+          </div>
+          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20">
+            Refresh
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-surface-800 pb-6">
         <div>
@@ -574,14 +614,14 @@ export default function TeamPage() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-8 h-8 rounded-full bg-violet-500/10 text-violet-400 flex items-center justify-center text-xs font-bold shrink-0 border border-violet-500/20">
-                                  {m.displayName?.charAt(0) || '?'}
+                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastActive) && (
+                                {isOnline(m.lastactive || m.lastActive) && (
                                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
                                 <p className="text-[10px] text-surface-500 uppercase tracking-tight">
                                   {m.email || (m.phone ? m.phone : 'No Contact Info')}
                                 </p>
@@ -589,12 +629,12 @@ export default function TeamPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4">
-                            <div className={`flex flex-col ${isOnline(m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
+                            <div className={`flex flex-col ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
                               <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-violet-500/10 text-violet-400 border border-violet-500/20">
                                 {m.role || 'master'}
                               </span>
-                              {!isOnline(m.lastActive) && m.lastActive && (
-                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastActive)}</span>
+                              {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
+                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive || m.lastActive)}</span>
                               )}
                             </div>
                           </td>
@@ -634,14 +674,14 @@ export default function TeamPage() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-8 h-8 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center text-xs font-bold shrink-0 border border-gold-500/20">
-                                  {m.displayName?.charAt(0) || '?'}
+                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastActive) && (
+                                {isOnline(m.lastactive || m.lastActive) && (
                                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
                                 <p className="text-[10px] text-surface-500 uppercase tracking-tight">
                                   {m.email || (m.phone ? m.phone : 'No Contact Info')}
                                 </p>
@@ -649,12 +689,12 @@ export default function TeamPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4">
-                            <div className={`flex flex-col ${isOnline(m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
+                            <div className={`flex flex-col ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
                               <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-gold-500/10 text-gold-400 border border-gold-500/20">
                                 {m.role || 'admin'}
                               </span>
-                              {!isOnline(m.lastActive) && m.lastActive && (
-                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastActive)}</span>
+                              {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
+                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive || m.lastActive)}</span>
                               )}
                             </div>
                           </td>
@@ -691,14 +731,14 @@ export default function TeamPage() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-8 h-8 rounded-full bg-crimson-500/10 text-crimson-400 flex items-center justify-center text-xs font-bold shrink-0 border border-crimson-500/20">
-                                  {m.displayName?.charAt(0) || '?'}
+                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastActive) && (
+                                {isOnline(m.lastactive || m.lastActive) && (
                                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
                                 <p className="text-[10px] text-surface-500 uppercase tracking-tight">
                                   {m.email || (m.phone ? m.phone : 'No Contact Info')}
                                 </p>
@@ -706,12 +746,12 @@ export default function TeamPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4">
-                            <div className={`flex flex-col ${isOnline(m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
+                            <div className={`flex flex-col ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
                               <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-surface-800 border border-surface-700/50">
                                 {m.role || 'member'}
                               </span>
-                              {!isOnline(m.lastActive) && m.lastActive && (
-                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastActive)}</span>
+                              {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
+                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive || m.lastActive)}</span>
                               )}
                             </div>
                           </td>
@@ -752,25 +792,25 @@ export default function TeamPage() {
                            <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-10 h-10 rounded-full bg-violet-500/10 text-violet-400 flex items-center justify-center text-sm font-bold shrink-0 border border-violet-500/20">
-                                  {m.displayName?.charAt(0) || '?'}
+                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastActive) && (
+                                {isOnline(m.lastactive || m.lastActive) && (
                                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
                                 <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-violet-500/10 text-violet-400 border border-violet-500/20">
                                   {m.role || 'master'}
                                 </span>
                               </div>
                            </div>
                            <div className="text-right">
-                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
-                               {isOnline(m.lastActive) ? '● ONLINE' : 'OFFLINE'}
+                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
+                               {isOnline(m.lastactive || m.lastActive) ? '● ONLINE' : 'OFFLINE'}
                              </p>
-                             {!isOnline(m.lastActive) && m.lastActive && (
-                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastActive)}</p>
+                             {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
+                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive || m.lastActive)}</p>
                              )}
                            </div>
                          </div>
@@ -808,25 +848,25 @@ export default function TeamPage() {
                            <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-10 h-10 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center text-sm font-bold shrink-0 border border-gold-500/20">
-                                  {m.displayName?.charAt(0) || '?'}
+                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastActive) && (
+                                {isOnline(m.lastactive || m.lastActive) && (
                                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
                                 <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-gold-500/10 text-gold-400 border border-gold-500/20">
                                   {m.role || 'admin'}
                                 </span>
                               </div>
                            </div>
                            <div className="text-right">
-                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
-                               {isOnline(m.lastActive) ? '● ONLINE' : 'OFFLINE'}
+                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
+                               {isOnline(m.lastactive || m.lastActive) ? '● ONLINE' : 'OFFLINE'}
                              </p>
-                             {!isOnline(m.lastActive) && m.lastActive && (
-                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastActive)}</p>
+                             {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
+                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive || m.lastActive)}</p>
                              )}
                            </div>
                          </div>
@@ -863,25 +903,25 @@ export default function TeamPage() {
                            <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-10 h-10 rounded-full bg-crimson-500/10 text-crimson-400 flex items-center justify-center text-sm font-bold shrink-0 border border-crimson-500/20">
-                                  {m.displayName?.charAt(0) || '?'}
+                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastActive) && (
+                                {isOnline(m.lastactive || m.lastActive) && (
                                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
                                 <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-surface-800 text-surface-400 border border-surface-700/50">
                                   {m.phone || 'No Phone'}
                                 </span>
                               </div>
                            </div>
                            <div className="text-right">
-                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
-                               {isOnline(m.lastActive) ? '● ONLINE' : 'OFFLINE'}
+                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
+                               {isOnline(m.lastactive || m.lastActive) ? '● ONLINE' : 'OFFLINE'}
                              </p>
-                             {!isOnline(m.lastActive) && m.lastActive && (
-                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastActive)}</p>
+                             {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
+                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive || m.lastActive)}</p>
                              )}
                            </div>
                          </div>

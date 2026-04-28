@@ -22,7 +22,7 @@ export default function ItineraryPage() {
   const { troupes } = useTroupes()
   const { members } = useMembers()
   
-  const overrides = settings?.cnyOverrides || {}
+  const overrides = settings?.cnyoverrides || {}
 
   const [selectedDay, setSelectedDay] = useState(() => getDayInfo(new Date(), overrides).id)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -55,12 +55,12 @@ export default function ItineraryPage() {
 
   const busyMemberIds = useMemo(() => {
     return allItineraries
-      .filter(itin => itin.date === dateKey && itin.troupeId !== activeTroupeId)
+      .filter(itin => itin.date === dateKey && itin.troupeid !== activeTroupeId)
       .flatMap(itin => itin.attendance || [])
   }, [allItineraries, dateKey, activeTroupeId])
 
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
-  const troupeIdToUse = activeTroupeId || (isAdmin ? null : userProfile?.troupeId)
+  const troupeIdToUse = activeTroupeId || (isAdmin ? null : userProfile?.troupeid)
 
   useEffect(() => {
     if (activeTroupesOnDate.length > 0) {
@@ -78,7 +78,7 @@ export default function ItineraryPage() {
     }
   }, [activeTroupesOnDate, activeTroupeId, isAdmin, troupes])
 
-  const { itinerary, stops = [], attendance = [], attendanceDetails = {}, loading, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary } = useItinerary(troupeIdToUse, dateKey)
+  const { itinerary, stops = [], attendance = [], attendanceDetails = {}, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary } = useItinerary(troupeIdToUse, dateKey)
 
   const { activeStops, finishedStops } = useMemo(() => {
     const active = stops.filter(s => s.status !== 'completed' && s.status !== 'skipped')
@@ -107,7 +107,7 @@ export default function ItineraryPage() {
 
       await addStop({
         ...formData,
-        scheduledDate: currentActualDate.toISOString().split('T')[0]
+        scheduleddate: currentActualDate.toISOString().split('T')[0]
       }, userProfile?.uid, currentItinId)
     }
   }
@@ -153,11 +153,11 @@ export default function ItineraryPage() {
   const displayTitle = `${currentDayInfo.label} ${currentDayInfo.subLabel ? `(${currentDayInfo.subLabel})` : ''}`
 
   const isMaster = userProfile?.role === 'master'
-  const troupeName = troupes.find(t => t.id === activeTroupeId)?.name || itinerary?.troupeName || 'All Teams'
+  const troupeName = troupes.find(t => t.id === activeTroupeId)?.name || itinerary?.troupename || 'All Teams'
 
   const participatingMembers = members.filter(m => attendance.includes(m.id)).map(m => ({
     ...m,
-    troupeName: troupes.find(t => t.id === m.troupeId)?.name || 'Unassigned'
+    troupeName: troupes.find(t => t.id === m.troupeid)?.name || 'Unassigned'
   }))
 
   const exportMeta = {
@@ -177,7 +177,24 @@ export default function ItineraryPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-6 pb-20 animate-fade-in">
+      {timeoutError && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3 animate-in slide-in-from-top-2 duration-500 mb-6">
+          <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 15c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-amber-200 text-sm font-bold">Slow connection detected</p>
+            <p className="text-amber-500/70 text-xs font-medium">The itinerary took longer than expected to load. Try refreshing.</p>
+          </div>
+          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20">
+            Refresh
+          </button>
+        </div>
+      )}
+
       <DaySelector 
         selectedDay={selectedDay} 
         selectedYear={selectedYear}
@@ -193,7 +210,7 @@ export default function ItineraryPage() {
         <div className="flex gap-2 p-1 bg-surface-950/50 rounded-2xl border border-surface-800/50 overflow-x-auto no-scrollbar">
           {activeTroupesOnDate.map(tId => {
             const tName = troupes.find(t => t.id === tId)?.name || 
-                         allItineraries.find(i => i.date === dateKey && i.troupeId === tId)?.troupeName || 
+                         allItineraries.find(i => i.date === dateKey && i.troupeid === tId)?.troupename || 
                          'Unknown'
             return (
               <button
