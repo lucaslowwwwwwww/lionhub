@@ -72,8 +72,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
     checkMobile()
     window.addEventListener('resize', checkMobile)
     
-    // Stabilize layout before rendering charts
-    const timer = setTimeout(() => setCanRender(true), 200)
+    // Stabilize layout before rendering charts (increased delay for production stability)
+    const timer = setTimeout(() => setCanRender(true), 500)
     
     return () => {
       window.removeEventListener('resize', checkMobile)
