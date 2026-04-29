@@ -4,7 +4,7 @@ import { supabase } from '../supabase'
 import { loadChineseFont } from './exportUtils'
 
 export const formatPerformanceDescription = (stop) => {
-  const lQty = stop.lionQuantity || 2
+  const lQty = stop.lionquantity || 2
   const lionText = `${lQty} LION${lQty > 1 ? 'S' : ''}`
   
   const colorMap = {
@@ -21,17 +21,17 @@ export const formatPerformanceDescription = (stop) => {
   }
   
   let lines = [`CNY LION DANCE PERFORMANCE - ${lionText}`]
-  if (stop.lionColor) {
-    const colors = (Array.isArray(stop.lionColor) ? stop.lionColor : [stop.lionColor])
+  if (stop.lioncolor) {
+    const colors = (Array.isArray(stop.lioncolor) ? stop.lioncolor : [stop.lioncolor])
       .map(c => colorMap[c] || c.toUpperCase())
     lines.push(`COLOR: ${colors.join(', ')}`)
   }
 
-  if (stop.hasGodOfWealth) lines.push(`+ GOD OF WEALTH`)
-  if (stop.hasBigHeadBuddha) lines.push(`+ BIG HEAD BUDDHA`)
+  if (stop.hasgodofwealth) lines.push(`+ GOD OF WEALTH`)
+  if (stop.hasbigheadbuddha) lines.push(`+ BIG HEAD BUDDHA`)
   
-  if (stop.pluckingType) {
-    const types = (Array.isArray(stop.pluckingType) ? stop.pluckingType : [stop.pluckingType])
+  if (stop.pluckingtype) {
+    const types = (Array.isArray(stop.pluckingtype) ? stop.pluckingtype : [stop.pluckingtype])
       .map(t => pluckingMap[t] || t.toUpperCase())
     lines.push(`+ PLUCKING: ${types.join(', ')}`)
   }

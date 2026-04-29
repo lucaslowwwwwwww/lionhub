@@ -119,7 +119,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
     setFormData(prev => {
       const newColors = [...prev.lioncolor]
       if (newColors.length < qty) {
-        while (newColors.length < qty) newColors.push(settings?.lionColors?.[0] || '黄')
+        while (newColors.length < qty) newColors.push(settings?.lioncolors?.[0] || '黄')
       } else if (newColors.length > qty) {
         newColors.length = qty
       }
@@ -131,7 +131,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-      const colors = settings?.lionColors || ['黑', '黄', '紫', '橙', '青', '红']
+      const colors = settings?.lioncolors || ['黑', '黄', '紫', '橙', '青', '红']
       
       if (stop) {
         // Normalize lioncolor to array
@@ -145,19 +145,19 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
         }
 
         setFormData({
-          householdname: stop.householdname || stop.householdName || '',
+          householdname: stop.householdname || '',
           address: stop.address || '',
           phone: stop.phone || '',
           amount: stop.amount || '',
-          scheduledtime: stop.scheduledtime || stop.scheduledTime || '',
+          scheduledtime: stop.scheduledtime || '',
           duration: stop.duration || 30,
           lioncolor: initialColors,
-          lionquantity: stop.lionquantity || stop.lionQuantity || initialColors.length || 1,
-          hasgodofwealth: stop.hasgodofwealth || stop.hasGodOfWealth || false,
-          hasbigheadbuddha: stop.hasbigheadbuddha || stop.hasBigHeadBuddha || false,
-          pluckingtype: Array.isArray(stop.pluckingtype || stop.pluckingType) ? (stop.pluckingtype || stop.pluckingType) : (stop.pluckingtype || stop.pluckingType ? [stop.pluckingtype || stop.pluckingType] : []),
+          lionquantity: stop.lionquantity || initialColors.length || 1,
+          hasgodofwealth: stop.hasgodofwealth || false,
+          hasbigheadbuddha: stop.hasbigheadbuddha || false,
+          pluckingtype: Array.isArray(stop.pluckingtype) ? stop.pluckingtype : (stop.pluckingtype ? [stop.pluckingtype] : []),
           remarks: stop.remarks || '',
-          maplink: stop.maplink || stop.mapLink || ''
+          maplink: stop.maplink || ''
         })
       } else {
         setFormData({
@@ -166,7 +166,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           phone: '',
           amount: '',
           scheduledtime: '',
-          duration: settings?.defaultDuration || 30,
+          duration: settings?.defaultduration || 30,
           lioncolor: [colors[1] || '黄', colors[1] || '黄'],
           lionquantity: 2,
           hasgodofwealth: false,
@@ -199,20 +199,20 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
     const found = stops.find(s => {
       if (stop && s.id === stop.id) return false
-      const existingMinutes = parseTimeToMinutes(s.scheduledtime || s.scheduledTime)
+      const existingMinutes = parseTimeToMinutes(s.scheduledtime)
       if (existingMinutes === null) return false
       const diff = Math.abs(newMinutes - existingMinutes)
       return diff < 45 // 45 min threshold
     })
 
     if (found) {
-      const isExact = parseTimeToMinutes(found.scheduledtime || found.scheduledTime) === newMinutes
+      const isExact = parseTimeToMinutes(found.scheduledtime) === newMinutes
       setConflict({
         type: isExact ? 'CRASH' : 'TIGHT',
         stop: found,
         message: isExact 
-          ? `⚠️ TIME CRASH: Already at ${found.scheduledtime || found.scheduledTime} (${found.householdname || found.householdName})`
-          : `⚠️ TIGHT GAP: Near ${found.scheduledtime || found.scheduledTime} (${found.householdname || found.householdName}). Min 45m recom.`
+          ? `⚠️ TIME CRASH: Already at ${found.scheduledtime} (${found.householdname})`
+          : `⚠️ TIGHT GAP: Near ${found.scheduledtime} (${found.householdname}). Min 45m recom.`
       })
     } else {
       setConflict(null)
@@ -439,8 +439,10 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                         }}
                         className="w-full bg-surface-900/50 border border-surface-800 rounded-xl pl-8 pr-8 h-[44px] text-surface-200 focus:outline-none focus:border-crimson-500/50 transition-all text-[11px] font-bold appearance-none cursor-pointer"
                       >
-                        {(settings?.lionColors || ['黑', '黄', '紫', '橙', '青', '红']).map(c => (
-                          <option key={c} value={c}>{c}</option>
+                        {(settings?.lioncolors || ['黑', '黄', '紫', '橙', '青', '红']).map(c => (
+                          <option key={c} value={c}>
+                            {typeof c === 'string' && c.includes('|') ? c.split('|')[0].trim() : c}
+                          </option>
                         ))}
                       </select>
                       <div className="absolute right-2.5 pointer-events-none text-surface-600">

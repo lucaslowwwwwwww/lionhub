@@ -11,15 +11,15 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   doc.setFont("helvetica")
   
   // Configuration Overrides
-  const clubNameEn = settings?.clubNameEn || "Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka"
-  const clubNameCn = settings?.clubNameCn || "馬來西亞馬六甲傳承龍獅體育會"
-  const clubRegNo = settings?.clubRegistrationNo || "(PPM-015-04-30122019)"
-  const clubAddress = settings?.clubAddress || "NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA"
-  const clubPhone = settings?.clubPhone || "012-328 2862 / 013-666 0979"
-  const prepName = settings?.receiptPreparedBy || "REX YONG"
-  const bankName = settings?.bankName || "PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA"
-  const bankType = settings?.bankType || "CIMB"
-  const bankNumber = settings?.bankNumber || "8011396083"
+  const clubNameEn = settings?.clubnameen || "Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka"
+  const clubNameCn = settings?.clubnamecn || "馬來西亞馬六甲傳承龍獅體育會"
+  const clubRegNo = settings?.clubregistrationno || "(PPM-015-04-30122019)"
+  const clubAddress = settings?.clubaddress || "NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA"
+  const clubPhone = settings?.clubphone || "012-328 2862 / 013-666 0979"
+  const prepName = settings?.receiptpreparedby || "REX YONG"
+  const bankName = settings?.bankname || "PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA"
+  const bankType = settings?.banktype || "CIMB"
+  const bankNumber = settings?.banknumber || "8011396083"
 
   // Load and add Chinese font
   const fontBase64 = await loadChineseFont()
@@ -188,7 +188,7 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   doc.text("PHONE :", 120, phoneLabelY)
   doc.line(120, phoneLabelY + 1, 135, phoneLabelY + 1)
   doc.setFont(defaultFont, "normal")
-  const sigPhone = settings?.signatoryPhone || "60136660979"
+  const sigPhone = settings?.signatoryphone || "60136660979"
   doc.text(sigPhone.replace(/\s/g, ''), 140, phoneLabelY)
 
   // ---------------------------------------------------------
@@ -200,7 +200,8 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   
   const colorMap = {
     '黄': 'YELLOW', '黄红': 'YELLOW-RED', '红': 'RED', '黑': 'BLACK', '紫': 'PURPLE',
-    '橙': 'ORANGE', '青': 'GREEN', '白': 'WHITE', '金': 'GOLD', '银': 'SILVER'
+    '橙': 'ORANGE', '青': 'GREEN', '白': 'WHITE', '金': 'GOLD', '银': 'SILVER',
+    '桃红': 'PINK', '粉': 'PINK', '蓝': 'BLUE', '绿': 'GREEN', '荧光青': 'NEON GREEN'
   }
   const pluckingMap = {
     '五福临门': 'FIVE BLESSINGS (WU FU LIN MEN)',
@@ -214,7 +215,13 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   let descriptionLines = [`CNY LION DANCE PERFORMANCE - ${lionText}`]
   if (stop.lioncolor) {
     const colors = (Array.isArray(stop.lioncolor) ? stop.lioncolor : [stop.lioncolor])
-      .map(c => colorMap[c] || c.toUpperCase())
+      .map(c => {
+        // If user defined a translation like "粉|PINK", use the English part
+        if (typeof c === 'string' && c.includes('|')) {
+          return c.split('|')[1].trim().toUpperCase()
+        }
+        return colorMap[c] || (typeof c === 'string' ? c.toUpperCase() : c)
+      })
     descriptionLines.push(`COLOR: ${colors.join(', ')}`)
   }
 
@@ -243,22 +250,24 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   autoTable(doc, {
     startY: billingY + 52,
     theme: 'grid',
+    margin: { left: 15, right: 15 },
     styles: { 
       fillColor: false, 
       textColor: [0, 0, 0],
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
-      fontSize: 9
+      fontSize: 9,
+      font: defaultFont
     },
     headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
     columnStyles: {
       0: { halign: 'center', cellWidth: 12 },
-      1: { cellWidth: 73 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'center', cellWidth: 25 },
-      4: { halign: 'center', cellWidth: 12 },
-      5: { halign: 'center', cellWidth: 12 },
-      6: { halign: 'center', cellWidth: 25 },
+      1: { cellWidth: 80 },
+      2: { halign: 'center', cellWidth: 15 },
+      3: { halign: 'center', cellWidth: 23 },
+      4: { halign: 'center', cellWidth: 15 },
+      5: { halign: 'center', cellWidth: 15 },
+      6: { halign: 'center', cellWidth: 20 },
     },
     head: [['ITEM', 'ITEM DESCRIPTION', 'QTY', 'UNIT PRICE\n(RM)', 'DISC', 'TAX', 'AMOUNT\n(RM)']],
     body: [
@@ -273,7 +282,7 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
       ]
     ],
     foot: [
-      ['', '', '', '', '', 'TOTAL (RM)', safeAmount]
+      [{ content: 'TOTAL (RM)', colSpan: 6, styles: { halign: 'right' } }, safeAmount]
     ],
     footStyles: { fillColor: false, textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' }
   })
@@ -336,7 +345,7 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
     }
   } catch(e) { console.warn('Failed to audit log receipt export', e) }
   
-  if (navigator.share) {
+  if (navigator.share && window.isSecureContext) {
     try {
       const pdfBlob = doc.output('blob')
       const file = new File([pdfBlob], fileName, { type: 'application/pdf' })

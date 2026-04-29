@@ -20,24 +20,29 @@ export function useSettings() {
     signatoryphone: '60136660979',
     bankname: 'PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA',
     banktype: 'CIMB',
-    banknumber: '8011396083'
+    banknumber: '8011396083',
+    theme: 'dark'
   })
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const [error, setError] = useState(null)
 
   const fetchSettings = async () => {
-    setLoading(true)
+    // Only show loading if we don't have settings yet
+    const hasData = settings && settings.baselocation !== '23, Jalan Imj 2, Melaka' // Check for non-default value
+    if (!hasData) {
+      setLoading(true)
+    }
     setTimeoutError(false)
     
-    // Rule #29: Safety timeout to prevent indefinite loading
+    // Rule #29: Safety timeout (increased to 30s)
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.warn("Settings fetch timed out. Forcing loading to false.")
         setTimeoutError(true)
         setLoading(false)
       }
-    }, 10000)
+    }, 30000)
 
     try {
       const { data, error: fetchError } = await supabase

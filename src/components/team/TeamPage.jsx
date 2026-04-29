@@ -26,14 +26,17 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
   useEffect(() => {
     if (isOpen) {
       setName(editData?.name || '')
+      setVehiclePlate(editData?.vehicleplate || '')
     }
   }, [isOpen, editData])
+
+  const [vehiclePlate, setVehiclePlate] = useState('')
 
   if (!isOpen) return null
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSave({ name }, editData?.id)
+    onSave({ name, vehicleplate: vehiclePlate }, editData?.id)
     onClose()
   }
 
@@ -50,6 +53,12 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
             <input required type="text" value={name} onChange={e => setName(e.target.value)}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all font-bold"
               placeholder="e.g. Troupe Alpha" autoFocus />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Vehicle Plate (Optional)</label>
+            <input type="text" value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)}
+              className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all font-bold"
+              placeholder="e.g. ABC 1234" />
           </div>
           <div className="pt-4 flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-3 rounded-lg bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors">Cancel</button>
@@ -223,7 +232,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
   // Sync form with member data when modal opens
   useEffect(() => {
     if (member) {
-      setDisplayName(member.displayname || member.displayName || '')
+      setDisplayName(member.displayname || '')
       setEmail(member.email || '')
       setPhone(member.phone || '')
       setRole(member.role || 'member')
@@ -399,15 +408,15 @@ export default function TeamPage() {
     
     const mastersList = activeMembers
       .filter(m => m.role === 'master')
-      .sort((a, b) => ((a.displayname || a.displayName) || '').localeCompare((b.displayname || b.displayName) || ''))
+      .sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
       
     const adminsList = activeMembers
       .filter(m => m.role === 'admin')
-      .sort((a, b) => ((a.displayname || a.displayName) || '').localeCompare((b.displayname || b.displayName) || ''))
+      .sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
     
     const membersList = activeMembers
       .filter(m => m.role !== 'admin' && m.role !== 'master')
-      .sort((a, b) => ((a.displayname || a.displayName) || '').localeCompare((b.displayname || b.displayName) || ''))
+      .sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
       
     return { admins: adminsList, regularMembers: membersList, masters: mastersList }
   }, [rawMembers])
@@ -419,7 +428,7 @@ export default function TeamPage() {
   const getTroupeName = (troupeId) => troupes.find(t => t.id === troupeId)?.name || 'Unassigned'
 
   const confirmDeleteMember = (m) => {
-    if (window.confirm(`Are you sure you want to remove ${m.displayname || m.displayName || 'this member'} from the system?`)) {
+    if (window.confirm(`Are you sure you want to remove ${m.displayname || 'this member'} from the system?`)) {
       deleteMember(m.id)
     }
   }
@@ -547,10 +556,10 @@ export default function TeamPage() {
                         <span className="w-3 h-3 rounded-full bg-crimson-500 shadow-[0_0_8px_rgba(220,38,38,0.5)]"></span>
                         {troupe.name}
                       </h3>
-                      {troupe.vehiclePlate && (
+                      {troupe.vehicleplate && (
                         <span className="text-[10px] font-black text-surface-500 bg-surface-800 px-2 py-1 rounded inline-flex items-center gap-1.5 mt-1">
                           <svg className="w-3 h-3 text-surface-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
-                          {troupe.vehiclePlate}
+                          {troupe.vehicleplate}
                         </span>
                       )}
                     </div>
@@ -614,14 +623,14 @@ export default function TeamPage() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-8 h-8 rounded-full bg-violet-500/10 text-violet-400 flex items-center justify-center text-xs font-bold shrink-0 border border-violet-500/20">
-                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
+                                  {m.displayname?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastactive || m.lastActive) && (
+                                {isOnline(m.lastactive) && (
                                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
                                 <p className="text-[10px] text-surface-500 uppercase tracking-tight">
                                   {m.email || (m.phone ? m.phone : 'No Contact Info')}
                                 </p>
@@ -629,12 +638,12 @@ export default function TeamPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4">
-                            <div className={`flex flex-col ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
+                            <div className={`flex flex-col ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-500'}`}>
                               <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-violet-500/10 text-violet-400 border border-violet-500/20">
                                 {m.role || 'master'}
                               </span>
-                              {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
-                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive || m.lastActive)}</span>
+                              {!isOnline(m.lastactive) && m.lastactive && (
+                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive)}</span>
                               )}
                             </div>
                           </td>
@@ -674,14 +683,14 @@ export default function TeamPage() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-8 h-8 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center text-xs font-bold shrink-0 border border-gold-500/20">
-                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
+                                  {m.displayname?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastactive || m.lastActive) && (
+                                {isOnline(m.lastactive) && (
                                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
                                 <p className="text-[10px] text-surface-500 uppercase tracking-tight">
                                   {m.email || (m.phone ? m.phone : 'No Contact Info')}
                                 </p>
@@ -689,12 +698,12 @@ export default function TeamPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4">
-                            <div className={`flex flex-col ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
+                            <div className={`flex flex-col ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-500'}`}>
                               <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-gold-500/10 text-gold-400 border border-gold-500/20">
                                 {m.role || 'admin'}
                               </span>
-                              {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
-                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive || m.lastActive)}</span>
+                              {!isOnline(m.lastactive) && m.lastactive && (
+                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive)}</span>
                               )}
                             </div>
                           </td>
@@ -731,14 +740,14 @@ export default function TeamPage() {
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-8 h-8 rounded-full bg-crimson-500/10 text-crimson-400 flex items-center justify-center text-xs font-bold shrink-0 border border-crimson-500/20">
-                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
+                                  {m.displayname?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastactive || m.lastActive) && (
+                                {isOnline(m.lastactive) && (
                                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
                                 <p className="text-[10px] text-surface-500 uppercase tracking-tight">
                                   {m.email || (m.phone ? m.phone : 'No Contact Info')}
                                 </p>
@@ -746,12 +755,12 @@ export default function TeamPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4">
-                            <div className={`flex flex-col ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-500'}`}>
+                            <div className={`flex flex-col ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-500'}`}>
                               <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-surface-800 border border-surface-700/50">
                                 {m.role || 'member'}
                               </span>
-                              {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
-                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive || m.lastActive)}</span>
+                              {!isOnline(m.lastactive) && m.lastactive && (
+                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive)}</span>
                               )}
                             </div>
                           </td>
@@ -792,25 +801,25 @@ export default function TeamPage() {
                            <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-10 h-10 rounded-full bg-violet-500/10 text-violet-400 flex items-center justify-center text-sm font-bold shrink-0 border border-violet-500/20">
-                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
+                                  {m.displayname?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastactive || m.lastActive) && (
+                                {isOnline(m.lastactive) && (
                                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
                                 <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-violet-500/10 text-violet-400 border border-violet-500/20">
                                   {m.role || 'master'}
                                 </span>
                               </div>
                            </div>
                            <div className="text-right">
-                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
-                               {isOnline(m.lastactive || m.lastActive) ? '● ONLINE' : 'OFFLINE'}
+                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-600'}`}>
+                               {isOnline(m.lastactive) ? '● ONLINE' : 'OFFLINE'}
                              </p>
-                             {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
-                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive || m.lastActive)}</p>
+                             {!isOnline(m.lastactive) && m.lastactive && (
+                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive)}</p>
                              )}
                            </div>
                          </div>
@@ -848,25 +857,25 @@ export default function TeamPage() {
                            <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-10 h-10 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center text-sm font-bold shrink-0 border border-gold-500/20">
-                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
+                                  {m.displayname?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastactive || m.lastActive) && (
+                                {isOnline(m.lastactive) && (
                                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
                                 <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-gold-500/10 text-gold-400 border border-gold-500/20">
                                   {m.role || 'admin'}
                                 </span>
                               </div>
                            </div>
                            <div className="text-right">
-                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
-                               {isOnline(m.lastactive || m.lastActive) ? '● ONLINE' : 'OFFLINE'}
+                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-600'}`}>
+                               {isOnline(m.lastactive) ? '● ONLINE' : 'OFFLINE'}
                              </p>
-                             {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
-                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive || m.lastActive)}</p>
+                             {!isOnline(m.lastactive) && m.lastactive && (
+                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive)}</p>
                              )}
                            </div>
                          </div>
@@ -903,25 +912,25 @@ export default function TeamPage() {
                            <div className="flex items-center gap-3">
                               <div className="relative">
                                 <span className="w-10 h-10 rounded-full bg-crimson-500/10 text-crimson-400 flex items-center justify-center text-sm font-bold shrink-0 border border-crimson-500/20">
-                                  {(m.displayname || m.displayName)?.charAt(0) || '?'}
+                                  {m.displayname?.charAt(0) || '?'}
                                 </span>
-                                {isOnline(m.lastactive || m.lastActive) && (
+                                {isOnline(m.lastactive) && (
                                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
                                 )}
                               </div>
                               <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || m.displayName || 'Unknown'}</p>
+                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
                                 <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-surface-800 text-surface-400 border border-surface-700/50">
                                   {m.phone || 'No Phone'}
                                 </span>
                               </div>
                            </div>
                            <div className="text-right">
-                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive || m.lastActive) ? 'text-green-400' : 'text-surface-600'}`}>
-                               {isOnline(m.lastactive || m.lastActive) ? '● ONLINE' : 'OFFLINE'}
+                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-600'}`}>
+                               {isOnline(m.lastactive) ? '● ONLINE' : 'OFFLINE'}
                              </p>
-                             {!isOnline(m.lastactive || m.lastActive) && (m.lastactive || m.lastActive) && (
-                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive || m.lastActive)}</p>
+                             {!isOnline(m.lastactive) && m.lastactive && (
+                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive)}</p>
                              )}
                            </div>
                          </div>

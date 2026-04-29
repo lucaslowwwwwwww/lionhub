@@ -15,6 +15,10 @@ export function useItinerary(troupeId, date) {
   const itinRef = useRef(null)
   const stopsRef = useRef([])
 
+  // Sync refs with state for use in callbacks (Rule #29 / Stale Closures)
+  useEffect(() => { itinRef.current = itinerary }, [itinerary])
+  useEffect(() => { stopsRef.current = stops }, [stops])
+
   // Move fetch functions outside useEffect so they are accessible for the 'refresh' method
   const fetchStops = async (itinId) => {
     try {
@@ -39,7 +43,9 @@ export function useItinerary(troupeId, date) {
   const fetchItinerary = async () => {
     if (!troupeId || !date) return
 
-    setLoading(true)
+    if (!itinerary) {
+      setLoading(true)
+    }
     // Rule #29: Safety timeout to prevent indefinite loading
     const timeoutId = setTimeout(() => {
       if (loading) {
@@ -66,11 +72,13 @@ export function useItinerary(troupeId, date) {
 
       if (data) {
         setItinerary(data)
+        itinRef.current = data // Update ref immediately for subscription logic
         setAttendance(data.attendance || [])
         setAttendanceDetails(data.attendancedetails || {})
         await fetchStops(data.id)
       } else {
         setItinerary(null)
+        itinRef.current = null
         setStops([])
         setAttendance([])
         setAttendanceDetails({})

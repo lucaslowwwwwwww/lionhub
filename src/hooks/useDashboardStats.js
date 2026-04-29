@@ -153,7 +153,11 @@ export function useDashboardStats() {
 
     // Initial fetch all data with safety timeout
     const fetchAll = async () => {
-      setLoading(true)
+      // Only show loading if we don't have any stats yet
+      const hasData = stats.totalStops > 0 || Object.keys(stats.monthlyData).length > 0
+      if (!hasData) {
+        setLoading(true)
+      }
       setTimeoutError(false)
 
       // Rule #29: Safety timeout to prevent indefinite loading

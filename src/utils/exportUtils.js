@@ -149,9 +149,9 @@ const getTimestampMs = (ts) => {
 }
 
 const calcDuration = (stop) => {
-  if (stop.performanceStartedAt && stop.completedAt) {
-    const startMs = getTimestampMs(stop.performanceStartedAt)
-    const endMs = getTimestampMs(stop.completedAt)
+  if (stop.performancestartedat && stop.completedat) {
+    const startMs = getTimestampMs(stop.performancestartedat)
+    const endMs = getTimestampMs(stop.completedat)
     if (startMs && endMs) return `${Math.max(1, Math.round((endMs - startMs) / 60000))}m`
   }
   return '-'
@@ -187,7 +187,7 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   }
   const defaultFont = fontBase64 ? 'NotoSansSC' : 'helvetica'
 
-  const title = `Daily Report — ${meta.dayLabel || meta.dateKey} — ${meta.troupeName || 'All Teams'}`
+  const title = `Daily Report — ${meta.dayLabel || meta.dateKey} — ${meta.troupename || 'All Teams'}`
   const startY = await addClubHeader(doc, settings, title)
 
   // ── PAGE 1: ROSTER ──
@@ -228,7 +228,7 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
 
   doc.setFontSize(11)
   doc.setFont(defaultFont, 'bold')
-  doc.text(`ITINERARY — ${(meta.dayLabel || meta.dateKey).toUpperCase()} — ${(meta.troupeName || 'ALL TEAMS').toUpperCase()}`, centerX, 15, { align: 'center' })
+  doc.text(`ITINERARY — ${(meta.dayLabel || meta.dateKey).toUpperCase()} — ${(meta.troupename || 'ALL TEAMS').toUpperCase()}`, centerX, 15, { align: 'center' })
 
   doc.setFontSize(9)
   doc.setFont(defaultFont, 'normal')
@@ -257,7 +257,7 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   ])
 
   const totalQuote = stops.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
-  const totalActual = stops.filter(s => s.status === 'completed').reduce((sum, s) => sum + (Number(s.actualAmount) || Number(s.amount) || 0), 0)
+  const totalActual = stops.filter(s => s.status === 'completed').reduce((sum, s) => sum + (Number(s.actualamount) || Number(s.amount) || 0), 0)
 
   autoTable(doc, {
     startY: 26,

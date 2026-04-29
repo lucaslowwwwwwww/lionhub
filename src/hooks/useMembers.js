@@ -10,7 +10,9 @@ export function useMembers() {
   const { logAction } = useAudit()
 
   const fetchMembers = async () => {
-    setLoading(true)
+    if (members.length === 0) {
+      setLoading(true)
+    }
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.warn("Members fetch timed out. Forcing loading to false.")

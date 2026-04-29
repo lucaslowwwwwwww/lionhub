@@ -14,11 +14,16 @@ export function usePresence() {
 
     // Update immediately on mount
     const updatePresence = async () => {
+      // Rule #29: Prevent aggressive updates (max once every 30s)
+      const lastUpdate = Number(sessionStorage.getItem('last_presence_update') || 0)
+      if (Date.now() - lastUpdate < 30000) return
+
       try {
         await supabase
           .from('users')
-          .update({ lastActive: new Date().toISOString() })
+          .update({ lastactive: new Date().toISOString() })
           .eq('id', userProfile.uid)
+        sessionStorage.setItem('last_presence_update', Date.now().toString())
       } catch (err) {
         console.error('Failed to update presence:', err)
       }

@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useRef } from 'react'
+import { createContext, useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '../supabase'
 
 export const AuthContext = createContext(null)
@@ -16,28 +16,44 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [connectionError, setConnectionError] = useState(false)
-  const profileChannelRef = useRef(null)
+   const profileChannelRef = useRef(null)
+   const userProfileRef = useRef(null)
+   const fetchingRef = useRef(false)
+ 
+   // Keep Ref in sync with state for use in callbacks/listeners
+   useEffect(() => {
+     userProfileRef.current = userProfile
+   }, [userProfile])
 
   // Fetch the user profile from the 'users' table with safety timeout
-  const fetchProfile = async (authUser) => {
+  const fetchProfile = async (authUser, forceLoading = false) => {
     if (!authUser) {
       setUserProfile(null)
       setLoading(false)
       return
     }
 
-    setLoading(true)
-    setConnectionError(false)
+    if (fetchingRef.current) return
+    fetchingRef.current = true
+
+    const shouldShowLoading = !userProfileRef.current || forceLoading
+    if (shouldShowLoading) {
+      setLoading(true)
+      setConnectionError(false)
+    }
     let isPending = true
 
-    // Rule #29: Safety timeout
+    // Rule #29: Safety timeout (increased to 30s for stability)
     const timeoutId = setTimeout(() => {
       if (isPending) {
         console.warn("Profile fetch timed out.")
-        setConnectionError(true)
+        // Only trigger global error UI if this was a forced/initial load
+        if (shouldShowLoading) {
+          setConnectionError(true)
+        }
         setLoading(false)
       }
-    }, 15000)
+    }, 30000)
 
     try {
       const authEmail = (authUser.email || '').toLowerCase().trim()
@@ -85,9 +101,12 @@ export function AuthProvider({ children }) {
       setConnectionError(false)
     } catch (err) {
       console.error("Unexpected error in fetchProfile:", err)
-      setConnectionError(true)
+      if (shouldShowLoading) {
+        setConnectionError(true)
+      }
     } finally {
       isPending = false
+      fetchingRef.current = false
       clearTimeout(timeoutId)
       setLoading(false)
     }
@@ -177,15 +196,23 @@ export function AuthProvider({ children }) {
         setUser(authUser)
 
         if (authUser) {
-          await fetchProfile(authUser)
+          const currentProfile = userProfileRef.current
+          const isSameUser = currentProfile && currentProfile.uid === authUser.id
+          
+          // Rule #29: Add a small delay for background refreshes on focus
+          // This gives the OS/Network time to settle (avoiding instant timeouts)
+          setTimeout(() => {
+            fetchProfile(authUser, !isSameUser) 
+          }, isSameUser ? 1000 : 0)
+
           subscribeToProfile(authUser)
         } else {
           setUserProfile(null)
           setLoading(false)
           // Clean up profile channel
-          if (profileChannel) {
-            supabase.removeChannel(profileChannel)
-            profileChannel = null
+          if (profileChannelRef.current) {
+            supabase.removeChannel(profileChannelRef.current)
+            profileChannelRef.current = null
           }
         }
 
@@ -245,7 +272,15 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const value = { user, userProfile, loading, connectionError, logout, deleteAccount, refreshProfile: () => user && fetchProfile(user) }
+  const value = useMemo(() => ({ 
+    user, 
+    userProfile, 
+    loading, 
+    connectionError, 
+    logout, 
+    deleteAccount, 
+    refreshProfile: () => user && fetchProfile(user, true) 
+  }), [user, userProfile, loading, connectionError])
 
   return (
     <AuthContext.Provider value={value}>

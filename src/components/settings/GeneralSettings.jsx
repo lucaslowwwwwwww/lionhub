@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useAuth } from '../../hooks/useAuth'
-import { DatabaseStats } from './DatabaseStats'
 
 /**
  * GeneralSettings
@@ -12,23 +11,23 @@ export default function GeneralSettings() {
   const { userProfile, deleteAccount } = useAuth()
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
 
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('club')
   const [localSettings, setLocalSettings] = useState({
-    baseLocation: '',
+    baselocation: '',
     theme: localStorage.getItem('app-theme') || 'dark',
-    defaultDuration: 30,
-    lionColors: [],
-    cnyOverrides: {},
-    clubNameEn: '',
-    clubNameCn: '',
-    clubAddress: '',
-    clubPhone: '',
-    receiptPreparedBy: '',
-    signatoryPhone: '',
-    clubRegistrationNo: '',
-    bankName: '',
-    bankType: '',
-    bankNumber: ''
+    defaultduration: 30,
+    lioncolors: [],
+    cnyoverrides: {},
+    clubnameen: '',
+    clubnamecn: '',
+    clubaddress: '',
+    clubphone: '',
+    receiptpreparedby: '',
+    signatoryphone: '',
+    clubregistrationno: '',
+    bankname: '',
+    banktype: '',
+    banknumber: ''
   })
   
   const [isSaving, setIsSaving] = useState(false)
@@ -41,20 +40,20 @@ export default function GeneralSettings() {
     if (settings) {
       setLocalSettings(prev => ({
         ...prev,
-        baseLocation: settings.baseLocation || '',
-        defaultDuration: settings.defaultDuration || 30,
-        lionColors: settings.lionColors || ['黑', '黄', '紫', '橙', '青', '红'],
-        cnyOverrides: settings.cnyOverrides || {},
-        clubNameEn: settings.clubNameEn || 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka',
-        clubNameCn: settings.clubNameCn || '馬來西亞馬六甲傳承龍獅體育會',
-        clubAddress: settings.clubAddress || 'NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA',
-        clubPhone: settings.clubPhone || '012-328 2862 / 013-666 0979',
-        clubRegistrationNo: settings.clubRegistrationNo || '(PPM-015-04-30122019)',
-        receiptPreparedBy: settings.receiptPreparedBy || 'REX YONG',
-        signatoryPhone: settings.signatoryPhone || '60136660979',
-        bankName: settings.bankName || 'PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA',
-        bankType: settings.bankType || 'CIMB',
-        bankNumber: settings.bankNumber || '8011396083',
+        baselocation: settings.baselocation || '',
+        defaultduration: settings.defaultduration || 30,
+        lioncolors: settings.lioncolors || ['黑', '黄', '紫', '橙', '青', '红'],
+        cnyoverrides: settings.cnyoverrides || {},
+        clubnameen: settings.clubnameen || 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka',
+        clubnamecn: settings.clubnamecn || '馬來西亞馬六甲傳承龍獅體育會',
+        clubaddress: settings.clubaddress || 'NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA',
+        clubphone: settings.clubphone || '012-328 2862 / 013-666 0979',
+        clubregistrationno: settings.clubregistrationno || '(PPM-015-04-30122019)',
+        receiptpreparedby: settings.receiptpreparedby || 'REX YONG',
+        signatoryphone: settings.signatoryphone || '60136660979',
+        bankname: settings.bankname || 'PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA',
+        banktype: settings.banktype || 'CIMB',
+        banknumber: settings.banknumber || '8011396083',
         theme: settings.theme || localStorage.getItem('app-theme') || 'dark'
       }))
     }
@@ -77,7 +76,7 @@ export default function GeneralSettings() {
 
       await updateSettings({
         ...localSettings,
-        defaultDuration: Number(localSettings.defaultDuration) || 30
+        defaultduration: Number(localSettings.defaultduration) || 30
       })
       setSaveMessage('Success: Settings synchronized.')
       setTimeout(() => setSaveMessage(''), 3000)
@@ -109,9 +108,6 @@ export default function GeneralSettings() {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-    )},
     { id: 'club', label: 'Club Profile', icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
     )},
@@ -191,17 +187,6 @@ export default function GeneralSettings() {
 
       {/* Tab Content */}
       <main className="min-h-[400px]">
-        {activeTab === 'overview' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-            <DatabaseStats />
-            <div className="bg-surface-900/40 border border-surface-800 rounded-3xl p-8 text-center border-dashed">
-               <svg className="w-12 h-12 text-surface-700 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-               <h3 className="text-sm font-black text-surface-300 uppercase tracking-widest">System Health</h3>
-               <p className="text-xs text-surface-500 mt-2 max-w-sm mx-auto leading-relaxed italic">All core microservices and Supabase Realtime channels are currently operational. Regular backup cycles are managed by Supabase Cloud.</p>
-            </div>
-          </div>
-        )}
-
         {activeTab === 'club' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
              <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
@@ -210,24 +195,24 @@ export default function GeneralSettings() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Club Name (English)</label>
-                    <input type="text" value={localSettings.clubNameEn} onChange={(e) => setLocalSettings({...localSettings, clubNameEn: e.target.value})}
+                    <input type="text" value={localSettings.clubnameen} onChange={(e) => setLocalSettings({...localSettings, clubnameen: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Club Name (Chinese)</label>
-                    <input type="text" value={localSettings.clubNameCn || ''} onChange={(e) => setLocalSettings({...localSettings, clubNameCn: e.target.value})}
+                    <input type="text" value={localSettings.clubnamecn || ''} onChange={(e) => setLocalSettings({...localSettings, clubnamecn: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Reg No (e.g. PPM...)</label>
-                    <input type="text" value={localSettings.clubRegistrationNo || ''} onChange={(e) => setLocalSettings({...localSettings, clubRegistrationNo: e.target.value})}
+                    <input type="text" value={localSettings.clubregistrationno || ''} onChange={(e) => setLocalSettings({...localSettings, clubregistrationno: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">HQ Address (Receipt Header)</label>
-                    <textarea rows={4} value={localSettings.clubAddress} onChange={(e) => setLocalSettings({...localSettings, clubAddress: e.target.value})}
+                    <textarea rows={4} value={localSettings.clubaddress} onChange={(e) => setLocalSettings({...localSettings, clubaddress: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-3 text-xs text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none leading-relaxed" />
                   </div>
                 </div>
@@ -236,12 +221,12 @@ export default function GeneralSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                  <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Contact Phone (Header)</label>
-                    <input type="text" value={localSettings.clubPhone} onChange={(e) => setLocalSettings({...localSettings, clubPhone: e.target.value})}
+                    <input type="text" value={localSettings.clubphone} onChange={(e) => setLocalSettings({...localSettings, clubphone: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                  </div>
                  <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Receipt Prepared By (Signatory)</label>
-                    <input type="text" value={localSettings.receiptPreparedBy} onChange={(e) => setLocalSettings({...localSettings, receiptPreparedBy: e.target.value})}
+                    <input type="text" value={localSettings.receiptpreparedby} onChange={(e) => setLocalSettings({...localSettings, receiptpreparedby: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                  </div>
               </div>
@@ -249,7 +234,7 @@ export default function GeneralSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                  <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Signatory Contact Phone</label>
-                    <input type="text" value={localSettings.signatoryPhone} onChange={(e) => setLocalSettings({...localSettings, signatoryPhone: e.target.value})}
+                    <input type="text" value={localSettings.signatoryphone} onChange={(e) => setLocalSettings({...localSettings, signatoryphone: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                  </div>
               </div>
@@ -261,18 +246,18 @@ export default function GeneralSettings() {
                  <div className="space-y-4">
                     <div>
                       <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Account Holder Name</label>
-                      <input type="text" value={localSettings.bankName} onChange={(e) => setLocalSettings({...localSettings, bankName: e.target.value})}
+                      <input type="text" value={localSettings.bankname} onChange={(e) => setLocalSettings({...localSettings, bankname: e.target.value})}
                         className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner uppercase" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Bank Name / Type</label>
-                      <input type="text" value={localSettings.bankType} onChange={(e) => setLocalSettings({...localSettings, bankType: e.target.value})}
+                      <input type="text" value={localSettings.banktype} onChange={(e) => setLocalSettings({...localSettings, banktype: e.target.value})}
                         className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-sm text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner uppercase" placeholder="e.g. CIMB" />
                     </div>
                  </div>
                  <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Account Number</label>
-                    <input type="text" value={localSettings.bankNumber} onChange={(e) => setLocalSettings({...localSettings, bankNumber: e.target.value})}
+                    <input type="text" value={localSettings.banknumber} onChange={(e) => setLocalSettings({...localSettings, banknumber: e.target.value})}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-12 text-xl text-surface-100 font-black focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner tabular-nums" />
                     <p className="text-[10px] text-surface-600 font-bold italic mt-3 px-1 leading-relaxed">This information is displayed at the bottom of generated PDF receipts to facilitate customer payments.</p>
                  </div>
@@ -316,8 +301,8 @@ export default function GeneralSettings() {
                     type="number"
                     min="5"
                     step="5"
-                    value={localSettings.defaultDuration}
-                    onChange={(e) => setLocalSettings({ ...localSettings, defaultDuration: e.target.value })}
+                    value={localSettings.defaultduration}
+                    onChange={(e) => setLocalSettings({ ...localSettings, defaultduration: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-black focus:outline-none focus:border-crimson-500/50 transition-all text-xl tabular-nums shadow-inner"
                   />
                   <div className="absolute right-5 top-1/2 -translate-y-1/2 text-surface-700 font-black uppercase text-[10px] tracking-widest pointer-events-none group-focus-within:text-crimson-500">Minutes</div>
@@ -337,8 +322,8 @@ export default function GeneralSettings() {
                 <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">HQ / Dispatch Address</label>
                 <textarea
                   rows={2}
-                  value={localSettings.baseLocation}
-                  onChange={(e) => setLocalSettings({ ...localSettings, baseLocation: e.target.value })}
+                  value={localSettings.baselocation}
+                  onChange={(e) => setLocalSettings({ ...localSettings, baselocation: e.target.value })}
                   className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-4 text-surface-200 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none text-sm leading-relaxed"
                   placeholder="23, Jalan Imj 2, Melaka"
                 />
@@ -353,11 +338,11 @@ export default function GeneralSettings() {
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Standard Lion Colors</label>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {localSettings.lionColors.map((color) => (
+                    {localSettings.lioncolors.map((color) => (
                       <div key={color} className="flex items-center gap-2 pl-4 pr-2 h-10 bg-surface-950 border border-surface-800 rounded-xl group hover:border-crimson-500/30 transition-all">
-                        <span className="text-xs font-bold text-surface-200">{color}</span>
+                        <span className="text-xs font-bold text-surface-200">{color.includes('|') ? color.split('|')[0].trim() : color}</span>
                         <button
-                          onClick={() => setLocalSettings(prev => ({ ...prev, lionColors: prev.lionColors.filter(c => c !== color) }))}
+                          onClick={() => setLocalSettings(prev => ({ ...prev, lioncolors: prev.lioncolors.filter(c => c !== color) }))}
                           className="w-6 h-6 flex items-center justify-center text-surface-600 hover:text-crimson-500 hover:bg-crimson-500/10 rounded-md transition-all ml-1"
                         >✕</button>
                       </div>
@@ -374,7 +359,7 @@ export default function GeneralSettings() {
                         if (e.key === 'Enter') {
                           e.preventDefault()
                           if (!newColor.trim()) return
-                          setLocalSettings(p => ({ ...p, lionColors: [...p.lionColors, newColor.trim()] }))
+                          setLocalSettings(p => ({ ...p, lioncolors: [...p.lioncolors, newColor.trim()] }))
                           setNewColor('')
                         }
                       }}
@@ -383,12 +368,13 @@ export default function GeneralSettings() {
                     <button
                       onClick={() => {
                          if (!newColor.trim()) return
-                         setLocalSettings(p => ({ ...p, lionColors: [...p.lionColors, newColor.trim()] }))
+                         setLocalSettings(p => ({ ...p, lioncolors: [...p.lioncolors, newColor.trim()] }))
                          setNewColor('')
                       }}
                       className="px-6 h-12 bg-surface-800 hover:bg-surface-700 text-surface-100 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
                     >Add</button>
                   </div>
+                  <p className="text-[9px] text-surface-600 font-bold italic mt-3 px-1">Tip: Use "Chinese|English" (e.g. 粉|PINK) to automatically translate colors for the receipt.</p>
                 </div>
               </div>
             </section>
@@ -416,23 +402,23 @@ export default function GeneralSettings() {
                     <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Override Day 1</label>
                     <input 
                       type="date"
-                      value={localSettings.cnyOverrides?.[new Date().getFullYear()] || ''}
+                      value={localSettings.cnyoverrides?.[new Date().getFullYear()] || ''}
                       onChange={(e) => {
                         const yr = new Date().getFullYear();
-                        setLocalSettings(p => ({ ...p, cnyOverrides: { ...p.cnyOverrides, [yr]: e.target.value } }));
+                        setLocalSettings(p => ({ ...p, cnyoverrides: { ...p.cnyoverrides, [yr]: e.target.value } }));
                       }}
                       className="w-full bg-surface-950 border border-surface-800 rounded-2xl h-14 px-5 text-sm font-black text-amber-500 focus:outline-none focus:border-amber-500/50 shadow-inner"
                     />
                   </div>
                 </div>
 
-                {localSettings.cnyOverrides?.[new Date().getFullYear()] && (
+                {localSettings.cnyoverrides?.[new Date().getFullYear()] && (
                    <button 
                      onClick={() => {
                         const yr = new Date().getFullYear();
-                        const next = { ...localSettings.cnyOverrides };
+                        const next = { ...localSettings.cnyoverrides };
                         delete next[yr];
-                        setLocalSettings(p => ({ ...p, cnyOverrides: next }));
+                        setLocalSettings(p => ({ ...p, cnyoverrides: next }));
                      }}
                      className="text-[9px] font-black text-crimson-500 uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-crimson-500/5 px-4 py-2 rounded-xl transition-all mx-auto"
                    >✕ Clear Override</button>
