@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
+import { useToast } from '../contexts/ToastContext'
 import { sanitizeObject } from '../utils/sanitize'
 
 export function useItinerary(troupeId, date) {
@@ -11,6 +12,7 @@ export function useItinerary(troupeId, date) {
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
+  const { showToast } = useToast()
   
   const itinRef = useRef(null)
   const stopsRef = useRef([])
@@ -392,7 +394,7 @@ export function useItinerary(troupeId, date) {
   // Update the list of members joining for this performance day
   const updateAttendance = async (memberIds, details = {}) => {
     if (!itinerary) {
-      console.error('Cannot update attendance without an active itinerary.')
+      showToast('Cannot update attendance without an active itinerary.', 'error')
       return
     }
 

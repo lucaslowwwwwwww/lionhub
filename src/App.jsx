@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider } from './contexts/ToastContext'
 import { LoginPage, ProtectedRoute, SessionGuard } from './components/auth'
 import { AppShell } from './components/layout'
 import { useAuth } from './hooks/useAuth'
@@ -131,7 +132,8 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <ThemeManager>
+        <ToastProvider>
+          <ThemeManager>
           <ConnectionOverlay />
           {/* Global Watermark Logo - Top Layer Overlay but Pointer-Disabled */}
           <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.10] pointer-events-none z-50 overflow-hidden select-none translate-y-[-10vh]">
@@ -178,7 +180,8 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
-        </ThemeManager>
+          </ThemeManager>
+        </ToastProvider>
       </AuthProvider>
     </Router>
   )

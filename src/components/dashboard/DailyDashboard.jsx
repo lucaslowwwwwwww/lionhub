@@ -7,6 +7,7 @@ import { useFinance } from '../../hooks/useFinance'
 import { getActualCnyDate, getDayInfo } from '../../utils/constants'
 import TeamSelectionModal from './TeamSelectionModal'
 import { useSettings } from '../../hooks/useSettings'
+import { supabase } from '../../supabase'
 
 function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel" }) {
   if (!isOpen) return null
