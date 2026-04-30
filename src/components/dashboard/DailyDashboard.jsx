@@ -106,7 +106,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
   const localIsoDate = currentActualDate.toISOString().split('T')[0]
   const currentDayInfo = getDayInfo(currentActualDate, overrides)
 
-  const { dateTroupes = {}, allItineraries = [], loading: loadingDates } = useAllPerformanceDates()
+  const { dateTroupes = {}, allItineraries = [], loading: loadingDates, refresh: refreshDates } = useAllPerformanceDates()
   const { transactions } = useFinance('all')
   const activeTroupesOnDate = useMemo(() => {
     const activeIds = dateTroupes[dateKey] || []
@@ -160,7 +160,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
       // Default to "Team A" if no other teams are active and we are an admin
       if (isAdmin && troupes.length > 0) {
         const teamA = troupes.find(t => t.name.toLowerCase().includes('team a')) || troupes[0]
-        if (teamA) setActiveTroupeId(teamA.id)
+        if (teamA && activeTroupeId === null) setActiveTroupeId(teamA.id)
       } else {
         setActiveTroupeId(null)
       }
@@ -199,6 +199,8 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
   const handleDeleteDeployment = async () => {
     try {
       await deleteFullItinerary()
+      setActiveTroupeId(null)
+      if (refreshDates) await refreshDates()
     } catch (err) {
       alert("Failed to delete deployment")
     }
@@ -446,11 +448,12 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
         selectedMemberIds={attendance} 
         currentAttendanceDetails={attendanceDetails}
         onSave={async (ids, details) => {
-          if (!itinerary && activeTroupeId) {
+          let targetItinId = itinerary?.id
+          if (!targetItinId && activeTroupeId) {
             const troupe = troupes.find(t => t.id === activeTroupeId)
-            await createItinerary({ troupename: troupe?.name || 'Unknown' })
+            targetItinId = await createItinerary({ troupename: troupe?.name || 'Unknown' })
           }
-          await updateAttendance(ids, details)
+          await updateAttendance(ids, details, targetItinId)
         }} 
         busyMemberIds={busyMemberIds} 
       />

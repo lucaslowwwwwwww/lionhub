@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { getActualCnyDate } from '../utils/constants'
+import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 
 export function useDashboardStats() {
   const [stats, setStats] = useState({
@@ -160,19 +161,12 @@ export function useDashboardStats() {
       }
       setTimeoutError(false)
 
-      // Rule #29: Safety timeout to prevent indefinite loading
-      const timeoutId = setTimeout(() => {
-        if (loading) {
-          console.warn("Dashboard stats fetch timed out. Forcing loading to false.")
-          setTimeoutError(true)
-          setLoading(false)
-        }
-      }, 10000)
+      const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
       try {
         const [itinRes, finRes, troupeRes, memberRes] = await Promise.all([
-          supabase.from('itineraries').select('*').gte('date', startIso),
-          supabase.from('finance').select('*').gte('date', startIso),
+          supabase.from('itineraries').select(TABLES.ITINERARIES).gte('date', startIso),
+          supabase.from('finance').select(TABLES.FINANCE).gte('date', startIso),
           supabase.from('troupes').select('id', { count: 'exact', head: true }),
           supabase.from('users').select('id', { count: 'exact', head: true })
         ])
@@ -201,7 +195,7 @@ export function useDashboardStats() {
     const itinChannel = supabase
       .channel(`dash-itin-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' }, async () => {
-        const { data } = await supabase.from('itineraries').select('*').gte('date', startIso)
+        const { data } = await supabase.from('itineraries').select(TABLES.ITINERARIES).gte('date', startIso)
         if (data) processItineraries(data)
       })
       .subscribe()
@@ -209,7 +203,7 @@ export function useDashboardStats() {
     const finChannel = supabase
       .channel(`dash-fin-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, async () => {
-        const { data } = await supabase.from('finance').select('*').gte('date', startIso)
+        const { data } = await supabase.from('finance').select(TABLES.FINANCE).gte('date', startIso)
         if (data) processFinance(data)
       })
       .subscribe()

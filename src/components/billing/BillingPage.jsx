@@ -4,6 +4,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { supabase } from '../../supabase'
 import CreateDocModal from './CreateDocModal'
 import { generateBillingPDF, formatPerformanceDescription } from '../../utils/billingUtils'
+import { TABLES } from '../../utils/fetchHelper'
 
 export default function BillingPage() {
   const { userProfile } = useAuth()
@@ -32,7 +33,7 @@ export default function BillingPage() {
       try {
         const { data, error } = await supabase
           .from('stops')
-          .select('*')
+          .select(TABLES.STOPS)
           .eq('scheduleddate', selectedDate)
           .order('order', { ascending: true })
 

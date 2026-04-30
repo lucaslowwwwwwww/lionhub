@@ -1,44 +1,54 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from './useAuth'
 import { sanitizeObject } from '../utils/sanitize'
+import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 
 /**
  * useCustomers — Global Customer Management
- * Provides visibility and write access to the shared club customer database for all authorized users.
  */
 export function useCustomers() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const [error, setError] = useState(null)
+  const [totalCount, setTotalCount] = useState(0)
+  const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+  const [searchQuery, setSearchQuery] = useState('')
   
   const { userProfile, user } = useAuth()
   const troupeId = userProfile?.troupeid
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
+    if (!user) return;
+    
     setLoading(true)
     setTimeoutError(false)
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.warn("Customers fetch timed out. Forcing loading to false.")
-        setTimeoutError(true)
-        setLoading(false)
-      }
-    }, 10000)
+    const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('customers')
-        .select('*')
-        .limit(100)
+        .select(TABLES.CUSTOMERS, { count: 'exact' })
+
+      if (searchQuery) {
+        query = query.ilike('name', `%${searchQuery}%`)
+      }
+
+      const from = page * pageSize
+      const to = from + pageSize - 1
+
+      const { data, count, error: fetchError } = await query
+        .order('name', { ascending: true })
+        .range(from, to)
 
       if (fetchError) {
         console.error('Error fetching global customer list:', fetchError)
         setError(fetchError)
       } else {
-        const sorted = (data || []).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-        setCustomers(sorted)
+        setCustomers(data || [])
+        setTotalCount(count || 0)
         setError(null)
       }
     } catch (err) {
@@ -48,7 +58,7 @@ export function useCustomers() {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }
+  }, [user, page, pageSize, searchQuery])
 
   useEffect(() => {
     if (!user) {
@@ -80,7 +90,7 @@ export function useCustomers() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user])
+  }, [user, fetchCustomers])
 
   const addCustomer = async (customerData) => {
     if (!user) throw new Error("Authentication required.")
@@ -127,6 +137,13 @@ export function useCustomers() {
     loading, 
     timeoutError,
     error, 
+    totalCount,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    searchQuery,
+    setSearchQuery,
     addCustomer, 
     updateCustomer, 
     deleteCustomer,

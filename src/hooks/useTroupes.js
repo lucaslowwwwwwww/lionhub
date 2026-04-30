@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
+import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
+import { useAudit } from './useAudit'
 
 export function useTroupes() {
+  const { logAction } = useAudit()
   const CACHE_KEY = 'liondance_cache_troupes'
   const CACHE_EXPIRY = 10 * 60 * 1000 // 10 minutes
 
@@ -18,25 +21,17 @@ export function useTroupes() {
   const [loading, setLoading] = useState(!troupes.length)
   const [timeoutError, setTimeoutError] = useState(false)
 
-  const fetchTroupes = async () => {
+  const fetchTroupes = useCallback(async () => {
     setLoading(true)
     setTimeoutError(false)
 
-    // Rule #29: Safety timeout to prevent indefinite loading
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.warn("Troupes fetch timed out. Forcing loading to false.")
-        setTimeoutError(true)
-        setLoading(false)
-      }
-    }, 10000)
+    const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
     try {
       const { data, error } = await supabase
         .from('troupes')
-        .select('*')
+        .select(TABLES.TROUPES)
         .order('name')
-        .limit(50)
 
       if (error) {
         console.error('Error fetching troupes:', error)
@@ -53,7 +48,7 @@ export function useTroupes() {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchTroupes()
@@ -77,7 +72,7 @@ export function useTroupes() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [fetchTroupes])
 
   const addTroupe = async (troupeData) => {
     const { error } = await supabase
@@ -89,6 +84,7 @@ export function useTroupes() {
       })
 
     if (error) throw error
+    await logAction('ADD_TROUPE', troupeData)
   }
 
   const updateTroupe = async (id, data) => {
@@ -98,6 +94,7 @@ export function useTroupes() {
       .eq('id', id)
 
     if (error) throw error
+    await logAction('UPDATE_TROUPE', { id, ...data })
   }
 
   const deleteTroupe = async (id) => {
@@ -135,6 +132,7 @@ export function useTroupes() {
         .eq('id', id)
 
       if (error) throw error
+      await logAction('DELETE_TROUPE', { id })
     } catch (err) {
       console.error('Failed to delete troupe:', err)
       throw err

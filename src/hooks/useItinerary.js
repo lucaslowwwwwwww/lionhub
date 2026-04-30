@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { useToast } from '../contexts/ToastContext'
 import { sanitizeObject } from '../utils/sanitize'
+import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 
 export function useItinerary(troupeId, date) {
   const [itinerary, setItinerary] = useState(null)
@@ -22,11 +23,11 @@ export function useItinerary(troupeId, date) {
   useEffect(() => { stopsRef.current = stops }, [stops])
 
   // Move fetch functions outside useEffect so they are accessible for the 'refresh' method
-  const fetchStops = async (itinId) => {
+  const fetchStops = useCallback(async (itinId) => {
     try {
       const { data, error } = await supabase
         .from('stops')
-        .select('*')
+        .select(TABLES.STOPS)
         .eq('itinerary_id', itinId)
         .order('order', { ascending: true })
 
@@ -40,27 +41,19 @@ export function useItinerary(troupeId, date) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const fetchItinerary = async () => {
+  const fetchItinerary = useCallback(async () => {
     if (!troupeId || !date) return
 
-    if (!itinerary) {
-      setLoading(true)
-    }
-    // Rule #29: Safety timeout to prevent indefinite loading
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.warn("Itinerary fetch timed out. Forcing loading to false.")
-        setTimeoutError(true)
-        setLoading(false)
-      }
-    }, 10000)
+    setLoading(true)
+    setTimeoutError(false)
+    const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
     try {
       const { data, error } = await supabase
         .from('itineraries')
-        .select('*')
+        .select(TABLES.ITINERARIES)
         .eq('troupeid', troupeId)
         .eq('date', date)
         .limit(1)
@@ -92,7 +85,7 @@ export function useItinerary(troupeId, date) {
     } finally {
       clearTimeout(timeoutId)
     }
-  }
+  }, [troupeId, date, fetchStops])
 
   useEffect(() => {
     // Reset state immediately when parameters change to avoid showing stale data
@@ -158,7 +151,7 @@ export function useItinerary(troupeId, date) {
       if (itinChannel) supabase.removeChannel(itinChannel)
       if (stopsChannel) supabase.removeChannel(stopsChannel)
     }
-  }, [troupeId, date])
+  }, [troupeId, date, fetchItinerary])
 
   // Helper to mark a stop as in-progress, completed, or skipped
   const updateStopStatus = async (stopId, newStatus, extraData = {}) => {
@@ -392,8 +385,9 @@ export function useItinerary(troupeId, date) {
   }
 
   // Update the list of members joining for this performance day
-  const updateAttendance = async (memberIds, details = {}) => {
-    if (!itinerary) {
+  const updateAttendance = async (memberIds, details = {}, providedItinId = null) => {
+    const activeItinId = providedItinId || itinerary?.id
+    if (!activeItinId) {
       showToast('Cannot update attendance without an active itinerary.', 'error')
       return
     }
@@ -406,7 +400,7 @@ export function useItinerary(troupeId, date) {
           attendancedetails: details,
           updatedat: new Date().toISOString()
         })
-        .eq('id', itinerary.id)
+        .eq('id', activeItinId)
 
       if (error) throw error
     } catch (err) {
@@ -458,7 +452,7 @@ export function useAllPerformanceDates(troupeId) {
   const [loading, setLoading] = useState(!allItineraries.length)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchItineraries = useCallback(async () => {
     const startRange = new Date()
     startRange.setMonth(startRange.getMonth() - 2)
     const endRange = new Date()
@@ -467,29 +461,29 @@ export function useAllPerformanceDates(troupeId) {
     const startStr = startRange.toISOString().split('T')[0]
     const endStr = endRange.toISOString().split('T')[0]
 
-    const fetchItineraries = async () => {
-      const { data, error: fetchError } = await supabase
-        .from('itineraries')
-        .select('*')
-        .gte('date', startStr)
-        .lte('date', endStr)
+    const { data, error: fetchError } = await supabase
+      .from('itineraries')
+      .select(TABLES.ITINERARIES)
+      .gte('date', startStr)
+      .lte('date', endStr)
 
-      if (fetchError) {
-        console.error('Itinerary query error:', fetchError)
-        setError(fetchError.message)
-        setLoading(false)
-        return
-      }
-
-      setAllItineraries(data || [])
+    if (fetchError) {
+      console.error('Itinerary query error:', fetchError)
+      setError(fetchError.message)
       setLoading(false)
-
-      // Update Cache
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
-      } catch (e) { console.warn('Performance dates cache write failed:', e) }
+      return
     }
 
+    setAllItineraries(data || [])
+    setLoading(false)
+
+    // Update Cache
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
+    } catch (e) { console.warn('Performance dates cache write failed:', e) }
+  }, [CACHE_KEY])
+
+  useEffect(() => {
     fetchItineraries()
 
     // Subscribe to realtime changes on itineraries
@@ -514,7 +508,7 @@ export function useAllPerformanceDates(troupeId) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [fetchItineraries])
 
   const { dates, dateStopCounts, unfinishedDates, dateTroupes } = useMemo(() => {
     const counts = {}
@@ -548,5 +542,5 @@ export function useAllPerformanceDates(troupeId) {
     }
   }, [allItineraries])
 
-  return { dates, unfinishedDates, dateTroupes, dateStopCounts, allItineraries, loading, error }
+  return { dates, unfinishedDates, dateTroupes, dateStopCounts, allItineraries, loading, error, refresh: fetchItineraries }
 }

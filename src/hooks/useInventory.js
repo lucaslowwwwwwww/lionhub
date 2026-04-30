@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { sanitizeObject } from '../utils/sanitize'
+import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 
 /**
  * useInventory
@@ -18,23 +19,16 @@ export function useInventory() {
     itemsRef.current = items
   }, [items])
 
-  const fetchInventory = async () => {
+  const fetchInventory = useCallback(async () => {
     setLoading(true)
     setTimeoutError(false)
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.warn("Inventory fetch timed out. Forcing loading to false.")
-        setTimeoutError(true)
-        setLoading(false)
-        setError(new Error("Request timed out. Please check your connection."))
-      }
-    }, 10000)
+    const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
     try {
       const { data, error: fetchError } = await supabase
         .from('inventory')
-        .select('*')
-        .limit(200)
+        .select(TABLES.INVENTORY)
+        .order('name', { ascending: true })
 
       if (fetchError) {
         console.error("Inventory error:", fetchError)
@@ -50,7 +44,7 @@ export function useInventory() {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchInventory()
@@ -64,7 +58,7 @@ export function useInventory() {
         { event: '*', schema: 'public', table: 'inventory' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setItems(prev => [...prev, payload.new])
+            setItems(prev => [...prev, payload.new].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
           } else if (payload.eventType === 'UPDATE') {
             setItems(prev => prev.map(i => i.id === payload.new.id ? payload.new : i))
           } else if (payload.eventType === 'DELETE') {
@@ -77,7 +71,7 @@ export function useInventory() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [fetchInventory])
 
   /**
    * updateQuantity
@@ -104,12 +98,12 @@ export function useInventory() {
       if (error) {
         console.error("Supabase RPC error:", error)
         setItems(previousItems)
-        alert(`Inventory Update Failed: ${error.message}`)
+        throw error
       }
     } catch (err) {
       console.error("Failed to update inventory:", err)
       setItems(previousItems)
-      alert(`System Error: ${err.message}`)
+      throw err
     }
   }
 

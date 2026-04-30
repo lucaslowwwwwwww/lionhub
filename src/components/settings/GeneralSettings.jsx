@@ -42,7 +42,7 @@ export default function GeneralSettings() {
         ...prev,
         baselocation: settings.baselocation || '',
         defaultduration: settings.defaultduration || 30,
-        lioncolors: settings.lioncolors || ['黑', '黄', '紫', '橙', '青', '红'],
+        lioncolors: settings.lioncolors || ['黑|Black', '黄|Yellow', '紫|Purple', '橙|Orange', '青|Green', '红|Red', '白|White'],
         cnyoverrides: settings.cnyoverrides || {},
         clubnameen: settings.clubnameen || 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka',
         clubnamecn: settings.clubnamecn || '馬來西亞馬六甲傳承龍獅體育會',
@@ -108,14 +108,17 @@ export default function GeneralSettings() {
   }
 
   const tabs = [
-    { id: 'club', label: 'Club Profile', icon: (
+    { id: 'club', label: 'Organization', icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
     )},
-    { id: 'app', label: 'App Config', icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-    )},
-    { id: 'field', label: 'Field Logistics', icon: (
+    { id: 'logistics', label: 'Logistics', icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+    )},
+    { id: 'assets', label: 'Lion Assets', icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" /></svg>
+    )},
+    { id: 'app', label: 'Preferences', icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
     )},
     { id: 'calendar', label: 'Calendar', icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -186,13 +189,13 @@ export default function GeneralSettings() {
       </nav>
 
       {/* Tab Content */}
-      <main className="min-h-[400px]">
+      <main className="px-4">
         {activeTab === 'club' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-             <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
+            <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
               <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Official Club Identity</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-5">
                   <div>
                     <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Club Name (English)</label>
                     <input type="text" value={localSettings.clubnameen} onChange={(e) => setLocalSettings({...localSettings, clubnameen: e.target.value})}
@@ -277,6 +280,7 @@ export default function GeneralSettings() {
                   {['dark', 'light', 'system'].map((theme) => (
                     <button
                       key={theme}
+                      type="button"
                       onClick={() => handleLocalThemeChange(theme)}
                       className={`flex-1 py-4 px-2 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${
                         localSettings.theme === theme 
@@ -290,10 +294,30 @@ export default function GeneralSettings() {
                 </div>
               </div>
             </section>
+          </div>
+        )}
+
+        {activeTab === 'logistics' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+            {/* Base Location */}
+            <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
+              <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Geographic Origin</h3>
+              <div>
+                <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">HQ / Dispatch Address</label>
+                <textarea
+                  rows={2}
+                  value={localSettings.baselocation}
+                  onChange={(e) => setLocalSettings({ ...localSettings, baselocation: e.target.value })}
+                  className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-4 text-surface-200 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none text-sm leading-relaxed"
+                  placeholder="23, Jalan Imj 2, Melaka"
+                />
+                <p className="text-[10px] text-surface-600 font-bold italic mt-3 px-1">Used as the primary waypoint for G-Maps route optimization and troupe dispatching.</p>
+              </div>
+            </section>
 
             {/* Performance Logic */}
             <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
-              <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Automation Defaults</h3>
+              <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Scheduling Logic</h3>
               <div>
                 <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Standard Performance Slot (Mins)</label>
                 <div className="relative group">
@@ -313,35 +337,20 @@ export default function GeneralSettings() {
           </div>
         )}
 
-        {activeTab === 'field' && (
+        {activeTab === 'assets' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-            {/* Base Location */}
-            <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
-              <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Geographic Origin</h3>
-              <div>
-                <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">HQ / Dispatch Address</label>
-                <textarea
-                  rows={2}
-                  value={localSettings.baselocation}
-                  onChange={(e) => setLocalSettings({ ...localSettings, baselocation: e.target.value })}
-                  className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-4 text-surface-200 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none text-sm leading-relaxed"
-                  placeholder="23, Jalan Imj 2, Melaka"
-                />
-                <p className="text-[10px] text-surface-600 font-bold italic mt-3 px-1">Used as the primary waypoint for G-Maps route optimization and troupe dispatching.</p>
-              </div>
-            </section>
-
             {/* Equipment Assets */}
             <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
-              <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Available Assets</h3>
+              <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Performance Assets</h3>
               <div className="space-y-6">
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Standard Lion Colors</label>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {localSettings.lioncolors.map((color) => (
                       <div key={color} className="flex items-center gap-2 pl-4 pr-2 h-10 bg-surface-950 border border-surface-800 rounded-xl group hover:border-crimson-500/30 transition-all">
-                        <span className="text-xs font-bold text-surface-200">{color.includes('|') ? color.split('|')[0].trim() : color}</span>
+                        <span className="text-xs font-bold text-surface-200">{color.includes('|') ? color.split('|')[1].trim().toUpperCase() : color}</span>
                         <button
+                          type="button"
                           onClick={() => setLocalSettings(prev => ({ ...prev, lioncolors: prev.lioncolors.filter(c => c !== color) }))}
                           className="w-6 h-6 flex items-center justify-center text-surface-600 hover:text-crimson-500 hover:bg-crimson-500/10 rounded-md transition-all ml-1"
                         >✕</button>
@@ -352,7 +361,7 @@ export default function GeneralSettings() {
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Add custom color..."
+                      placeholder="Add custom color (e.g. 白|White)..."
                       value={newColor}
                       onChange={(e) => setNewColor(e.target.value)}
                       onKeyDown={(e) => {
@@ -366,6 +375,7 @@ export default function GeneralSettings() {
                       className="flex-1 bg-surface-950 border border-surface-800 rounded-xl px-4 h-12 text-sm text-surface-100 focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner"
                     />
                     <button
+                      type="button"
                       onClick={() => {
                          if (!newColor.trim()) return
                          setLocalSettings(p => ({ ...p, lioncolors: [...p.lioncolors, newColor.trim()] }))

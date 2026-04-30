@@ -47,5 +47,5 @@ export function usePresence() {
       clearInterval(interval)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [userProfile?.uid])
+  }, [userProfile?.uid, userProfile?.role])
 }

@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '../supabase'
+import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 
 export const AuthContext = createContext(null)
 
@@ -41,18 +42,9 @@ export function AuthProvider({ children }) {
       setLoading(true)
       setConnectionError(false)
     }
-    let isPending = true
-
-    // Rule #29: Safety timeout (increased to 30s for stability)
-    const timeoutId = setTimeout(() => {
-      if (isPending) {
-        console.warn("Profile fetch timed out.")
-        // Only trigger global error UI if this was a forced/initial load
-        if (shouldShowLoading) {
-          setConnectionError(true)
-        }
-        setLoading(false)
-      }
+    
+    const timeoutId = createFetchTimeout(setLoading, (val) => {
+      if (val && shouldShowLoading) setConnectionError(true)
     }, 30000)
 
     try {
@@ -61,7 +53,7 @@ export function AuthProvider({ children }) {
 
       const { data: profileData, error } = await supabase
         .from('users')
-        .select('*')
+        .select(TABLES.USERS)
         .eq('id', authUser.id)
         .single()
 
@@ -105,7 +97,6 @@ export function AuthProvider({ children }) {
         setConnectionError(true)
       }
     } finally {
-      isPending = false
       fetchingRef.current = false
       clearTimeout(timeoutId)
       setLoading(false)

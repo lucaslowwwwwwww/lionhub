@@ -33,25 +33,6 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   // Logo URL - Kept as requested by user (don't change logo yet)
   const logoUrl = '/logo1.jpeg' 
   
-  // Helper to render Chinese text as image (since jsPDF lacks native CJK support)
-  const renderChineseAsImage = (text, fontSize = 40) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.font = `${fontSize}px "Microsoft YaHei", "SimSun", "STHeiti", sans-serif`;
-    const metrics = ctx.measureText(text);
-    canvas.width = metrics.width;
-    canvas.height = fontSize * 1.2;
-    ctx.font = `${fontSize}px "Microsoft YaHei", "SimSun", "STHeiti", sans-serif`;
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText(text, 0, canvas.height/2);
-    return { 
-      data: canvas.toDataURL('image/png'),
-      width: canvas.width,
-      height: canvas.height
-    };
-  }
-
   // Helper to add Image to PDF
   const addImageToPdf = (url, x, y, w, h, opacity = 1) => {
     return new Promise((resolve) => {

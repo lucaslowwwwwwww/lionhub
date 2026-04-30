@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
+import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 
 export function useFinance(troupeId) {
   const [transactions, setTransactions] = useState([])
@@ -13,19 +14,12 @@ export function useFinance(troupeId) {
     setLoading(true)
     setTimeoutError(false)
 
-    // Rule #29: Safety timeout to prevent indefinite loading
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.warn("Finance fetch timed out. Forcing loading to false.")
-        setTimeoutError(true)
-        setLoading(false)
-      }
-    }, 10000)
+    const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
     try {
       let query = supabase
         .from('finance')
-        .select('*')
+        .select(TABLES.FINANCE)
         .order('date', { ascending: false })
         .limit(100)
 

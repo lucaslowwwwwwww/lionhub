@@ -118,13 +118,13 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
   doc.text(`HP: ${clubPhone}`, 105, headerPhoneY, { align: "center" })
 
   // Billing Details
-  const customerName = data.customername || "Customer Name"
-  const customerAddress = data.customeraddress || "Address omitted"
-  const customerPhone = data.customerphone || "N/A"
+  const customerName = data.customerName || data.customername || "Customer Name"
+  const customerAddress = data.customerAddress || data.customeraddress || "Address omitted"
+  const customerPhone = data.customerPhone || data.customerphone || "N/A"
   const amount = data.amount || 0
   const qty = data.quantity || 1
   const docId = data.id || Math.random().toString(36).substr(2, 9).toUpperCase()
-  const dateStr = data.performancedate || new Date().toISOString().split('T')[0]
+  const dateStr = data.performanceDate || data.performancedate || new Date().toISOString().split('T')[0]
 
   let billingY = headerPhoneY + 12
   
@@ -188,23 +188,24 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
 
   autoTable(doc, {
     startY: billingY + 52,
-    theme: 'grid',
+    margin: { left: 15, right: 15 },
     styles: { 
       fillColor: false, 
       textColor: [0, 0, 0],
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
-      fontSize: 9
+      fontSize: 9,
+      font: defaultFont
     },
     headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
     columnStyles: {
       0: { halign: 'center', cellWidth: 12 },
-      1: { cellWidth: 73 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'center', cellWidth: 25 },
-      4: { halign: 'center', cellWidth: 12 },
-      5: { halign: 'center', cellWidth: 12 },
-      6: { halign: 'center', cellWidth: 25 },
+      1: { cellWidth: 80 },
+      2: { halign: 'center', cellWidth: 15 },
+      3: { halign: 'center', cellWidth: 23 },
+      4: { halign: 'center', cellWidth: 15 },
+      5: { halign: 'center', cellWidth: 15 },
+      6: { halign: 'center', cellWidth: 20 },
     },
     head: [['ITEM', 'ITEM DESCRIPTION', 'QTY', 'UNIT PRICE\n(RM)', 'DISC', 'TAX', 'AMOUNT\n(RM)']],
     body: [
@@ -219,7 +220,7 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
       ]
     ],
     foot: [
-      ['', '', '', '', '', 'TOTAL (RM)', Number(amount).toFixed(2)]
+      [{ content: 'TOTAL (RM)', colSpan: 6, styles: { halign: 'right' } }, Number(amount).toFixed(2)]
     ],
     footStyles: { fillColor: false, textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' }
   })

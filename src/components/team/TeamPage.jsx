@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { useTroupes } from '../../hooks/useTroupes'
 import { useMembers } from '../../hooks/useMembers'
 import { useAudit } from '../../hooks/useAudit'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../supabase'
+
 // Helper to create a one-time non-persistent client for admin creation
 const createAuthClient = () => createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -21,6 +23,7 @@ const createAuthClient = () => createClient(
 // ─── Add Troupe Modal ───
 function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
   const [name, setName] = useState('')
+  const [vehiclePlate, setVehiclePlate] = useState('')
 
   // Sync with editData when modal opens
   useEffect(() => {
@@ -29,8 +32,6 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
       setVehiclePlate(editData?.vehicleplate || '')
     }
   }, [isOpen, editData])
-
-  const [vehiclePlate, setVehiclePlate] = useState('')
 
   if (!isOpen) return null
 
@@ -109,20 +110,16 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
       let uid = null
       
       if (isAdmin) {
-        console.log('Creating Admin Auth account...')
         const tempClient = createAuthClient()
         const { data: authData, error: authError } = await tempClient.auth.signUp({
           email,
           password,
           options: { data: { displayName, role } }
         })
-        console.log('Auth signUp result:', { authData, authError })
         if (authError) throw authError
         uid = authData.user?.id || null
       }
 
-      // Save the user profile to Supabase
-      console.log('Saving profile to database...', { uid, displayName, role })
       await onAdd({
         uid: uid,
         displayname: displayName,
@@ -130,9 +127,7 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
         phone,
         role
       })
-      console.log('Profile saved successfully.')
 
-      // Reset form and close
       setDisplayName('')
       setEmail('')
       setPassword('')
@@ -143,8 +138,6 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
       console.error('Error in handleSubmit:', err)
       if (err.code === 'auth/email-already-in-use' || err.message?.includes('email-already-in-use')) {
         setError('This email is already registered.')
-      } else if (err.code === 'auth/invalid-email' || err.message?.includes('invalid-email')) {
-        setError('Invalid email address.')
       } else {
         setError(err.message || 'Failed to create account. Please try again.')
       }
@@ -267,21 +260,18 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
       let currentEmail = email || member.email
 
       if (isPromotingToAdmin) {
-        console.log('Promoting to Admin: Creating Auth account...')
         const tempClient = createAuthClient()
         const { data: authData, error: authError } = await tempClient.auth.signUp({
           email,
           password,
           options: { data: { displayName, role } }
         })
-        console.log('Promotion Auth result:', { authData, authError })
         if (authError) throw authError
         uid = authData.user?.id || null
         currentEmail = email
       }
 
       const oldRole = member.role || 'member'
-      console.log('Updating member profile in DB...', { id: member.id, role })
       await onSave(member.id, { 
         displayname: displayName, 
         phone, 
@@ -289,7 +279,6 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
         uid, 
         email: currentEmail 
       })
-      console.log('Member profile updated successfully.')
       
       if (oldRole !== role) {
         logAction('CHANGE_ROLE', { userId: member.id, oldRole, newRole: role })
@@ -391,7 +380,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
 
 // ─── Main Page ───
 export default function TeamPage() {
-  const [activeTab, setActiveTab] = useState('troupes')
+  const [activeTab, setActiveTab] = useState('personnel')
   const [showTroupeModal, setShowTroupeModal] = useState(false)
   const [editingTroupe, setEditingTroupe] = useState(null)
   const [showMemberModal, setShowMemberModal] = useState(false)
@@ -401,31 +390,28 @@ export default function TeamPage() {
   const isMaster = userProfile?.role === 'master'
 
   const { troupes, loading: loadingT, timeoutError: timeoutT, addTroupe, updateTroupe, deleteTroupe } = useTroupes()
-  const { members: rawMembers, loading: loadingM, timeoutError: timeoutM, addMember, updateMember, deleteMember } = useMembers()
-  
-  const { admins, regularMembers, masters } = useMemo(() => {
+  const { 
+    members: rawMembers, 
+    loading: loadingM, 
+    timeoutError: timeoutM, 
+    addMember, 
+    updateMember, 
+    deleteMember 
+  } = useMembers()
+
+  const { admins, regularMembers } = useMemo(() => {
     const activeMembers = rawMembers.filter(m => m.status !== 'deleted')
     
-    const mastersList = activeMembers
-      .filter(m => m.role === 'master')
-      .sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
-      
     const adminsList = activeMembers
       .filter(m => m.role === 'admin')
-      .sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
     
     const membersList = activeMembers
       .filter(m => m.role !== 'admin' && m.role !== 'master')
-      .sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
       
-    return { admins: adminsList, regularMembers: membersList, masters: mastersList }
+    return { admins: adminsList, regularMembers: membersList }
   }, [rawMembers])
 
-  const members = [...masters, ...admins, ...regularMembers]
-
   const loading = loadingT || loadingM
-
-  const getTroupeName = (troupeId) => troupes.find(t => t.id === troupeId)?.name || 'Unassigned'
 
   const confirmDeleteMember = (m) => {
     if (window.confirm(`Are you sure you want to remove ${m.displayname || 'this member'} from the system?`)) {
@@ -477,51 +463,58 @@ export default function TeamPage() {
           </button>
         </div>
       )}
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-surface-800 pb-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-surface-100 tracking-tight">Team Management</h2>
-          <p className="text-surface-400 mt-1 font-medium">Manage your troupes and members</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="p-2.5 bg-crimson-500/10 text-crimson-500 rounded-2xl border border-crimson-500/20">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-black text-surface-100 tracking-tight uppercase">Team Center</h2>
+          </div>
+          <p className="text-surface-500 text-sm font-bold uppercase tracking-[0.2em] ml-1">Strategic Fleet & Personnel Management</p>
         </div>
+        
         <div className="flex gap-2">
-          <button
-            onClick={() => activeTab === 'troupes' ? setShowTroupeModal(true) : setShowMemberModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-crimson-600 text-white font-bold hover:bg-crimson-500 shadow-lg shadow-crimson-500/20 transition-all"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span className="hidden sm:inline">{activeTab === 'troupes' ? 'New Troupe' : 'Add Member'}</span>
-          </button>
-        </div>
+            <button
+              onClick={() => activeTab === 'fleet' ? setShowTroupeModal(true) : setShowMemberModal(true)}
+              className="group flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-crimson-600 text-white font-black uppercase tracking-widest text-[11px] hover:bg-crimson-500 shadow-xl shadow-crimson-500/20 transition-all active:scale-95"
+            >
+              <svg className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              {activeTab === 'fleet' ? 'Deploy Troupe' : 'Recruit Member'}
+            </button>
+          </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 bg-surface-900 border border-surface-800 rounded-xl p-1">
-        {['troupes', 'members'].map(tab => (
+      {/* Tabs Navigation */}
+      <nav className="flex items-center gap-1 p-1 bg-surface-900/50 border border-surface-800 rounded-2xl mb-8 overflow-x-auto no-scrollbar shrink-0">
+        {[
+          { id: 'personnel', label: 'Personnel', icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          )},
+          { id: 'fleet', label: 'Fleet Ops', icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          )}
+        ].map((tab) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-              activeTab === tab
-                ? 'bg-crimson-600 text-white shadow-lg shadow-crimson-500/20'
-                : 'text-surface-400 hover:text-surface-200 hover:bg-surface-800'
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'bg-surface-800 text-gold-400 shadow-lg border border-surface-700/50'
+                : 'text-surface-500 hover:text-surface-300 hover:bg-surface-800/30'
             }`}
           >
-            {tab === 'troupes' ? (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                Troupes
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                Members
-              </>
-            )}
+            {tab.icon}
+            {tab.label}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* Content */}
       {loading ? (
@@ -531,66 +524,73 @@ export default function TeamPage() {
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         </div>
-      ) : activeTab === 'troupes' ? (
-        /* ─── Troupes Tab ─── */
-        troupes.length === 0 ? (
-          <div className="bg-surface-900 border border-surface-800 border-dashed rounded-3xl p-12 text-center">
-            <div className="w-16 h-16 bg-surface-800 rounded-full flex items-center justify-center mx-auto mb-4 text-surface-600">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-            </div>
-            <h3 className="text-xl font-bold text-surface-100 mb-2">No Troupes Yet</h3>
-            <p className="text-surface-400 mb-6">Create your troupes here. Members can be assigned to them on the daily itinerary.</p>
-            <button onClick={() => setShowTroupeModal(true)}
-              className="px-6 py-3 rounded-xl bg-surface-800 text-surface-100 font-bold hover:bg-surface-700 transition-all">
-              + Create First Troupe
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {troupes.map(troupe => {
-              return (
-                <div key={troupe.id} className="bg-surface-900 border border-surface-800 rounded-2xl p-5 shadow-card hover:border-surface-700 transition-all">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-bold text-surface-100 flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-crimson-500 shadow-[0_0_8px_rgba(220,38,38,0.5)]"></span>
-                        {troupe.name}
-                      </h3>
-                      {troupe.vehicleplate && (
-                        <span className="text-[10px] font-black text-surface-500 bg-surface-800 px-2 py-1 rounded inline-flex items-center gap-1.5 mt-1">
-                          <svg className="w-3 h-3 text-surface-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
-                          {troupe.vehicleplate}
-                        </span>
-                      )}
+      ) : activeTab === 'fleet' ? (
+        /* ─── Fleet Ops Tab ─── */
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {troupes.length === 0 ? (
+              <div className="col-span-full bg-surface-900 border border-surface-800 border-dashed rounded-3xl p-12 text-center">
+                <div className="w-16 h-16 bg-surface-800 rounded-full flex items-center justify-center mx-auto mb-4 text-surface-600">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                </div>
+                <h3 className="text-xl font-bold text-surface-100 mb-2 uppercase tracking-tight">No Fleet Units</h3>
+                <p className="text-surface-400 mb-6 text-sm">Deploy your first troupe to begin assigning itineraries.</p>
+                <button onClick={() => setShowTroupeModal(true)}
+                  className="px-6 py-3.5 rounded-xl bg-surface-800 text-surface-100 font-black uppercase tracking-widest text-[10px] hover:bg-surface-700 transition-all">
+                  + Deploy Troupe
+                </button>
+              </div>
+            ) : (
+              troupes.map((troupe) => (
+                <div key={troupe.id} className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm hover:border-surface-700 transition-all group relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-crimson-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-3 bg-surface-800 rounded-2xl text-surface-100">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                       <button onClick={() => setEditingTroupe(troupe)}
-                        className="text-surface-400 hover:text-brand-400 text-xs font-bold transition-colors px-2 py-1 rounded hover:bg-brand-500/10">
-                        Edit
+                        className="p-2.5 rounded-xl bg-surface-800 text-surface-400 hover:text-brand-400 hover:bg-surface-700 transition-all border border-surface-700/50">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                       </button>
                       <button onClick={() => deleteTroupe(troupe.id)}
-                        className="text-surface-500 hover:text-crimson-400 text-xs font-bold transition-colors px-2 py-1 rounded hover:bg-crimson-500/10">
-                        Delete
+                        className="p-2.5 rounded-xl bg-surface-800 text-surface-400 hover:text-crimson-500 hover:bg-surface-700 transition-all border border-surface-700/50">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
                   </div>
+                  <div>
+                    <h3 className="text-xl font-black text-surface-100 uppercase tracking-tight mb-2">{troupe.name}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {troupe.vehicleplate && (
+                        <span className="text-[10px] font-black text-surface-400 bg-surface-950 border border-surface-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 uppercase tracking-widest">
+                           <svg className="w-3 h-3 text-surface-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1-1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+                           {troupe.vehicleplate}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-black text-crimson-400 bg-crimson-500/5 border border-crimson-500/10 px-2.5 py-1.5 rounded-lg uppercase tracking-widest flex items-center gap-1.5">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        Active Unit
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              )
-            })}
+              ))
+            )}
           </div>
-        )
+        </div>
       ) : (
-        /* ─── Members Tab ─── */
-        members.length === 0 ? (
+        /* ─── Personnel Tab ─── */
+        admins.length === 0 && regularMembers.length === 0 ? (
           <div className="bg-surface-900 border border-surface-800 border-dashed rounded-3xl p-12 text-center">
             <div className="w-16 h-16 bg-surface-800 rounded-full flex items-center justify-center mx-auto mb-4 text-surface-600">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             </div>
-            <h3 className="text-xl font-bold text-surface-100 mb-2">No Members</h3>
-            <p className="text-surface-400 mb-6">Add your first team member to get started.</p>
+            <h3 className="text-xl font-bold text-surface-100 mb-2 uppercase tracking-tight">No Personnel Found</h3>
+            <p className="text-surface-400 mb-6 text-sm">Add your team members to manage their roles and assignments.</p>
             <button onClick={() => setShowMemberModal(true)}
-              className="px-6 py-3 rounded-xl bg-surface-800 text-surface-100 font-bold hover:bg-surface-700 transition-all">
-              + Add First Member
+              className="px-6 py-3.5 rounded-xl bg-surface-800 text-surface-100 font-black uppercase tracking-widest text-[10px] hover:bg-surface-700 transition-all">
+              + Recruit Personnel
             </button>
           </div>
         ) : (
@@ -606,66 +606,6 @@ export default function TeamPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Masters Section */}
-                  {masters.length > 0 && (
-                    <>
-                      <tr className="bg-surface-950/60">
-                        <td colSpan="3" className="px-5 py-2.5 text-[10px] font-black text-violet-500 uppercase tracking-[0.2em] border-y border-surface-800">
-                          <div className="flex items-center gap-2">
-                             <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></div>
-                             Command Master ({masters.length})
-                          </div>
-                        </td>
-                      </tr>
-                      {masters.map(m => (
-                        <tr key={m.id} className="border-b border-surface-800/50 hover:bg-surface-800/30 transition-colors">
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <span className="w-8 h-8 rounded-full bg-violet-500/10 text-violet-400 flex items-center justify-center text-xs font-bold shrink-0 border border-violet-500/20">
-                                  {m.displayname?.charAt(0) || '?'}
-                                </span>
-                                {isOnline(m.lastactive) && (
-                                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
-                                <p className="text-[10px] text-surface-500 uppercase tracking-tight">
-                                  {m.email || (m.phone ? m.phone : 'No Contact Info')}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className={`flex flex-col ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-500'}`}>
-                              <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-violet-500/10 text-violet-400 border border-violet-500/20">
-                                {m.role || 'master'}
-                              </span>
-                              {!isOnline(m.lastactive) && m.lastactive && (
-                                <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive)}</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 text-right">
-                            <div className="flex gap-3 justify-end">
-                              <button onClick={() => setEditingMember(m)}
-                                className="text-surface-400 hover:text-brand-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-brand-500/10">
-                                Edit
-                              </button>
-                              {isMaster && (
-                                <button onClick={() => confirmDeleteMember(m)}
-                                  className="text-surface-500 hover:text-crimson-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-crimson-500/10">
-                                  Delete
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </>
-                  )}
-
                   {/* Administrators Section */}
                   {admins.length > 0 && (
                     <>
@@ -788,62 +728,6 @@ export default function TeamPage() {
 
             {/* Mobile Cards View */}
             <div className="sm:hidden space-y-8">
-              {masters.length > 0 && (
-                <div className="space-y-4">
-                  <p className="px-2 text-[10px] font-black text-violet-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
-                    Command Master ({masters.length})
-                  </p>
-                  <div className="grid gap-4">
-                    {masters.map(m => (
-                      <div key={m.id} className="bg-surface-900 border border-violet-500/20 rounded-2xl p-5 shadow-card hover:border-violet-500/40 transition-all flex flex-col gap-4">
-                         <div className="flex items-center justify-between">
-                           <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <span className="w-10 h-10 rounded-full bg-violet-500/10 text-violet-400 flex items-center justify-center text-sm font-bold shrink-0 border border-violet-500/20">
-                                  {m.displayname?.charAt(0) || '?'}
-                                </span>
-                                {isOnline(m.lastactive) && (
-                                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-surface-900 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
-                                <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-violet-500/10 text-violet-400 border border-violet-500/20">
-                                  {m.role || 'master'}
-                                </span>
-                              </div>
-                           </div>
-                           <div className="text-right">
-                             <p className={`text-[10px] font-black tracking-widest ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-600'}`}>
-                               {isOnline(m.lastactive) ? '● ONLINE' : 'OFFLINE'}
-                             </p>
-                             {!isOnline(m.lastactive) && m.lastactive && (
-                               <p className="text-[9px] text-surface-500 mt-0.5 font-bold uppercase">{formatLastActive(m.lastactive)}</p>
-                             )}
-                           </div>
-                         </div>
-      
-                         <div className="flex gap-2 pt-3 border-t border-surface-800/50">
-                            <button onClick={() => setEditingMember(m)}
-                               className="flex-1 py-2.5 rounded-xl bg-surface-800 text-surface-200 font-bold text-xs hover:bg-surface-700 transition-all border border-surface-700">
-                               Edit
-                            </button>
-                            {isMaster && (
-                              <button onClick={() => confirmDeleteMember(m)}
-                                 className="px-4 py-2.5 rounded-xl bg-surface-800 text-crimson-500 hover:bg-crimson-500/10 transition-all border border-surface-700">
-                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                 </svg>
-                              </button>
-                            )}
-                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {admins.length > 0 && (
                 <div className="space-y-4">
                   <p className="px-2 text-[10px] font-black text-gold-500 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -958,7 +842,7 @@ export default function TeamPage() {
           </div>
         )
       )}
-
+      
       {/* Modals */}
       <AddTroupeModal 
         isOpen={showTroupeModal || !!editingTroupe} 
