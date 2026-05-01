@@ -10,7 +10,7 @@ export function useMembers() {
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
 
-  const fetchMembers = useCallback(async (limit = 100, offset = 0) => {
+  const fetchMembers = useCallback(async (limit = 1000, offset = 0) => {
     // Only show full loading if we don't have cached data
     if (members.length === 0) {
       setLoading(true)

@@ -98,8 +98,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Global Data Status Footer */}
-      <div className="flex items-center justify-center gap-3 py-6 opacity-40 grayscale translate-y-4">
-          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+      <div className="flex items-center justify-center gap-3 py-6 opacity-60 translate-y-4">
+          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]"></span>
           <span className="text-[10px] font-black text-surface-400 uppercase tracking-[0.3em]">Encrypted Data Transmission Layer</span>
       </div>
     </div>

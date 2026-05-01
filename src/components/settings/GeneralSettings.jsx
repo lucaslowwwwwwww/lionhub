@@ -8,13 +8,13 @@ import { useAuth } from '../../hooks/useAuth'
  */
 export default function GeneralSettings() {
   const { settings, loading, timeoutError, updateSettings } = useSettings()
-  const { userProfile, deleteAccount } = useAuth()
+  const { userProfile, deleteAccount, updateProfile } = useAuth()
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
 
   const [activeTab, setActiveTab] = useState('club')
   const [localSettings, setLocalSettings] = useState({
+    theme: userProfile?.appearance?.theme || localStorage.getItem('app-theme') || 'dark',
     baselocation: '',
-    theme: localStorage.getItem('app-theme') || 'dark',
     defaultduration: 30,
     lioncolors: [],
     cnyoverrides: {},
@@ -54,10 +54,10 @@ export default function GeneralSettings() {
         bankname: settings.bankname || 'PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA',
         banktype: settings.banktype || 'CIMB',
         banknumber: settings.banknumber || '8011396083',
-        theme: settings.theme || localStorage.getItem('app-theme') || 'dark'
+        theme: userProfile?.appearance?.theme || settings.theme || localStorage.getItem('app-theme') || 'dark'
       }))
     }
-  }, [settings])
+  }, [settings, userProfile?.appearance?.theme])
 
   const handleLocalThemeChange = (newTheme) => {
     setLocalSettings(prev => ({ ...prev, theme: newTheme }))
@@ -70,15 +70,23 @@ export default function GeneralSettings() {
     setIsSaving(true)
     setSaveMessage('')
     try {
-      // Persist the theme choice to the browser's local storage
+      // 1. Persist personal theme preference to user profile
       localStorage.setItem('app-theme', localSettings.theme)
+      await updateProfile({
+        appearance: { 
+          ...userProfile?.appearance,
+          theme: localSettings.theme 
+        }
+      })
       window.dispatchEvent(new Event('theme-changed'))
 
+      // 2. Sync global settings (excluding theme if possible, but keeping it for legacy)
+      const { theme, ...globalData } = localSettings
       await updateSettings({
-        ...localSettings,
+        ...globalData,
         defaultduration: Number(localSettings.defaultduration) || 30
       })
-      setSaveMessage('Success: Settings synchronized.')
+      setSaveMessage('Success: Preferences & Global Settings synchronized.')
       setTimeout(() => setSaveMessage(''), 3000)
     } catch (err) {
       setSaveMessage('Error: Synchronization failed.')

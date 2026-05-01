@@ -26,7 +26,7 @@ export const createFetchTimeout = (setLoading, setTimeoutError, ms = 10000) => {
  * Common field selections for optimized queries
  */
 export const TABLES = {
-  USERS: 'id, displayname, role, email, phone, status, lastactive, uid, troupeid',
+  USERS: 'id, displayname, role, email, phone, status, lastactive, uid, troupeid, appearance',
   CUSTOMERS: 'id, name, addresses, phones, notes, email, troupeid',
   INVENTORY: 'id, name, category, currentquantity, lowstockthreshold, unit, notes, lastupdated',
   TROUPES: 'id, name, vehicleplate, memberids',

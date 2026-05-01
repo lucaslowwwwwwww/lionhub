@@ -12,7 +12,7 @@ export function useDashboardStats() {
     completedStops: 0,
     pendingStops: 0,
     skippedStops: 0,
-    activeTroupes: 0,
+
     totalMembers: 0,
     monthlyData: {}, // { 2026: [Jan...Dec], 2025: [...] }
     yearlyData: [],  // [ { day: '2024', revenue: 100... }, { day: '2025'... } ]
@@ -205,7 +205,7 @@ export function useDashboardStats() {
 
         setStats(prev => ({
           ...prev,
-          activeTroupes: troupeRes.count || 0,
+
           totalMembers: memberRes.count || 0
         }))
       } catch (err) {
@@ -232,10 +232,7 @@ export function useDashboardStats() {
         const { data } = await supabase.from('finance').select(TABLES.FINANCE).gte('date', startIso)
         if (data) processFinance(data)
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes' }, async () => {
-        const { count } = await supabase.from('troupes').select('id', { count: 'exact', head: true })
-        setStats(prev => ({ ...prev, activeTroupes: count || 0 }))
-      })
+
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async () => {
         const { count } = await supabase.from('users').select('id', { count: 'exact', head: true })
         setStats(prev => ({ ...prev, totalMembers: count || 0 }))

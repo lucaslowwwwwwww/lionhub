@@ -47,9 +47,10 @@ function LoginGuard() {
  * ThemeManager — watches settings and updates root HTML class.
  */
 function ThemeManager({ children }) {
+  const { userProfile } = useAuth()
+  const { settings } = useSettings()
   const [theme, setTheme] = useState(localStorage.getItem('app-theme') || 'dark')
   const [hasManualOverride, setHasManualOverride] = useState(false)
-  const { settings } = useSettings()
 
   useEffect(() => {
     const handleThemeChange = (e) => {
@@ -57,18 +58,26 @@ function ThemeManager({ children }) {
         setTheme(e.detail)
         setHasManualOverride(true)
       } else {
-        // This is a persistence call (from handleSave)
-        const savedTheme = localStorage.getItem('app-theme') || settings?.theme || 'dark'
+        // This is a persistence call
+        const userTheme = userProfile?.appearance?.theme
+        const globalTheme = settings?.theme
+        const savedTheme = localStorage.getItem('app-theme') || userTheme || globalTheme || 'dark'
         setTheme(savedTheme)
         setHasManualOverride(false)
       }
     }
 
-    // Sync from database ONLY if the user hasn't made a manual choice in this session
-    if (settings?.theme && !hasManualOverride) {
-      setTheme(settings.theme)
-      // We don't necessarily want to spray localStorage here, 
-      // just ensure the UI matches the cloud state for other users/sessions.
+    // Determine preference priority:
+    // 1. Manual override (this session)
+    // 2. User Profile (cloud preference)
+    // 3. Global Settings (fallback)
+    // 4. LocalStorage (last used on this machine)
+    const userTheme = userProfile?.appearance?.theme
+    const globalTheme = settings?.theme
+    const targetTheme = userTheme || globalTheme || localStorage.getItem('app-theme') || 'dark'
+
+    if (targetTheme && !hasManualOverride) {
+      setTheme(targetTheme)
     }
 
     window.addEventListener('theme-changed', handleThemeChange)
@@ -87,7 +96,7 @@ function ThemeManager({ children }) {
     }
     
     return () => window.removeEventListener('theme-changed', handleThemeChange)
-  }, [theme, settings?.theme, hasManualOverride])
+  }, [theme, userProfile?.appearance?.theme, settings?.theme, hasManualOverride])
 
   return children
 }

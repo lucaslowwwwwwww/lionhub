@@ -270,6 +270,22 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const updateProfile = async (newValues) => {
+    if (!user) return
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update(newValues)
+        .eq('id', user.id)
+
+      if (error) throw error
+      // Local state is updated via the realtime subscription
+    } catch (err) {
+      console.error('Failed to update profile:', err)
+      throw err
+    }
+  }
+
   const value = useMemo(() => ({ 
     user, 
     userProfile, 
@@ -277,6 +293,7 @@ export function AuthProvider({ children }) {
     connectionError, 
     logout, 
     deleteAccount, 
+    updateProfile,
     refreshProfile: () => user && fetchProfile(user, true) 
   }), [user, userProfile, loading, connectionError])
 

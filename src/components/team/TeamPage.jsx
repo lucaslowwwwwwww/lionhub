@@ -389,10 +389,7 @@ export default function TeamPage() {
   const { userProfile } = useAuth()
   const isMaster = userProfile?.role === 'master'
 
-  // Pagination State
-  const [pageSize, setPageSize] = useState(20)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
+
 
   const { troupes, loading: loadingT, timeoutError: timeoutT, addTroupe, updateTroupe, deleteTroupe } = useTroupes()
   const { 
@@ -405,15 +402,7 @@ export default function TeamPage() {
     refresh
   } = useMembers()
 
-  // Fetch with pagination
-  useEffect(() => {
-    if (activeTab === 'personnel') {
-      const offset = (currentPage - 1) * pageSize
-      refresh(pageSize, offset).then(res => {
-        if (res) setTotalCount(res.count)
-      })
-    }
-  }, [activeTab, pageSize, currentPage, refresh])
+
 
   const { admins, regularMembers } = useMemo(() => {
     const activeMembers = rawMembers.filter(m => m.status !== 'deleted')
@@ -665,10 +654,12 @@ export default function TeamPage() {
                           </td>
                           <td className="px-5 py-4 text-right">
                             <div className="flex gap-3 justify-end">
-                              <button onClick={() => setEditingMember(m)}
-                                className="text-surface-400 hover:text-brand-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-brand-500/10">
-                                Edit
-                              </button>
+                              {(isMaster || m.id === userProfile?.id) && (
+                                <button onClick={() => setEditingMember(m)}
+                                  className="text-surface-400 hover:text-brand-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-brand-500/10">
+                                  Edit
+                                </button>
+                              )}
                               {isMaster && (
                                 <button onClick={() => confirmDeleteMember(m)}
                                   className="text-surface-500 hover:text-crimson-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-crimson-500/10">
@@ -722,10 +713,12 @@ export default function TeamPage() {
                           </td>
                           <td className="px-5 py-4 text-right">
                             <div className="flex gap-3 justify-end">
-                              <button onClick={() => setEditingMember(m)}
-                                className="text-surface-400 hover:text-brand-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-brand-500/10">
-                                Edit
-                              </button>
+                              {(isMaster || m.id === userProfile?.id) && (
+                                <button onClick={() => setEditingMember(m)}
+                                  className="text-surface-400 hover:text-brand-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-brand-500/10">
+                                  Edit
+                                </button>
+                              )}
                               {isMaster && (
                                 <button onClick={() => confirmDeleteMember(m)}
                                   className="text-surface-500 hover:text-crimson-400 text-xs font-bold transition-all px-2 py-1 rounded hover:bg-crimson-500/10">
@@ -742,48 +735,7 @@ export default function TeamPage() {
               </table>
             </div>
 
-            {/* Pagination Controls */}
-            {activeTab === 'personnel' && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 bg-surface-950/30 border border-surface-800 rounded-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-black text-surface-500 uppercase tracking-widest">Rows per page:</span>
-                  <select 
-                    value={pageSize} 
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value))
-                      setCurrentPage(1)
-                    }}
-                    className="bg-surface-900 border border-surface-800 rounded-lg px-3 py-1.5 text-xs font-bold text-surface-200 focus:outline-none focus:border-crimson-500"
-                  >
-                    {[10, 20, 30, 50, 100].map(size => (
-                      <option key={size} value={size}>{size}</option>
-                    ))}
-                  </select>
-                </div>
 
-                <div className="flex items-center gap-6">
-                  <span className="text-[10px] font-black text-surface-500 uppercase tracking-widest tabular-nums">
-                    {Math.min(totalCount, (currentPage - 1) * pageSize + 1)} - {Math.min(totalCount, currentPage * pageSize)} of {totalCount}
-                  </span>
-                  <div className="flex gap-2">
-                    <button 
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(p => p - 1)}
-                      className="p-2 rounded-xl bg-surface-900 border border-surface-800 text-surface-400 hover:text-surface-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <button 
-                      disabled={currentPage * pageSize >= totalCount}
-                      onClick={() => setCurrentPage(p => p + 1)}
-                      className="p-2 rounded-xl bg-surface-900 border border-surface-800 text-surface-400 hover:text-surface-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Mobile Cards View */}
             <div className="sm:hidden space-y-8">
@@ -824,10 +776,12 @@ export default function TeamPage() {
                          </div>
       
                          <div className="flex gap-2 pt-3 border-t border-surface-800/50">
-                            <button onClick={() => setEditingMember(m)}
-                               className="flex-1 py-2.5 rounded-xl bg-surface-800 text-surface-200 font-bold text-xs hover:bg-surface-700 transition-all border border-surface-700">
-                               Edit
-                            </button>
+                             {(isMaster || m.id === userProfile?.id) && (
+                               <button onClick={() => setEditingMember(m)}
+                                  className="flex-1 py-2.5 rounded-xl bg-surface-800 text-surface-200 font-bold text-xs hover:bg-surface-700 transition-all border border-surface-700">
+                                 Edit
+                               </button>
+                             )}
                             {isMaster && (
                               <button onClick={() => confirmDeleteMember(m)}
                                  className="px-4 py-2.5 rounded-xl bg-surface-800 text-crimson-500 hover:bg-crimson-500/10 transition-all border border-surface-700">
@@ -879,10 +833,12 @@ export default function TeamPage() {
                          </div>
       
                          <div className="flex gap-2 pt-3 border-t border-surface-800/50">
-                            <button onClick={() => setEditingMember(m)}
-                               className="flex-1 py-2.5 rounded-xl bg-surface-800 text-surface-200 font-bold text-xs hover:bg-surface-700 transition-all border border-surface-700">
-                               Edit
-                            </button>
+                             {(isMaster || m.id === userProfile?.id) && (
+                               <button onClick={() => setEditingMember(m)}
+                                  className="flex-1 py-2.5 rounded-xl bg-surface-800 text-surface-200 font-bold text-xs hover:bg-surface-700 transition-all border border-surface-700">
+                                 Edit
+                               </button>
+                             )}
                             {isMaster && (
                               <button onClick={() => confirmDeleteMember(m)}
                                  className="px-4 py-2.5 rounded-xl bg-surface-800 text-crimson-500 hover:bg-crimson-500/10 transition-all border border-surface-700">
