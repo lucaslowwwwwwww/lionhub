@@ -137,59 +137,68 @@ function ConnectionOverlay() {
   )
 }
 
+function AppContent() {
+  const { settings } = useSettings()
+  return (
+    <>
+      <ThemeManager>
+      <ConnectionOverlay />
+      {/* Global Watermark Logo - Top Layer Overlay but Pointer-Disabled */}
+      <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.10] pointer-events-none z-50 overflow-hidden select-none translate-y-[-10vh]">
+        <img 
+          src={settings?.clublogo || "/chuan_cheng_logo.png"} 
+          alt="Watermark" 
+          className="w-[80vw] md:w-[70vw] max-w-[600px] h-auto object-contain"
+        />
+      </div>
+      <Routes>
+        {/* Public */}
+        <Route path="/login" element={<LoginGuard />} />
+
+        {/* Protected Area wrapping AppShell */}
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <SessionGuard>
+              <AppShell>
+                <Suspense fallback={
+                  <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                    <div className="w-12 h-12 border-4 border-surface-800 border-t-crimson-600 rounded-full animate-spin" />
+                    <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Initializing Module...</p>
+                  </div>
+                }>
+                  <Routes>
+                    <Route path="/dashboard/main" element={<DashboardPage />} />
+                    <Route path="/dashboard/status" element={<DashboardPage />} />
+                    <Route path="/assignment" element={<DashboardPage />} />
+                    <Route path="/dashboard" element={<Navigate to="/dashboard/main" replace />} />
+                    <Route path="/dashboard/daily" element={<Navigate to="/assignment" replace />} />
+                    <Route path="/itinerary" element={<ItineraryPage />} />
+                    <Route path="/customers" element={<CustomersPage />} />
+                    <Route path="/finance" element={<FinancePage />} />
+                    <Route path="/inventory" element={<InventoryPage />} />
+                    <Route path="/billing" element={<BillingPage />} />
+                    <Route path="/settings/general" element={<GeneralSettings />} />
+                    <Route path="/settings/team" element={<TeamPage />} />
+                    <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </Suspense>
+              </AppShell>
+            </SessionGuard>
+          </ProtectedRoute>
+        } />
+      </Routes>
+      </ThemeManager>
+    </>
+  )
+}
+
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ToastProvider>
-          <ThemeManager>
-          <ConnectionOverlay />
-          {/* Global Watermark Logo - Top Layer Overlay but Pointer-Disabled */}
-          <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.10] pointer-events-none z-50 overflow-hidden select-none translate-y-[-10vh]">
-            <img 
-              src="/chuan_cheng_logo.png" 
-              alt="Watermark" 
-              className="w-[80vw] md:w-[70vw] max-w-[600px] h-auto object-contain"
-            />
-          </div>
-          <Routes>
-            {/* Public */}
-            <Route path="/login" element={<LoginGuard />} />
-
-            {/* Protected Area wrapping AppShell */}
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <SessionGuard>
-                  <AppShell>
-                    <Suspense fallback={
-                      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                        <div className="w-12 h-12 border-4 border-surface-800 border-t-crimson-600 rounded-full animate-spin" />
-                        <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Initializing Module...</p>
-                      </div>
-                    }>
-                      <Routes>
-                        <Route path="/dashboard/main" element={<DashboardPage />} />
-                        <Route path="/dashboard/status" element={<DashboardPage />} />
-                        <Route path="/assignment" element={<DashboardPage />} />
-                        <Route path="/dashboard" element={<Navigate to="/dashboard/main" replace />} />
-                        <Route path="/dashboard/daily" element={<Navigate to="/assignment" replace />} />
-                        <Route path="/itinerary" element={<ItineraryPage />} />
-                        <Route path="/customers" element={<CustomersPage />} />
-                        <Route path="/finance" element={<FinancePage />} />
-                        <Route path="/inventory" element={<InventoryPage />} />
-                        <Route path="/billing" element={<BillingPage />} />
-                        <Route path="/settings/general" element={<GeneralSettings />} />
-                        <Route path="/settings/team" element={<TeamPage />} />
-                        <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
-                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                      </Routes>
-                    </Suspense>
-                  </AppShell>
-                </SessionGuard>
-              </ProtectedRoute>
-            } />
-          </Routes>
-          </ThemeManager>
+          <AppContent />
         </ToastProvider>
       </AuthProvider>
     </Router>

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabase'
+import { useSettings } from '../../hooks/useSettings'
 
 export default function LoginPage() {
+  const { settings } = useSettings()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -52,11 +54,17 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* ── Branding ── */}
         <div className="text-center mb-8">
-          <img src="/chuan_cheng_logo.png" alt="Logo" className="w-20 h-20 mx-auto rounded-2xl shadow-2xl mb-4 border border-surface-800" />
+          <img 
+            src={settings?.clublogo || "/chuan_cheng_logo.png"} 
+            alt="Logo" 
+            className="w-20 h-20 mx-auto rounded-2xl shadow-2xl mb-4 border border-surface-800 object-cover" 
+          />
           <h1 className="text-3xl font-extrabold text-crimson-500 tracking-tight">
-            传承龙狮体育会
+            {settings?.clubnamecn || "传承龙狮体育会"}
           </h1>
-          <p className="text-surface-200 text-sm mt-1 uppercase tracking-widest font-bold">管理系统</p>
+          <p className="text-surface-200 text-sm mt-1 uppercase tracking-widest font-bold">
+            {settings?.clubnameen ? "Management System" : "管理系统"}
+          </p>
         </div>
 
         {/* ── Card ── */}
