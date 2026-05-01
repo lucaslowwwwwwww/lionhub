@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: 'inline',
       includeAssets: ['chuan_cheng_logo.png', 'NotoSansSC.ttf'],
       manifest: {
         name: '传承龙狮体育会',
