@@ -6,6 +6,8 @@ import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 export function useDashboardStats() {
   const [stats, setStats] = useState({
     totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0,
     totalStops: 0,
     completedStops: 0,
     pendingStops: 0,
@@ -14,6 +16,7 @@ export function useDashboardStats() {
     totalMembers: 0,
     monthlyData: {}, // { 2026: [Jan...Dec], 2025: [...] }
     yearlyData: [],  // [ { day: '2024', revenue: 100... }, { day: '2025'... } ]
+    categoryData: { income: [], expense: [] }
   })
   const [availableYears, setAvailableYears] = useState([new Date().getFullYear()])
   const [loading, setLoading] = useState(true)
@@ -101,24 +104,29 @@ export function useDashboardStats() {
       })
     }
 
-    // Process finance into monthly/yearly revenue
+    // Process finance into monthly/yearly revenue, expenses, and profit
     const processFinance = (docs) => {
       setStats(prev => {
         const newMonthly = { ...prev.monthlyData }
         const newYearlyMap = {}
+        const newCategoryMap = { income: {}, expense: {} }
         let globalTotalRevenue = 0
+        let globalTotalExpenses = 0
 
         Object.keys(newMonthly).forEach(y => {
-          newMonthly[y] = newMonthly[y].map(m => ({ ...m, revenue: 0 }))
+          newMonthly[y] = newMonthly[y].map(m => ({ ...m, revenue: 0, expenses: 0, profit: 0 }))
         })
         prev.yearlyData.forEach(y => {
-          newYearlyMap[y.day] = { ...y, revenue: 0 }
+          newYearlyMap[y.day] = { ...y, revenue: 0, expenses: 0, profit: 0 }
         })
 
         docs.forEach(t => {
-          if (t.type !== 'income') return
           const amount = Number(t.amount) || 0
-          globalTotalRevenue += amount
+          const isIncome = t.type === 'income' || t.type === 'sponsorship'
+          const isExpense = t.type === 'expense'
+
+          if (isIncome) globalTotalRevenue += amount
+          if (isExpense) globalTotalExpenses += amount
 
           let transDate = null
           if (t.date && typeof t.date === 'string') {
@@ -129,25 +137,46 @@ export function useDashboardStats() {
             const y = transDate.getFullYear()
             const m = transDate.getMonth()
 
+            // Category Aggregation (Income/Expense breakdown)
+            const cat = t.category || 'Uncategorized'
+            if (isIncome) {
+              newCategoryMap.income[cat] = (newCategoryMap.income[cat] || 0) + amount
+            } else if (isExpense) {
+              newCategoryMap.expense[cat] = (newCategoryMap.expense[cat] || 0) + amount
+            }
+
             if (!newMonthly[y]) {
-              newMonthly[y] = MONTHS.map(name => ({ day: name, revenue: 0, stops: 0, completed: 0 }))
+              newMonthly[y] = MONTHS.map(name => ({ day: name, revenue: 0, expenses: 0, profit: 0, stops: 0, completed: 0 }))
             }
             const targetMonth = { ...newMonthly[y][m] }
-            targetMonth.revenue += amount
+            if (isIncome) targetMonth.revenue += amount
+            if (isExpense) targetMonth.expenses += amount
+            targetMonth.profit = targetMonth.revenue - targetMonth.expenses
             newMonthly[y][m] = targetMonth
 
             if (!newYearlyMap[y]) {
-              newYearlyMap[y] = { day: y.toString(), revenue: 0, stops: 0, completed: 0 }
+              newYearlyMap[y] = { day: y.toString(), revenue: 0, expenses: 0, profit: 0, stops: 0, completed: 0 }
             }
-            newYearlyMap[y].revenue += amount
+            if (isIncome) newYearlyMap[y].revenue += amount
+            if (isExpense) newYearlyMap[y].expenses += amount
+            newYearlyMap[y].profit = newYearlyMap[y].revenue - newYearlyMap[y].expenses
           }
         })
+
+        // Convert category maps to arrays for charts
+        const categoryData = {
+          income: Object.entries(newCategoryMap.income).map(([name, value]) => ({ name, value })),
+          expense: Object.entries(newCategoryMap.expense).map(([name, value]) => ({ name, value }))
+        }
 
         return {
           ...prev,
           totalRevenue: globalTotalRevenue,
+          totalExpenses: globalTotalExpenses,
+          netProfit: globalTotalRevenue - globalTotalExpenses,
           monthlyData: newMonthly,
-          yearlyData: Object.values(newYearlyMap).sort((a, b) => Number(a.day) - Number(b.day))
+          yearlyData: Object.values(newYearlyMap).sort((a, b) => Number(a.day) - Number(b.day)),
+          categoryData
         }
       })
     }
@@ -192,43 +221,29 @@ export function useDashboardStats() {
     // Realtime subscriptions
     const safeId = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     
-    const itinChannel = supabase
-      .channel(`dash-itin-${safeId()}`)
+    // Consolidated Realtime subscription
+    const dashChannel = supabase
+      .channel(`dashboard-updates-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' }, async () => {
         const { data } = await supabase.from('itineraries').select(TABLES.ITINERARIES).gte('date', startIso)
         if (data) processItineraries(data)
       })
-      .subscribe()
-
-    const finChannel = supabase
-      .channel(`dash-fin-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, async () => {
         const { data } = await supabase.from('finance').select(TABLES.FINANCE).gte('date', startIso)
         if (data) processFinance(data)
       })
-      .subscribe()
-
-    const troupeChannel = supabase
-      .channel(`dash-troupes-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes' }, async () => {
         const { count } = await supabase.from('troupes').select('id', { count: 'exact', head: true })
         setStats(prev => ({ ...prev, activeTroupes: count || 0 }))
       })
-      .subscribe()
-
-    const memberChannel = supabase
-      .channel(`dash-members-${safeId()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async () => {
         const { count } = await supabase.from('users').select('id', { count: 'exact', head: true })
         setStats(prev => ({ ...prev, totalMembers: count || 0 }))
       })
       .subscribe()
-
+    
     return () => {
-      supabase.removeChannel(itinChannel)
-      supabase.removeChannel(finChannel)
-      supabase.removeChannel(troupeChannel)
-      supabase.removeChannel(memberChannel)
+      supabase.removeChannel(dashChannel)
     }
   }, [])
 

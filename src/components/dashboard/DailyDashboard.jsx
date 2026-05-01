@@ -153,19 +153,16 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
 
   useEffect(() => {
     if (activeTroupesOnDate.length > 0) {
+      // If no troupe is selected, or the current selected troupe is not in the active list, 
+      // default to the first active troupe.
       if (!activeTroupeId || !activeTroupesOnDate.includes(activeTroupeId)) {
         setActiveTroupeId(activeTroupesOnDate[0])
       }
     } else {
-      // Default to "Team A" if no other teams are active and we are an admin
-      if (isAdmin && troupes.length > 0) {
-        const teamA = troupes.find(t => t.name.toLowerCase().includes('team a')) || troupes[0]
-        if (teamA && activeTroupeId === null) setActiveTroupeId(teamA.id)
-      } else {
-        setActiveTroupeId(null)
-      }
+      // No teams are active on this date.
+      setActiveTroupeId(null)
     }
-  }, [activeTroupesOnDate, activeTroupeId, isAdmin, troupes])
+  }, [activeTroupesOnDate, isAdmin, troupes])
 
   const handleActivateTroupe = async (tId) => {
     try {

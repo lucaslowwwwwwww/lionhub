@@ -8,6 +8,7 @@ import StopListItem from './StopListItem'
 import MapView from './MapView'
 import DaySelector from './DaySelector'
 import AddStopModal from './AddStopModal'
+import ScheduleListModal from './ScheduleListModal'
 import TeamSelectionModal from '../dashboard/TeamSelectionModal'
 import { useSettings } from '../../hooks/useSettings'
 import { useTroupes } from '../../hooks/useTroupes'
@@ -382,6 +383,18 @@ export default function ItineraryPage() {
           await updateAttendance(ids, details)
         }} 
         busyMemberIds={busyMemberIds} 
+      />
+      <ScheduleListModal 
+        isOpen={isScheduleListOpen} 
+        onClose={() => setIsScheduleListOpen(false)} 
+        performanceDates={performanceDates}
+        unfinishedDates={unfinishedDates}
+        dateStopCounts={dateStopCounts}
+        onSelectDate={(date) => {
+          const info = getDayInfo(new Date(date), overrides)
+          setSelectedDay(info.id)
+          if (!info.isCny) setSelectedYear(new Date(date).getFullYear())
+        }}
       />
     </div>
   )

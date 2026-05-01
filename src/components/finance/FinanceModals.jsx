@@ -35,7 +35,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
         date: initialData.date || localDateStr,
         paymentmethod: initialData.paymentmethod || initialData.paymentMethod || 'Cash',
         description: initialData.description || '',
-        troupeid: initialData.troupeid || initialData.troupeId || null
+        troupeid: initialData.troupeid || initialData.troupeId || ''
       }
     }
     return {
@@ -45,7 +45,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
       date: localDateStr,
       paymentmethod: 'Cash',
       description: '',
-      troupeid: null
+      troupeid: ''
     }
   })
 
@@ -58,7 +58,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
         date: initialData.date || localDateStr,
         paymentmethod: initialData.paymentmethod || initialData.paymentMethod || 'Cash',
         description: initialData.description || '',
-        troupeid: initialData.troupeid || initialData.troupeId || null
+        troupeid: initialData.troupeid || initialData.troupeId || ''
       })
     } else {
       setFormData({
@@ -68,14 +68,13 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
         date: localDateStr,
         paymentmethod: 'Cash',
         description: '',
-        troupeid: null
+        troupeid: ''
       })
     }
   }, [initialData, isOpen, localDateStr])
 
-  const activeTroupeIds = dateTroupes[formData.date] || []
-  const showTroupeSelector = activeTroupeIds.length > 1 && formData.type !== 'sponsorship'
-  const availableTroupes = troupes.filter(t => activeTroupeIds.includes(t.id))
+  const showTroupeSelector = true
+  const availableTroupes = troupes
 
   if (!isOpen) return null
 
@@ -87,7 +86,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
       ...formData, 
       type: newType,
       category: newCategories[0], // Reset to default for the new type
-      troupeid: newType === 'sponsorship' ? null : formData.troupeid
+      troupeid: newType === 'sponsorship' ? '' : formData.troupeid
     })
   }
 
@@ -195,15 +194,20 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
             <div className="space-y-1.5 min-w-0">
               <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Category</label>
               <div className="overflow-hidden rounded-xl border border-surface-800">
-                <select
+                <input
+                  type="text"
+                  list="finance-categories"
+                  required
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="block w-full max-w-full h-[46px] bg-surface-950 px-4 text-sm font-bold text-surface-100 focus:outline-none focus:border-crimson-600 appearance-none transition-all shadow-inner border-none leading-[46px]"
-                >
+                  className="block w-full max-w-full h-[46px] bg-surface-950 px-4 text-sm font-bold text-surface-100 focus:outline-none focus:border-crimson-600 transition-all shadow-inner border-none leading-[46px]"
+                  placeholder="Select or type..."
+                />
+                <datalist id="finance-categories">
                   {activeCategories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat} />
                   ))}
-                </select>
+                </datalist>
               </div>
             </div>
             <div className="space-y-1.5 min-w-0">

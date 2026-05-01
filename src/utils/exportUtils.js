@@ -37,21 +37,57 @@ const addImageToPdf = (doc, url, x, y, w, h, opacity = 1) => {
   })
 }
 
+/** Preloads an image for synchronous use in jsPDF hooks. */
+const preloadImage = (url) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.src = url
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+  })
+}
+
+/** Draws watermark and footer on the current page. Synchronous. Idempotent per page. */
+const drawWatermarkAndFooter = (doc, logoImg, trackedPages = new Set()) => {
+  const pageNum = doc.internal.getCurrentPageInfo().pageNumber
+  if (trackedPages.has(pageNum)) return
+  trackedPages.add(pageNum)
+
+  const pageW = doc.internal.pageSize.width
+  const pageH = doc.internal.pageSize.height
+
+  // 1. Watermark (Centered)
+  if (logoImg) {
+    const size = 150
+    const x = (pageW - size) / 2
+    const y = (pageH - size) / 2
+    doc.saveGraphicsState()
+    doc.setGState(new doc.GState({ opacity: 0.08 }))
+    doc.addImage(logoImg, 'JPEG', x, y, size, size)
+    doc.restoreGraphicsState()
+  }
+
+  // 2. Footer
+  const footerY = pageH - 8
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'italic')
+  doc.setTextColor(150)
+  doc.text(`Generated on ${new Date().toLocaleString()} — Lion Dance Management System`, 15, footerY)
+  doc.setTextColor(0)
+}
+
 /** Adds the standard club header to a jsPDF document. Returns the Y position after the header. */
 const addClubHeader = async (doc, settings, reportTitle) => {
   const clubNameEn = settings?.clubnameen || 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka'
   const clubNameCn = settings?.clubnamecn || '馬來西亞馬六甲傳承龍獅體育會'
   const clubRegNo = settings?.clubregistrationno || '(PPM-015-04-30122019)'
   const clubPhone = settings?.clubphone || '012-328 2862 / 013-666 0979'
-  const logoUrl = '/logo1.jpeg'
+  const logoUrl = settings?.clublogo || '/logo1.jpeg'
 
   const pageW = doc.internal.pageSize.width
   const centerX = pageW / 2
 
-  // Watermark
-  await addImageToPdf(doc, logoUrl, pageW / 2 - 75, 60, 150, 150, 0.08)
-
-  // Logo
+  // Header Logo (small, top-left)
   await addImageToPdf(doc, logoUrl, 15, 10, 25, 25)
 
   // English name
@@ -125,14 +161,41 @@ export const loadChineseFont = async () => {
 const formatColorsExcel = (lionColor) => {
   if (!lionColor) return '-'
   const arr = Array.isArray(lionColor) ? lionColor : [lionColor]
-  return arr.map(c => `${c} (${colorMap[c] || c})`).join(', ')
+  
+  return arr.map(c => {
+    if (!c) return '-'
+    // If it's already a combined string like "黄 | Yellow" or "黄 Yellow"
+    if (typeof c === 'string' && (c.includes('|') || c.includes(' '))) {
+      const parts = c.split(/[| ]+/).map(p => p.trim()).filter(Boolean)
+      if (parts.length >= 2) {
+        return `${parts[0]} (${parts[1]})`
+      }
+      return c
+    }
+    // Otherwise look up in map
+    const translation = colorMap[c]
+    return translation ? `${c} (${translation})` : c
+  }).join(', ')
 }
 
 const formatPluckingExcel = (pluckingType) => {
   if (!pluckingType) return '-'
   const arr = Array.isArray(pluckingType) ? pluckingType : [pluckingType]
   if (arr.length === 0) return '-'
-  return arr.map(t => `${t} (${pluckingMap[t] || t})`).join(', ')
+  
+  return arr.map(t => {
+    if (!t) return '-'
+    // If it's already a combined string
+    if (typeof t === 'string' && (t.includes('|') || t.includes(' '))) {
+      const parts = t.split(/[| ]+/).map(p => p.trim()).filter(Boolean)
+      if (parts.length >= 2) {
+        return `${parts[0]} (${parts[1]})`
+      }
+      return t
+    }
+    const translation = pluckingMap[t]
+    return translation ? `${t} (${translation})` : t
+  }).join(', ')
 }
 
 const formatColorsPDF = formatColorsExcel
@@ -188,6 +251,13 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   const defaultFont = fontBase64 ? 'NotoSansSC' : 'helvetica'
 
   const title = `Daily Report — ${meta.dayLabel || meta.dateKey} — ${meta.troupename || 'All Teams'}`
+  const logoUrl = settings?.clublogo || '/logo1.jpeg'
+  const logoImg = await preloadImage(logoUrl)
+  const trackedPages = new Set()
+
+  // Add Watermark & Footer to first page before header
+  drawWatermarkAndFooter(doc, logoImg, trackedPages)
+
   const startY = await addClubHeader(doc, settings, title)
 
   // ── PAGE 1: ROSTER ──
@@ -218,11 +288,16 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
     columnStyles: {
       0: { halign: 'center', cellWidth: 15 },
       2: { halign: 'center', cellWidth: 40 }
+    },
+    didDrawPage: (data) => {
+      drawWatermarkAndFooter(doc, logoImg, trackedPages)
     }
   })
 
   // ── PAGE 2: ITINERARY (new page) ──
   doc.addPage('landscape')
+  drawWatermarkAndFooter(doc, logoImg, trackedPages)
+
   const pageW = doc.internal.pageSize.width
   const centerX = pageW / 2
 
@@ -277,16 +352,11 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
       11: { halign: 'center' },
       12: { halign: 'center' },
       13: { halign: 'center' }
+    },
+    didDrawPage: (data) => {
+      drawWatermarkAndFooter(doc, logoImg, trackedPages)
     }
   })
-
-  // Footer on page 2
-  const footerY = doc.internal.pageSize.height - 8
-  doc.setFontSize(7)
-  doc.setFont('helvetica', 'italic')
-  doc.setTextColor(150)
-  doc.text(`Generated on ${new Date().toLocaleString()} — Lion Dance Management System`, 15, footerY)
-  doc.setTextColor(0)
 
   const fileName = `DayReport_${meta.dateKey}_${(meta.troupeName || 'All').replace(/\s/g, '_')}.pdf`
   doc.save(fileName)
@@ -367,6 +437,13 @@ export const exportDayReportExcel = (stops, members, attendanceDetails, meta) =>
 export const exportFinancePDF = async (transactions, periodStats, settings, meta) => {
   const doc = new jsPDF()
   const title = `Finance Report — ${meta.periodLabel || 'All Time'}`
+  const logoUrl = settings?.clublogo || '/logo1.jpeg'
+  const logoImg = await preloadImage(logoUrl)
+  const trackedPages = new Set()
+  
+  // First page watermark & footer
+  drawWatermarkAndFooter(doc, logoImg, trackedPages)
+
   const startY = await addClubHeader(doc, settings, title)
 
   // Sort ascending for running balance
@@ -414,16 +491,11 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
       5: { halign: 'right', cellWidth: 22 },
       6: { halign: 'right', cellWidth: 22 },
       7: { halign: 'right', cellWidth: 24 }
+    },
+    didDrawPage: (data) => {
+      drawWatermarkAndFooter(doc, logoImg, trackedPages)
     }
   })
-
-  // Footer
-  const footerY = doc.internal.pageSize.height - 8
-  doc.setFontSize(7)
-  doc.setFont('helvetica', 'italic')
-  doc.setTextColor(150)
-  doc.text(`Generated on ${new Date().toLocaleString()} — Lion Dance Management System`, 15, footerY)
-  doc.setTextColor(0)
 
   const fileName = `Finance_${(meta.periodLabel || 'AllTime').replace(/\s/g, '_')}.pdf`
   doc.save(fileName)

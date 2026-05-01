@@ -4,7 +4,7 @@ import { useCustomers } from '../../hooks/useCustomers'
 
 export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop = null }) {
   const { settings } = useSettings()
-  const { customers } = useCustomers()
+  const { customers, setSearchQuery } = useCustomers({ initialPageSize: 1000 })
   
   // Helper: Convert "HH:MM AM/PM" to minutes from midnight
   const parseTimeToMinutes = (timeStr) => {
@@ -48,6 +48,12 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
       const notesPart = c.notes ? ` (${c.notes})` : ''
       return inputValue === `${c.name}${notesPart}` || inputValue === c.name
     })
+
+    // Only update search query if we haven't found a perfect match yet
+    // This prevents the dropdown from "popping back up" after selection
+    if (!matchedCustomer) {
+      setSearchQuery(inputValue)
+    }
 
     if (matchedCustomer) {
       const addresses = Array.isArray(matchedCustomer.addresses) ? matchedCustomer.addresses : [matchedCustomer.address || '']
@@ -284,7 +290,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                   setFormData({ 
                     ...formData, 
                     address: selectedVal,
-                    mapLink: typeof selectedAddr === 'object' ? selectedAddr.mapLink || '' : ''
+                    maplink: typeof selectedAddr === 'object' ? selectedAddr.mapLink || '' : ''
                   })
                 }}
                 value={formData.address}

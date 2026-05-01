@@ -112,7 +112,10 @@ export function useItinerary(troupeId, date) {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'stops', filter: `itinerary_id=eq.${itinId}` }, 
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setStops(prev => [...prev, payload.new].sort((a, b) => (a.order || 0) - (b.order || 0)))
+            setStops(prev => {
+              if (prev.some(s => s.id === payload.new.id)) return prev
+              return [...prev, payload.new].sort((a, b) => (a.order || 0) - (b.order || 0))
+            })
           } else if (payload.eventType === 'UPDATE') {
             setStops(prev => prev.map(s => s.id === payload.new.id ? payload.new : s))
           } else if (payload.eventType === 'DELETE') {
@@ -207,7 +210,12 @@ export function useItinerary(troupeId, date) {
       itinUpdates.skippedstops = (currentItin.skippedstops || 0) + 1
     }
 
-    await supabase.from('itineraries').update(itinUpdates).eq('id', currentItin.id)
+    const { error: itinError } = await supabase.from('itineraries').update(itinUpdates).eq('id', currentItin.id)
+    if (itinError) throw itinError
+
+    // Local Update (Optimistic/Sync)
+    setItinerary(prev => ({ ...prev, ...itinUpdates }))
+    setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...stopUpdates } : s))
 
     // Sync Finance — delete if un-completing
     if (newStatus !== 'completed' && oldStatus === 'completed') {
@@ -296,32 +304,47 @@ export function useItinerary(troupeId, date) {
 
     try {
       const now = new Date().toISOString()
+      const newOrder = stops.length
 
-      // 1. Insert stop into flat stops table with itinerary_id FK
-      const { error: stopError } = await supabase
+      // 1. Insert stop and get the created record back immediately
+      const { data: newStop, error: stopError } = await supabase
         .from('stops')
         .insert({
           ...sanitizeObject(stopData),
           itinerary_id: activeItinId,
-          order: stops.length,
+          order: newOrder,
           status: 'pending',
           createdby: userId,
           createdat: now,
           updatedat: now
         })
+        .select()
+        .single()
 
       if (stopError) throw stopError
 
       // 2. Update itinerary counter
-      await supabase
+      const { error: itinError } = await supabase
         .from('itineraries')
         .update({
           totalstops: (itinerary?.totalstops || 0) + 1,
           updatedat: now
         })
         .eq('id', activeItinId)
+      
+      if (itinError) throw itinError
+
+      // 3. Optimistic Local Update
+      if (newStop) {
+        setStops(prev => [...prev, newStop].sort((a, b) => (a.order || 0) - (b.order || 0)))
+      }
+      setItinerary(prev => prev ? ({ ...prev, totalstops: (prev.totalstops || 0) + 1 }) : null)
+      
+      showToast('Stop added successfully', 'success')
+      logAction('ADD_STOP', { stopId: newStop?.id, itinId: activeItinId })
     } catch (err) {
       console.error('Error adding stop:', err)
+      showToast('Failed to add stop', 'error')
       throw err
     }
   }
@@ -357,7 +380,13 @@ export function useItinerary(troupeId, date) {
         itinUpdates.skippedstops = Math.max(0, (itinerary.skippedstops || 0) - 1)
       }
 
-      await supabase.from('itineraries').update(itinUpdates).eq('id', itinerary.id)
+      const { error: itinError } = await supabase.from('itineraries').update(itinUpdates).eq('id', itinerary.id)
+      if (itinError) throw itinError
+
+      // Local Update
+      setStops(prev => prev.filter(s => s.id !== stopId))
+      setItinerary(prev => prev ? ({ ...prev, ...itinUpdates }) : null)
+
       logAction('DELETE_STOP', { stopId, itinId: itinerary.id })
     } catch (err) {
       console.error('Error deleting stop:', err)
@@ -370,16 +399,39 @@ export function useItinerary(troupeId, date) {
     if (!itinerary) return
     try {
       const now = new Date().toISOString()
-      // Update each stop's order individually
-      const updates = newStops.map((stop, index) =>
-        supabase
-          .from('stops')
-          .update({ order: index, updatedat: now })
-          .eq('id', stop.id)
-      )
-      await Promise.all(updates)
+      
+      // Local Update (Instant feedback)
+      // We need to merge the reordered active stops back into the full stops list
+      // which might include finished/skipped stops that weren't moved.
+      setStops(prev => {
+        const movedIds = new Set(newStops.map(s => s.id))
+        const remaining = prev.filter(s => !movedIds.has(s.id))
+        return [...newStops, ...remaining].sort((a, b) => {
+          // If both are in the newStops list, their index in newStops is their order
+          const aIdx = newStops.findIndex(s => s.id === a.id)
+          const bIdx = newStops.findIndex(s => s.id === b.id)
+          if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx
+          return (a.order || 0) - (b.order || 0)
+        })
+      })
+
+      // Bulk Update to Database
+      const updates = newStops.map((stop, index) => ({
+        id: stop.id,
+        itinerary_id: itinerary.id,
+        order: index,
+        updatedat: now
+      }))
+
+      const { error } = await supabase
+        .from('stops')
+        .upsert(updates, { onConflict: 'id' })
+
+      if (error) throw error
     } catch (err) {
       console.error('Error reordering stops:', err)
+      // Optionally re-fetch to restore correct order if DB update failed
+      fetchStops(itinerary.id)
       throw err
     }
   }

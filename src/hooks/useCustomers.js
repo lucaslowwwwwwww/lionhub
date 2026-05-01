@@ -7,14 +7,15 @@ import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 /**
  * useCustomers — Global Customer Management
  */
-export function useCustomers() {
+export function useCustomers(options = {}) {
+  const { initialPageSize = 10 } = options
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const [error, setError] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(initialPageSize)
   const [searchQuery, setSearchQuery] = useState('')
   
   const { userProfile, user } = useAuth()

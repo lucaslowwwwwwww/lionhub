@@ -54,8 +54,8 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
              <button onClick={(e) => { e.stopPropagation(); setIsNavigating(false); }} className="text-surface-400 hover:text-surface-100 transition-colors p-2 hover:bg-surface-800 rounded-full">✕</button>
            </div>
            <div className="p-4 flex flex-col gap-3">
-             {stop.mapLink && (
-               <a href={stop.mapLink} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); setIsNavigating(false); }} className="flex items-center gap-4 p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-all group">
+             {stop.maplink && (
+               <a href={stop.maplink} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); setIsNavigating(false); }} className="flex items-center gap-4 p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-all group">
                  <div className="text-left">
                    <p className="font-black text-base sm:text-lg">Saved Location Link</p>
                    <p className="text-[10px] text-blue-500/70 uppercase tracking-widest font-black mt-1">Direct to Pinned Spot</p>

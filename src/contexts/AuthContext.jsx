@@ -17,9 +17,10 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [connectionError, setConnectionError] = useState(false)
-   const profileChannelRef = useRef(null)
-   const userProfileRef = useRef(null)
-   const fetchingRef = useRef(false)
+  const profileChannelRef = useRef(null)
+  const subscribedUserIdRef = useRef(null)
+  const userProfileRef = useRef(null)
+  const fetchingRef = useRef(false)
  
    // Keep Ref in sync with state for use in callbacks/listeners
    useEffect(() => {
@@ -107,12 +108,18 @@ export function AuthProvider({ children }) {
   const subscribeToProfile = (authUser) => {
     if (!authUser) return
 
+    if (subscribedUserIdRef.current === authUser.id && profileChannelRef.current) {
+      return
+    }
+
     // Clean up any existing channel BEFORE creating a new one
-    // This prevents the "cannot add callbacks after subscribe" error
     if (profileChannelRef.current) {
       supabase.removeChannel(profileChannelRef.current)
       profileChannelRef.current = null
+      subscribedUserIdRef.current = null
     }
+
+    subscribedUserIdRef.current = authUser.id
 
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     profileChannelRef.current = supabase

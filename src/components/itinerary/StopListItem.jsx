@@ -27,11 +27,15 @@ export default function StopListItem({ stop, index, onEdit, onDelete, isAdmin, d
 
       {/* Time & Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-black text-crimson-400 font-numeric shrink-0">{stop.scheduledTime}</span>
-          <h4 className="text-sm font-bold text-surface-100 truncate">{stop.householdName}</h4>
+        <div className="flex items-center gap-2.5">
+          {stop.scheduledtime && (
+            <span className="text-[11px] font-black text-crimson-500 font-numeric shrink-0 bg-crimson-500/5 px-1.5 py-0.5 rounded border border-crimson-500/10">
+              {stop.scheduledtime}
+            </span>
+          )}
+          <h4 className="text-sm font-bold text-surface-100 truncate">{stop.householdname}</h4>
         </div>
-        <p className="text-[10px] text-surface-500 truncate uppercase tracking-widest font-medium mt-0.5">
+        <p className="text-[10px] text-surface-500 truncate uppercase tracking-widest font-medium mt-1 pl-0.5 opacity-80">
           {stop.address}
         </p>
       </div>

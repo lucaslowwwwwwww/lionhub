@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Legend } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Legend, PieChart, Pie } from 'recharts'
 import CountUp from '../common/CountUp'
 
 
@@ -17,16 +17,22 @@ const KPI_CONFIG = [
     color: 'gold' 
   },
   { 
-    key: 'activeTroupes', 
-    label: 'Troupes', 
-    icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, 
-    color: 'brand' 
+    key: 'totalExpenses', 
+    label: 'Expenses (RM)', 
+    icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, 
+    color: 'crimson' 
   },
   { 
-    key: 'completedStops', 
-    label: 'Completed', 
-    icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, 
+    key: 'netProfit', 
+    label: 'Net Profit (RM)', 
+    icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>, 
     color: 'green' 
+  },
+  { 
+    key: 'activeTroupes', 
+    label: 'Active Troupes', 
+    icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, 
+    color: 'brand' 
   },
 ]
 
@@ -34,15 +40,31 @@ function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-surface-800 border border-surface-700 rounded-lg px-4 py-3 shadow-2xl">
-      <p className="text-sm font-bold text-surface-100 mb-1">{label}</p>
-      {payload.map((entry, i) => (
-        <p key={i} className="text-xs text-surface-300">
-          {entry.name === 'revenue' ? 'Revenue' : 'Stops'}:{' '}
-          <span className="font-bold text-surface-100">
-            {entry.name === 'revenue' ? `RM ${entry.value.toLocaleString()}` : entry.value}
-          </span>
-        </p>
-      ))}
+      <p className="text-sm font-bold text-surface-100 mb-2">{label}</p>
+      <div className="space-y-1">
+        {payload.map((entry, i) => {
+          const isFinancial = ['revenue', 'expenses', 'profit'].includes(entry.name)
+          const colorClass = 
+            entry.name === 'revenue' ? 'text-gold-400' : 
+            entry.name === 'expenses' ? 'text-crimson-400' :
+            entry.name === 'profit' ? 'text-green-400' : 'text-surface-300'
+          
+          const labelText = 
+            entry.name === 'revenue' ? 'Revenue' : 
+            entry.name === 'expenses' ? 'Expenses' :
+            entry.name === 'profit' ? 'Net Profit' : 
+            entry.name === 'stops' ? 'Total Stops' : 'Completed'
+
+          return (
+            <p key={i} className="text-[10px] uppercase font-black tracking-widest flex justify-between gap-4">
+              <span className="text-surface-500">{labelText}:</span>
+              <span className={colorClass}>
+                {isFinancial ? `RM ${entry.value.toLocaleString()}` : entry.value}
+              </span>
+            </p>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -62,8 +84,10 @@ function EmptyChartState({ label }) {
 
 export default function MasterDashboard({ stats, loading, selectedYear, setSelectedYear, availableYears }) {
   const [viewMode, setViewMode] = useState('monthly')
-  const [isMobile, setIsMobile] = useState(null)
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false)
   const [canRender, setCanRender] = useState(false)
+  const [hoveredIncome, setHoveredIncome] = useState(null)
+  const [hoveredExpense, setHoveredExpense] = useState(null)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -73,7 +97,11 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
     window.addEventListener('resize', checkMobile)
     
     // Stabilize layout before rendering charts (increased delay for production stability)
-    const timer = setTimeout(() => setCanRender(true), 500)
+    const timer = setTimeout(() => {
+      setCanRender(true)
+      // Force a resize event to ensure Recharts recalculates dimensions
+      window.dispatchEvent(new Event('resize'))
+    }, 1000)
     
     return () => {
       window.removeEventListener('resize', checkMobile)
@@ -117,7 +145,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                  <div className="space-y-0.5 sm:space-y-1">
                    <p className="text-[10px] sm:text-xs font-black text-surface-500 uppercase tracking-widest">{kpi.label}</p>
                    <p className="text-xl sm:text-3xl font-black text-surface-100 font-numeric tracking-tight">
-                     {kpi.key === 'totalRevenue' ? (
+                     {['totalRevenue', 'totalExpenses', 'netProfit'].includes(kpi.key) ? (
                        <CountUp end={stats[kpi.key]} prefix="RM " />
                      ) : (
                        <CountUp end={stats[kpi.key]} />
@@ -251,7 +279,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
             </div>
           </div>
           
-          <div className="h-64 sm:h-[400px] w-full">
+          <div className="h-64 sm:h-[400px] w-full relative overflow-hidden">
             {loading ? (
               <div className="w-full h-full bg-surface-950/20 rounded-[2rem] border border-surface-800/50 animate-pulse flex items-center justify-center">
                  <div className="w-full max-w-[80%] space-y-4">
@@ -259,9 +287,29 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     <div className="h-32 bg-surface-800/30 rounded-2xl w-full" />
                  </div>
               </div>
-            ) : (currentData.length > 0 && isMobile !== null && canRender) ? (
-              <ResponsiveContainer width="100%" height="100%" debounce={50} minWidth={1} minHeight={256}>
+            ) : (currentData.length > 0 && canRender) ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256} debounce={50}>
                 <BarChart data={currentData} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
+                  <Legend 
+                    verticalAlign="top" 
+                    align="right" 
+                    iconType="circle"
+                    content={({ payload }) => (
+                      <div className="flex gap-4 justify-end mb-4">
+                        {payload.map((entry, index) => (
+                          <div key={index} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-default">
+                            <div 
+                              className="w-2.5 h-2.5 rounded-full shadow-lg" 
+                              style={{ backgroundColor: entry.value === 'revenue' ? '#f59e0b' : '#e11d48' }} 
+                            />
+                            <span className="text-[10px] font-black text-surface-400 uppercase tracking-widest whitespace-nowrap">
+                              {entry.value === 'revenue' ? 'Income' : 'Expenses'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  />
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                   <XAxis
                     dataKey="day"
@@ -275,14 +323,11 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={v => `RM${v}`}
-                    label={{ value: 'Revenue (RM)', angle: -90, position: 'insideLeft', offset: -5, fill: '#71717a', fontSize: 9, fontWeight: 900 }}
+                    label={{ value: 'Amount (RM)', angle: -90, position: 'insideLeft', offset: -5, fill: '#71717a', fontSize: 9, fontWeight: 900 }}
                   />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                  <Bar dataKey="revenue" radius={[10, 10, 0, 0]} maxBarSize={30}>
-                    {currentData.map((entry, i) => (
-                      <Cell key={i} fill={entry.revenue > 0 ? '#f59e0b' : '#18181b'} />
-                    ))}
-                  </Bar>
+                  <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={20} fill="#f59e0b" />
+                  <Bar dataKey="expenses" radius={[6, 6, 0, 0]} maxBarSize={20} fill="#e11d48" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -304,7 +349,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
             </div>
           </div>
 
-          <div className="h-64 sm:h-[400px] w-full">
+          <div className="h-64 sm:h-[400px] w-full relative overflow-hidden">
             {loading ? (
               <div className="w-full h-full bg-surface-950/20 rounded-[2rem] border border-surface-800/50 animate-pulse flex items-center justify-center">
                  <div className="w-full max-w-[80%] space-y-4">
@@ -312,8 +357,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     <div className="h-32 bg-surface-800/30 rounded-2xl w-full" />
                  </div>
               </div>
-            ) : (currentData.length > 0 && isMobile !== null && canRender) ? (
-                            <ResponsiveContainer width="100%" height="100%" debounce={50} minWidth={1} minHeight={256}>
+            ) : (currentData.length > 0 && canRender) ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256} debounce={50}>
                 <BarChart data={currentData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <Legend 
                     verticalAlign="top" 
@@ -366,6 +411,149 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
               <EmptyChartState label="Add stops to generate engagement reports" />
             )}
           </div>
+        </div>
+
+        {/* Category Analysis Row */}
+        <div className="xl:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+           {/* Income Categories */}
+           <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gold-500/10 text-gold-400 rounded-2xl border border-gold-500/20">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                   <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Income Streams</h3>
+                   <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Revenue by Source Category</p>
+                </div>
+              </div>
+              <div className="h-64 sm:h-[350px] w-full relative">
+                {stats.categoryData.income.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
+                      <PieChart>
+                        <Pie
+                          data={stats.categoryData.income}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={isMobile ? 70 : 90}
+                          outerRadius={isMobile ? 85 : 115}
+                          paddingAngle={2}
+                          dataKey="value"
+                          stroke="none"
+                          onMouseEnter={(_, index) => setHoveredIncome(stats.categoryData.income[index])}
+                          onMouseLeave={() => setHoveredIncome(null)}
+                        >
+                          {stats.categoryData.income.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={[
+                              '#f59e0b', // gold-500
+                              '#fbbf24', // gold-400
+                              '#d97706', // gold-600
+                              '#b45309', // gold-700
+                              '#fbcf33', // custom yellow
+                            ][index % 5]} />
+                          ))}
+                        </Pie>
+                        <Legend 
+                          verticalAlign="bottom" 
+                          align="center"
+                          content={({ payload }) => (
+                            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
+                              {payload.map((entry, index) => (
+                                <div key={index} className="flex items-center gap-1.5">
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                  <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    {/* Centered Dynamic Info */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
+                       <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
+                         {hoveredIncome ? hoveredIncome.name : 'Total'}
+                       </p>
+                       <p className={`font-black tabular-nums transition-all ${hoveredIncome ? 'text-2xl text-surface-100' : 'text-xl text-gold-500'}`}>
+                         RM {(hoveredIncome ? hoveredIncome.value : stats.totalRevenue).toLocaleString()}
+                       </p>
+                    </div>
+                  </>
+                ) : (
+                  <EmptyChartState label="No income data categorized yet" />
+                )}
+              </div>
+           </div>
+
+           {/* Expense Categories */}
+           <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-crimson-500/10 text-crimson-400 rounded-2xl border border-crimson-500/20">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                </div>
+                <div>
+                   <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Cost Distribution</h3>
+                   <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Expenses by Operational Group</p>
+                </div>
+              </div>
+              <div className="h-64 sm:h-[350px] w-full relative">
+                {stats.categoryData.expense.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
+                      <PieChart>
+                        <Pie
+                          data={stats.categoryData.expense}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={isMobile ? 70 : 90}
+                          outerRadius={isMobile ? 85 : 115}
+                          paddingAngle={2}
+                          dataKey="value"
+                          stroke="none"
+                          onMouseEnter={(_, index) => setHoveredExpense(stats.categoryData.expense[index])}
+                          onMouseLeave={() => setHoveredExpense(null)}
+                        >
+                          {stats.categoryData.expense.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={[
+                              '#e11d48', // crimson-600
+                              '#fb7185', // rose-400
+                              '#be123c', // crimson-700
+                              '#f43f5e', // rose-500
+                              '#9f1239', // crimson-800
+                            ][index % 5]} />
+                          ))}
+                        </Pie>
+                        <Legend 
+                          verticalAlign="bottom" 
+                          align="center"
+                          content={({ payload }) => (
+                            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
+                              {payload.map((entry, index) => (
+                                <div key={index} className="flex items-center gap-1.5">
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                  <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    {/* Centered Dynamic Info */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
+                       <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
+                         {hoveredExpense ? hoveredExpense.name : 'Spent'}
+                       </p>
+                       <p className={`font-black tabular-nums transition-all ${hoveredExpense ? 'text-2xl text-surface-100' : 'text-xl text-crimson-500'}`}>
+                         RM {(hoveredExpense ? hoveredExpense.value : stats.totalExpenses).toLocaleString()}
+                       </p>
+                    </div>
+                  </>
+                ) : (
+                  <EmptyChartState label="No expense data categorized yet" />
+                )}
+              </div>
+           </div>
         </div>
       </div>
     </div>

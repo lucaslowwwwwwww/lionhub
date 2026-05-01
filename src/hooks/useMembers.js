@@ -10,7 +10,7 @@ export function useMembers() {
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
 
-  const fetchMembers = useCallback(async () => {
+  const fetchMembers = useCallback(async (limit = 100, offset = 0) => {
     // Only show full loading if we don't have cached data
     if (members.length === 0) {
       setLoading(true)
@@ -20,16 +20,18 @@ export function useMembers() {
     const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
     try {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('users')
-        .select(TABLES.USERS)
+        .select(TABLES.USERS, { count: 'exact' })
         .neq('status', 'deleted')
         .order('displayname', { ascending: true })
+        .range(offset, offset + limit - 1)
 
       if (error) {
         console.error('Error fetching members:', error)
       } else {
         setMembers(data || [])
+        return { data: data || [], count: count || 0 }
       }
     } catch (err) {
       console.error('Unexpected members error:', err)
