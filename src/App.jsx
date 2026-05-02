@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { LoginPage, ProtectedRoute, SessionGuard } from './components/auth'
-import { AppShell } from './components/layout'
+import { AppShell, SplashScreen } from './components/layout'
 import { useAuth } from './hooks/useAuth'
 import { useSettings } from './hooks/useSettings'
 import { useMembers } from './hooks/useMembers'
@@ -49,7 +49,7 @@ function LoginGuard() {
 function ThemeManager({ children }) {
   const { userProfile } = useAuth()
   const { settings } = useSettings()
-  const [theme, setTheme] = useState(localStorage.getItem('app-theme') || 'dark')
+  const [theme, setTheme] = useState(localStorage.getItem('ldms-theme') || 'dark')
   const [hasManualOverride, setHasManualOverride] = useState(false)
 
   useEffect(() => {
@@ -61,7 +61,7 @@ function ThemeManager({ children }) {
         // This is a persistence call
         const userTheme = userProfile?.appearance?.theme
         const globalTheme = settings?.theme
-        const savedTheme = localStorage.getItem('app-theme') || userTheme || globalTheme || 'dark'
+        const savedTheme = localStorage.getItem('ldms-theme') || userTheme || globalTheme || 'dark'
         setTheme(savedTheme)
         setHasManualOverride(false)
       }
@@ -74,7 +74,7 @@ function ThemeManager({ children }) {
     // 4. LocalStorage (last used on this machine)
     const userTheme = userProfile?.appearance?.theme
     const globalTheme = settings?.theme
-    const targetTheme = userTheme || globalTheme || localStorage.getItem('app-theme') || 'dark'
+    const targetTheme = userTheme || globalTheme || localStorage.getItem('ldms-theme') || 'dark'
 
     if (targetTheme && !hasManualOverride) {
       setTheme(targetTheme)
@@ -139,6 +139,30 @@ function ConnectionOverlay() {
 
 function AppContent() {
   const { settings } = useSettings()
+  const { loading: authLoading } = useAuth()
+  const [showSplash, setShowSplash] = useState(true)
+  const [isExiting, setIsExiting] = useState(false)
+
+  useEffect(() => {
+    const minTime = 1500
+    const maxTime = 3500 // Slightly longer max for safety
+    const startTime = Date.now()
+
+    const checkLoading = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      
+      if ((!authLoading && elapsed >= minTime) || elapsed >= maxTime) {
+        clearInterval(checkLoading)
+        setIsExiting(true)
+        setTimeout(() => setShowSplash(false), 700)
+      }
+    }, 100)
+
+    return () => clearInterval(checkLoading)
+  }, [authLoading])
+
+  if (showSplash) return <SplashScreen isExiting={isExiting} />
+
   return (
     <>
       <ThemeManager>

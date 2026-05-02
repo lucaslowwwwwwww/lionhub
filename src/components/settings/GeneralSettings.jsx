@@ -13,7 +13,7 @@ export default function GeneralSettings() {
 
   const [activeTab, setActiveTab] = useState('club')
   const [localSettings, setLocalSettings] = useState({
-    theme: userProfile?.appearance?.theme || localStorage.getItem('app-theme') || 'dark',
+    theme: userProfile?.appearance?.theme || localStorage.getItem('ldms-theme') || 'dark',
     baselocation: '',
     defaultduration: 30,
     lioncolors: [],
@@ -54,15 +54,31 @@ export default function GeneralSettings() {
         bankname: settings.bankname || 'PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA',
         banktype: settings.banktype || 'CIMB',
         banknumber: settings.banknumber || '8011396083',
-        theme: userProfile?.appearance?.theme || settings.theme || localStorage.getItem('app-theme') || 'dark'
+        theme: userProfile?.appearance?.theme || settings.theme || localStorage.getItem('ldms-theme') || 'dark'
       }))
     }
   }, [settings, userProfile?.appearance?.theme])
 
-  const handleLocalThemeChange = (newTheme) => {
+  const handleLocalThemeChange = async (newTheme) => {
     setLocalSettings(prev => ({ ...prev, theme: newTheme }))
-    // Dispatch a preview event (detail contains the theme)
+    
+    // 1. Instant Preview
     window.dispatchEvent(new CustomEvent('theme-changed', { detail: newTheme }))
+    
+    // 2. Persist to LocalStorage
+    localStorage.setItem('ldms-theme', newTheme)
+    
+    // 3. Persist to Supabase Profile (Cloud Sync)
+    try {
+      await updateProfile({
+        appearance: { 
+          ...userProfile?.appearance,
+          theme: newTheme 
+        }
+      })
+    } catch (err) {
+      console.warn('Failed to sync theme to cloud:', err)
+    }
   }
 
   const handleSave = async () => {
@@ -70,17 +86,7 @@ export default function GeneralSettings() {
     setIsSaving(true)
     setSaveMessage('')
     try {
-      // 1. Persist personal theme preference to user profile
-      localStorage.setItem('app-theme', localSettings.theme)
-      await updateProfile({
-        appearance: { 
-          ...userProfile?.appearance,
-          theme: localSettings.theme 
-        }
-      })
-      window.dispatchEvent(new Event('theme-changed'))
-
-      // 2. Sync global settings (excluding theme if possible, but keeping it for legacy)
+      // 1. Sync global settings (excluding theme if possible, but keeping it for legacy)
       const { theme, ...globalData } = localSettings
       await updateSettings({
         ...globalData,
