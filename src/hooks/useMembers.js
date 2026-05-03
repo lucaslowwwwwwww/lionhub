@@ -3,14 +3,18 @@ import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
+import { useOrg } from '../contexts/OrgContext'
 
 export function useMembers() {
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
+  const { orgId } = useOrg()
 
   const fetchMembers = useCallback(async (limit = 1000, offset = 0) => {
+    if (!orgId) return
+
     // Only show full loading if we don't have cached data
     if (members.length === 0) {
       setLoading(true)
@@ -24,6 +28,8 @@ export function useMembers() {
         .from('users')
         .select(TABLES.USERS, { count: 'exact' })
         .neq('status', 'deleted')
+        .neq('is_super_admin', true)
+        .eq('org_id', orgId)
         .order('displayname', { ascending: true })
         .range(offset, offset + limit - 1)
 
@@ -39,7 +45,7 @@ export function useMembers() {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }, [members.length])
+  }, [members.length, orgId])
 
   useEffect(() => {
     fetchMembers()
@@ -47,11 +53,13 @@ export function useMembers() {
 
   useEffect(() => {
     // Subscribe to realtime changes
+    if (!orgId) return
+
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
-    const channelName = `members-${safeId}`
+    const channelName = `members-${orgId}-${safeId}`
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `org_id=eq.${orgId}` }, (payload) => {
         if (payload.eventType === 'INSERT') {
           if (payload.new.status !== 'deleted') {
             setMembers(prev => [...prev, payload.new].sort((a, b) => (a.displayname || '').localeCompare(b.displayname || '')))
@@ -71,7 +79,7 @@ export function useMembers() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [orgId])
 
   const addMember = async (memberData) => {
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
@@ -81,6 +89,7 @@ export function useMembers() {
       .upsert({
         id,
         ...sanitizeObject(memberData),
+        org_id: orgId || memberData.org_id || null,
         createdat: new Date().toISOString()
       })
 

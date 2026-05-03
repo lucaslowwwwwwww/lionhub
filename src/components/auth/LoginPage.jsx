@@ -9,9 +9,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isRegistering, setIsRegistering] = useState(false)
   const navigate = useNavigate()
 
-  // On mount, check if there's a persisted login error (survives LoginGuard unmount/remount)
   useEffect(() => {
     const savedError = sessionStorage.getItem('login_error')
     if (savedError) {
@@ -26,118 +26,186 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      if (isRegistering) {
+        const { error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { displayname: 'Master Admin' }
+          }
+        })
+        if (authError) throw authError
+        alert('Registration successful! Please log in.')
+        setIsRegistering(false)
+      } else {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        })
 
-      if (authError) {
-        const messages = {
-          'Invalid login credentials': 'Invalid email or password.',
-          'Email not confirmed': 'Please confirm your email before logging in.',
-          'Too many requests': 'Too many attempts. Please try again later.',
+        if (authError) {
+          const messages = {
+            'Invalid login credentials': 'Invalid email or password.',
+            'Email not confirmed': 'Please confirm your email.',
+            'Too many requests': 'Too many attempts. Try later.',
+          }
+          setError(messages[authError.message] || authError.message || 'Sign-in failed.')
         }
-        setError(messages[authError.message] || authError.message || 'Sign-in failed. Please try again.')
       }
-      // AuthContext's onAuthStateChange will verify the role.
-      // If non-admin, it will signOut and store error in sessionStorage.
-      // If admin, LoginGuard will navigate to /dashboard.
     } catch (err) {
-      setError('Sign-in failed. Please try again.')
+      setError(err.message || 'Authentication failed.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-md">
-        {/* ── Branding ── */}
-        <div className="text-center mb-8">
-          <img 
-            src={settings?.clublogo || "/chuan_cheng_logo.png"} 
-            alt="Logo" 
-            className="w-20 h-20 mx-auto rounded-2xl shadow-2xl mb-4 border border-surface-800 object-cover" 
-          />
-          <h1 className="text-3xl font-extrabold text-crimson-500 tracking-tight">
-            {settings?.clubnamecn || "传承龙狮体育会"}
-          </h1>
-          <p className="text-surface-200 text-sm mt-1 uppercase tracking-widest font-bold">
-            {settings?.clubnameen ? "Management System" : "管理系统"}
-          </p>
+    <div className="min-h-screen bg-surface-950 flex items-center justify-center p-4 md:p-12 selection:bg-crimson-500/30 overflow-x-hidden">
+      <div className="w-full max-w-6xl min-h-[650px] md:h-[750px] bg-surface-900/40 backdrop-blur-3xl rounded-[32px] md:rounded-[40px] border border-surface-800 shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+        
+        {/* ── MOBILE BRANDING ── */}
+        <div className="md:hidden pt-12 pb-6 text-center flex flex-col items-center">
+           <div className="w-20 h-20 rounded-full bg-surface-950 border-2 border-surface-800 flex items-center justify-center mb-4 shadow-glow">
+              <span className="text-crimson-500 font-black text-xl tracking-tighter">LDMS</span>
+           </div>
+           <h2 className="text-lg font-black text-white tracking-tight uppercase px-8">
+              Lion Dance <span className="text-crimson-500">Management</span> System
+           </h2>
         </div>
 
-        {/* ── Card ── */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-surface-900/80 backdrop-blur-xl border border-surface-700/50 rounded-2xl p-8 shadow-card space-y-5"
-        >
-          {/* Error banner */}
-          {error && (
-            <div className="border text-sm rounded-lg px-4 py-3 flex items-start gap-2 bg-crimson-900/40 border-crimson-700/50 text-crimson-300">
-              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{error}</span>
+        {/* ── VISUAL SLIDING PANEL (DESKTOP) ── */}
+        <div className={`hidden md:flex absolute top-0 bottom-0 w-1/2 bg-surface-950 z-30 transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) items-center justify-center border-x border-surface-800 ${
+          isRegistering ? 'translate-x-full' : 'translate-x-0'
+        }`}>
+          <div className="relative text-center p-12">
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-crimson-600/5 rounded-full blur-[80px]" />
+             <div className="relative w-44 h-44 rounded-full bg-surface-900 border-2 border-surface-800 flex items-center justify-center mx-auto mb-10 shadow-inner">
+                <span className="text-crimson-500 font-black text-5xl tracking-tighter drop-shadow-glow">LDMS</span>
+             </div>
+             <h2 className="text-2xl font-black text-white tracking-tight uppercase leading-tight mb-3">
+                Lion Dance <span className="text-crimson-500">Management</span> System
+             </h2>
+             <p className="text-[10px] font-black text-surface-500 tracking-[0.4em] uppercase opacity-60">Professional Platform v2.0</p>
+          </div>
+        </div>
+
+        {/* ── FORMS CONTAINER ── */}
+        <div className="flex-1 relative min-h-[450px] md:min-h-0">
+          
+          {/* REGISTER FORM */}
+          <div className={`absolute inset-y-0 left-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-700 ${
+            !isRegistering 
+              ? 'opacity-0 -translate-x-12 pointer-events-none' 
+              : 'opacity-100 translate-x-0'
+          }`}>
+            <div className="w-full max-w-sm mx-auto">
+              <header className="mb-8 md:mb-10 text-center md:text-left pt-4 md:pt-0">
+                <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Initialize</h1>
+                <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Master Admin Enrollment</p>
+              </header>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {error && isRegistering && (
+                  <div className="p-4 bg-crimson-900/10 border border-crimson-500/20 rounded-2xl text-crimson-400 text-[11px] font-bold flex gap-3 items-center">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    {error}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Owner Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
+                      placeholder="owner@association.com"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
+                      placeholder="••••••••••••"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading} className="w-full py-5 bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-crimson-600/20 transition-all">
+                  {loading ? 'Processing...' : 'Register Console'}
+                </button>
+
+                <button type="button" onClick={() => setIsRegistering(false)} className="w-full text-[10px] font-black text-surface-600 hover:text-surface-300 uppercase tracking-widest pt-2">
+                  Back to Secure Login
+                </button>
+              </form>
             </div>
-          )}
-
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-xs font-medium text-surface-200 mb-1.5 uppercase tracking-wider">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-              className="w-full px-4 py-3 rounded-lg bg-surface-800 border border-surface-700 text-surface-200 placeholder-surface-700 focus:outline-none focus:ring-2 focus:ring-crimson-500/60 focus:border-transparent transition"
-            />
           </div>
 
-          {/* Password */}
-          <div>
-            <label htmlFor="password" className="block text-xs font-medium text-surface-200 mb-1.5 uppercase tracking-wider">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="current-password"
-              className="w-full px-4 py-3 rounded-lg bg-surface-800 border border-surface-700 text-surface-200 placeholder-surface-700 focus:outline-none focus:ring-2 focus:ring-crimson-500/60 focus:border-transparent transition"
-            />
-          </div>
+          {/* LOGIN FORM */}
+          <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-700 ${
+            isRegistering 
+              ? 'opacity-0 translate-x-12 pointer-events-none' 
+              : 'opacity-100 translate-x-0'
+          }`}>
+            <div className="w-full max-w-sm mx-auto">
+              <header className="mb-8 md:mb-10 text-center md:text-left pt-4 md:pt-0">
+                <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Console Access</h1>
+                <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Authorized Personnel Only</p>
+              </header>
 
-          {/* Submit */}
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg bg-gradient-to-r from-crimson-600 to-crimson-500 text-white font-semibold hover:from-crimson-500 hover:to-crimson-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-card hover:shadow-card-hover cursor-pointer flex items-center justify-center gap-2"
-            >
-              {loading && (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-              )}
-              {loading ? 'Wait…' : 'Sign In'}
-            </button>
-          </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {error && !isRegistering && (
+                  <div className="p-4 bg-crimson-900/10 border border-crimson-500/20 rounded-2xl text-crimson-400 text-[11px] font-bold flex gap-3 items-center">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    {error}
+                  </div>
+                )}
 
-          <p className="text-center text-xs text-surface-700 pt-2">
-             Powered by Supabase
-          </p>
-        </form>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Login Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
+                      placeholder="operator@system.v2"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
+                      placeholder="••••••••••••"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading} className="w-full py-5 bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-crimson-600/20 transition-all">
+                  {loading ? 'Validating...' : 'Initiate Session'}
+                </button>
+
+                <button type="button" onClick={() => setIsRegistering(true)} className="w-full text-[10px] font-black text-surface-600 hover:text-surface-300 uppercase tracking-widest pt-2">
+                  New Association? Initialize Portal
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
+

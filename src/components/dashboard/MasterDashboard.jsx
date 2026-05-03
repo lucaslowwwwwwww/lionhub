@@ -84,6 +84,10 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
   const [hoveredIncome, setHoveredIncome] = useState(null)
   const [hoveredExpense, setHoveredExpense] = useState(null)
 
+  // Carousel indices
+  const [timeSeriesIndex, setTimeSeriesIndex] = useState(0)
+  const [categoryIndex, setCategoryIndex] = useState(0)
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.matchMedia('(max-width: 768px)').matches)
@@ -103,6 +107,29 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
       clearTimeout(timer)
     }
   }, [])
+
+  const handleScroll = (e, setter) => {
+    if (!isMobile) return
+    const scrollLeft = e.target.scrollLeft
+    const width = e.target.offsetWidth
+    const index = Math.round(scrollLeft / width)
+    setter(index)
+  }
+
+  const CarouselIndicators = ({ count, activeIndex, color = 'gold' }) => (
+    <div className="flex justify-center gap-2 mt-4 sm:hidden">
+      {[...Array(count)].map((_, i) => (
+        <div 
+          key={i} 
+          className={`h-1.5 rounded-full transition-all duration-300 ${
+            activeIndex === i 
+              ? `w-6 bg-${color}-500 shadow-[0_0_8px_rgba(var(--color-${color}-500-rgb),0.5)]` 
+              : 'w-1.5 bg-surface-800'
+          }`}
+        />
+      ))}
+    </div>
+  )
   
   const currentData = viewMode === 'monthly' 
     ? (stats.monthlyData[selectedYear] || []) 
@@ -202,23 +229,23 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
         </div>
 
         {/* Analysis & Chart Controls */}
-        <div className="xl:col-span-12 flex flex-col md:flex-row items-center justify-between gap-6 bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 backdrop-blur-sm">
-           <div className="flex items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-500/10 text-brand-400 rounded-2xl border border-brand-500/20">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        <div className="xl:col-span-12 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 bg-surface-900/40 border border-surface-800/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 backdrop-blur-sm">
+           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
+              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                <div className="p-2 sm:p-3 bg-brand-500/10 text-brand-400 rounded-xl sm:rounded-2xl border border-brand-500/20">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Time-Series Analysis</h3>
-                  <p className="text-[10px] text-surface-500 font-black uppercase tracking-[0.2em]">Select Period for Strategic Review</p>
+                  <h3 className="text-sm sm:text-lg font-black text-surface-100 uppercase tracking-tight">Time-Series Analysis</h3>
+                  <p className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-[0.2em]">Select Period</p>
                 </div>
               </div>
 
               {/* View Toggle */}
-              <div className="flex items-center gap-1 p-1 bg-surface-950/50 rounded-2xl border border-surface-800 shadow-inner">
+              <div className="flex items-center gap-1 p-1 bg-surface-950/50 rounded-xl sm:rounded-2xl border border-surface-800 shadow-inner w-full sm:w-auto">
                 <button
                   onClick={() => setViewMode('monthly')}
-                  className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  className={`flex-1 sm:flex-none px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
                     viewMode === 'monthly' 
                       ? 'bg-surface-800 text-gold-400 shadow-lg' 
                       : 'text-surface-500 hover:text-surface-300'
@@ -228,7 +255,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                 </button>
                 <button
                   onClick={() => setViewMode('yearly')}
-                  className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  className={`flex-1 sm:flex-none px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
                     viewMode === 'yearly' 
                       ? 'bg-surface-800 text-gold-400 shadow-lg' 
                       : 'text-surface-500 hover:text-surface-300'
@@ -241,11 +268,11 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
 
            {/* Year Selector Dropdown */}
            {viewMode === 'monthly' && (
-             <div className="relative group min-w-[180px]">
+             <div className="relative group w-full md:w-auto min-w-[150px] sm:min-w-[180px]">
                 <select 
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="w-full appearance-none bg-surface-950/50 border border-surface-800 text-surface-100 text-xs font-black uppercase tracking-[0.2em] pl-6 pr-10 py-3.5 rounded-2xl cursor-pointer hover:border-crimson-600/50 focus:outline-none focus:ring-2 focus:ring-crimson-600/20 transition-all duration-300 shadow-inner"
+                  className="w-full appearance-none bg-surface-950/50 border border-surface-800 text-surface-100 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] pl-4 sm:pl-6 pr-8 sm:pr-10 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl cursor-pointer hover:border-crimson-600/50 focus:outline-none focus:ring-2 focus:ring-crimson-600/20 transition-all duration-300 shadow-inner"
                 >
                   {availableYears.map(year => (
                     <option key={year} value={year} className="bg-surface-900 text-surface-100 py-4">
@@ -253,302 +280,326 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     </option>
                   ))}
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-surface-500 group-hover:text-gold-400 transition-colors text-[10px]">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-surface-500 group-hover:text-gold-400 transition-colors text-[8px] sm:text-[10px]">
                    ▼
                 </div>
              </div>
            )}
         </div>
 
-        {/* Top Charts Row */}
-        <div className="xl:col-span-6 bg-surface-900/40 border border-surface-800/50 rounded-3xl p-5 sm:p-8 shadow-sm backdrop-blur-md">
-          <div className="flex items-center gap-4 mb-4 sm:mb-8">
-            <div className="p-3 bg-gold-500/10 text-gold-400 rounded-2xl border border-gold-500/20">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            </div>
-            <div>
-               <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Financial Performance</h3>
-               <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
-                 {viewMode === 'monthly' ? `Monthly Revenue Stream (${selectedYear})` : 'Yearly Revenue Stream'}
-               </p>
-            </div>
-          </div>
-          
-          <div className="h-64 sm:h-[400px] w-full relative overflow-hidden">
-            {loading ? (
-              <div className="w-full h-full bg-surface-950/20 rounded-[2rem] border border-surface-800/50 animate-pulse flex items-center justify-center">
-                 <div className="w-full max-w-[80%] space-y-4">
-                    <div className="h-4 bg-surface-800/50 rounded-full w-3/4 mx-auto" />
-                    <div className="h-32 bg-surface-800/30 rounded-2xl w-full" />
-                 </div>
-              </div>
-            ) : (currentData.length > 0 && canRender) ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256} debounce={50}>
-                <BarChart data={currentData} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
-                  <Legend 
-                    verticalAlign="top" 
-                    align="right" 
-                    iconType="circle"
-                    content={({ payload }) => (
-                      <div className="flex gap-4 justify-end mb-4">
-                        {payload.map((entry, index) => (
-                          <div key={index} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-default">
-                            <div 
-                              className="w-2.5 h-2.5 rounded-full shadow-lg" 
-                              style={{ backgroundColor: entry.value === 'revenue' ? '#f59e0b' : '#e11d48' }} 
-                            />
-                            <span className="text-[10px] font-black text-surface-400 uppercase tracking-widest whitespace-nowrap">
-                              {entry.value === 'revenue' ? 'Income' : 'Expenses'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  />
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                  <XAxis
-                    dataKey="day"
-                    tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={isMobile ? 1 : 0}
-                  />
-                  <YAxis
-                    tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={v => `RM${v}`}
-                    label={{ value: 'Amount (RM)', angle: -90, position: 'insideLeft', offset: -5, fill: '#71717a', fontSize: 9, fontWeight: 900 }}
-                  />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                  <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={20} fill="#f59e0b" />
-                  <Bar dataKey="expenses" radius={[6, 6, 0, 0]} maxBarSize={20} fill="#e11d48" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <EmptyChartState label="Record performances to see financial analytics" />
-            )}
-          </div>
-        </div>
-
-        <div className="xl:col-span-6 bg-surface-900/40 border border-surface-800/50 rounded-3xl p-5 sm:p-8 shadow-sm backdrop-blur-md">
-          <div className="flex items-center gap-4 mb-4 sm:mb-8">
-            <div className="p-3 bg-crimson-500/10 text-crimson-400 rounded-2xl border border-crimson-500/20">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-            </div>
-            <div>
-               <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Engagement Metrics</h3>
-               <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
-                 {viewMode === 'monthly' ? `Monthly Stops & Completion (${selectedYear})` : 'Yearly Stops & Completion'}
-               </p>
-            </div>
-          </div>
-
-          <div className="h-64 sm:h-[400px] w-full relative overflow-hidden">
-            {loading ? (
-              <div className="w-full h-full bg-surface-950/20 rounded-[2rem] border border-surface-800/50 animate-pulse flex items-center justify-center">
-                 <div className="w-full max-w-[80%] space-y-4">
-                    <div className="h-4 bg-surface-800/50 rounded-full w-1/2 mx-auto" />
-                    <div className="h-32 bg-surface-800/30 rounded-2xl w-full" />
-                 </div>
-              </div>
-            ) : (currentData.length > 0 && canRender) ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256} debounce={50}>
-                <BarChart data={currentData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                  <Legend 
-                    verticalAlign="top" 
-                    align="right" 
-                    iconType="circle"
-                    content={({ payload }) => (
-                      <div className="flex gap-4 justify-end mb-4">
-                        {payload.map((entry, index) => (
-                          <div key={index} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-default">
-                            <div 
-                              className="w-2.5 h-2.5 rounded-full shadow-lg" 
-                              style={{ backgroundColor: entry.value === 'stops' ? '#3f3f46' : '#e11d48' }} 
-                            />
-                            <span className="text-[10px] font-black text-surface-400 uppercase tracking-widest whitespace-nowrap">
-                              {entry.value === 'stops' ? 'Total Stops' : 'Completed'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  />
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                  <XAxis
-                    dataKey="day"
-                    tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={isMobile ? 1 : 0}
-                  />
-                  <YAxis
-                    tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
-                    axisLine={false}
-                    tickLine={false}
-                    label={{ value: 'Count', angle: -90, position: 'insideLeft', offset: -5, fill: '#71717a', fontSize: 9, fontWeight: 900 }}
-                  />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                  <Bar dataKey="stops" radius={[8, 8, 0, 0]} maxBarSize={20}>
-                    {currentData.map((entry, i) => (
-                      <Cell key={i} fill="#3f3f46" />
-                    ))}
-                  </Bar>
-                  <Bar dataKey="completed" radius={[8, 8, 0, 0]} maxBarSize={20}>
-                    {currentData.map((entry, i) => (
-                      <Cell key={i} fill="#e11d48" />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <EmptyChartState label="Add stops to generate engagement reports" />
-            )}
-          </div>
-        </div>
-
-        {/* Category Analysis Row */}
-        <div className="xl:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-           {/* Income Categories */}
-           <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gold-500/10 text-gold-400 rounded-2xl border border-gold-500/20">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        {/* Top Charts Row - Carousel on Mobile */}
+        <div className="xl:col-span-12">
+          <div 
+            className={`flex xl:grid xl:grid-cols-2 gap-6 sm:gap-8 overflow-x-auto xl:overflow-x-visible snap-x snap-mandatory no-scrollbar pb-2 xl:pb-0`}
+            onScroll={(e) => handleScroll(e, setTimeSeriesIndex)}
+          >
+            {/* Financial Performance Chart */}
+            <div className="min-w-full xl:min-w-0 snap-center">
+              <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-5 sm:p-8 shadow-sm backdrop-blur-md h-full">
+                <div className="flex items-center gap-4 mb-4 sm:mb-8">
+                  <div className="p-3 bg-gold-500/10 text-gold-400 rounded-2xl border border-gold-500/20">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Financial Performance</h3>
+                    <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
+                      {viewMode === 'monthly' ? `Monthly Revenue Stream (${selectedYear})` : 'Yearly Revenue Stream'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                   <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Income Streams</h3>
-                   <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Revenue by Source Category</p>
-                </div>
-              </div>
-              <div className="h-64 sm:h-[350px] w-full relative">
-                {stats.categoryData.income.length > 0 ? (
-                  <>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
-                      <PieChart>
-                        <Pie
-                          data={stats.categoryData.income}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={isMobile ? 70 : 90}
-                          outerRadius={isMobile ? 85 : 115}
-                          paddingAngle={2}
-                          dataKey="value"
-                          stroke="none"
-                          onMouseEnter={(_, index) => setHoveredIncome(stats.categoryData.income[index])}
-                          onMouseLeave={() => setHoveredIncome(null)}
-                        >
-                          {stats.categoryData.income.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={[
-                              '#f59e0b', // gold-500
-                              '#fbbf24', // gold-400
-                              '#d97706', // gold-600
-                              '#b45309', // gold-700
-                              '#fbcf33', // custom yellow
-                            ][index % 5]} />
-                          ))}
-                        </Pie>
+                
+                <div className="h-64 sm:h-[400px] w-full relative overflow-hidden">
+                  {loading ? (
+                    <div className="w-full h-full bg-surface-950/20 rounded-[2rem] border border-surface-800/50 animate-pulse flex items-center justify-center">
+                      <div className="w-full max-w-[80%] space-y-4">
+                          <div className="h-4 bg-surface-800/50 rounded-full w-3/4 mx-auto" />
+                          <div className="h-32 bg-surface-800/30 rounded-2xl w-full" />
+                      </div>
+                    </div>
+                  ) : (currentData.length > 0 && canRender) ? (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256} debounce={50}>
+                      <BarChart data={currentData} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
                         <Legend 
-                          verticalAlign="bottom" 
-                          align="center"
+                          verticalAlign="top" 
+                          align="right" 
+                          iconType="circle"
                           content={({ payload }) => (
-                            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
+                            <div className="flex gap-4 justify-end mb-4">
                               {payload.map((entry, index) => (
-                                <div key={index} className="flex items-center gap-1.5">
-                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                  <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
+                                <div key={index} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-default">
+                                  <div 
+                                    className="w-2.5 h-2.5 rounded-full shadow-lg" 
+                                    style={{ backgroundColor: entry.value === 'revenue' ? '#f59e0b' : '#e11d48' }} 
+                                  />
+                                  <span className="text-[10px] font-black text-surface-400 uppercase tracking-widest whitespace-nowrap">
+                                    {entry.value === 'revenue' ? 'Income' : 'Expenses'}
+                                  </span>
                                 </div>
                               ))}
                             </div>
                           )}
                         />
-                      </PieChart>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                        <XAxis
+                          dataKey="day"
+                          tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
+                          axisLine={false}
+                          tickLine={false}
+                          interval={isMobile ? 1 : 0}
+                        />
+                        <YAxis
+                          tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={v => `RM${v}`}
+                          label={{ value: 'Amount (RM)', angle: -90, position: 'insideLeft', offset: -5, fill: '#71717a', fontSize: 9, fontWeight: 900 }}
+                        />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                        <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={20} fill="#f59e0b" />
+                        <Bar dataKey="expenses" radius={[6, 6, 0, 0]} maxBarSize={20} fill="#e11d48" />
+                      </BarChart>
                     </ResponsiveContainer>
-                    {/* Centered Dynamic Info */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
-                       <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
-                         {hoveredIncome ? hoveredIncome.name : 'Total'}
-                       </p>
-                       <p className={`font-black tabular-nums transition-all ${hoveredIncome ? 'text-2xl text-surface-100' : 'text-xl text-gold-500'}`}>
-                         RM {(hoveredIncome ? hoveredIncome.value : stats.totalRevenue).toLocaleString()}
-                       </p>
-                    </div>
-                  </>
-                ) : (
-                  <EmptyChartState label="No income data categorized yet" />
-                )}
+                  ) : (
+                    <EmptyChartState label="Record performances to see financial analytics" />
+                  )}
+                </div>
               </div>
-           </div>
+            </div>
 
-           {/* Expense Categories */}
-           <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-crimson-500/10 text-crimson-400 rounded-2xl border border-crimson-500/20">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            {/* Engagement Metrics Chart */}
+            <div className="min-w-full xl:min-w-0 snap-center">
+              <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-5 sm:p-8 shadow-sm backdrop-blur-md h-full">
+                <div className="flex items-center gap-4 mb-4 sm:mb-8">
+                  <div className="p-3 bg-crimson-500/10 text-crimson-400 rounded-2xl border border-crimson-500/20">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Engagement Metrics</h3>
+                    <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
+                      {viewMode === 'monthly' ? `Monthly Stops & Completion (${selectedYear})` : 'Yearly Stops & Completion'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                   <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Cost Distribution</h3>
-                   <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Expenses by Operational Group</p>
-                </div>
-              </div>
-              <div className="h-64 sm:h-[350px] w-full relative">
-                {stats.categoryData.expense.length > 0 ? (
-                  <>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
-                      <PieChart>
-                        <Pie
-                          data={stats.categoryData.expense}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={isMobile ? 70 : 90}
-                          outerRadius={isMobile ? 85 : 115}
-                          paddingAngle={2}
-                          dataKey="value"
-                          stroke="none"
-                          onMouseEnter={(_, index) => setHoveredExpense(stats.categoryData.expense[index])}
-                          onMouseLeave={() => setHoveredExpense(null)}
-                        >
-                          {stats.categoryData.expense.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={[
-                              '#e11d48', // crimson-600
-                              '#fb7185', // rose-400
-                              '#be123c', // crimson-700
-                              '#f43f5e', // rose-500
-                              '#9f1239', // crimson-800
-                            ][index % 5]} />
-                          ))}
-                        </Pie>
+
+                <div className="h-64 sm:h-[400px] w-full relative overflow-hidden">
+                  {loading ? (
+                    <div className="w-full h-full bg-surface-950/20 rounded-[2rem] border border-surface-800/50 animate-pulse flex items-center justify-center">
+                      <div className="w-full max-w-[80%] space-y-4">
+                          <div className="h-4 bg-surface-800/50 rounded-full w-1/2 mx-auto" />
+                          <div className="h-32 bg-surface-800/30 rounded-2xl w-full" />
+                      </div>
+                    </div>
+                  ) : (currentData.length > 0 && canRender) ? (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256} debounce={50}>
+                      <BarChart data={currentData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                         <Legend 
-                          verticalAlign="bottom" 
-                          align="center"
+                          verticalAlign="top" 
+                          align="right" 
+                          iconType="circle"
                           content={({ payload }) => (
-                            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
+                            <div className="flex gap-4 justify-end mb-4">
                               {payload.map((entry, index) => (
-                                <div key={index} className="flex items-center gap-1.5">
-                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                  <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
+                                <div key={index} className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-default">
+                                  <div 
+                                    className="w-2.5 h-2.5 rounded-full shadow-lg" 
+                                    style={{ backgroundColor: entry.value === 'stops' ? '#3f3f46' : '#e11d48' }} 
+                                  />
+                                  <span className="text-[10px] font-black text-surface-400 uppercase tracking-widest whitespace-nowrap">
+                                    {entry.value === 'stops' ? 'Total Stops' : 'Completed'}
+                                  </span>
                                 </div>
                               ))}
                             </div>
                           )}
                         />
-                      </PieChart>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                        <XAxis
+                          dataKey="day"
+                          tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
+                          axisLine={false}
+                          tickLine={false}
+                          interval={isMobile ? 1 : 0}
+                        />
+                        <YAxis
+                          tick={{ fill: '#71717a', fontSize: 10, fontWeight: 800 }}
+                          axisLine={false}
+                          tickLine={false}
+                          label={{ value: 'Count', angle: -90, position: 'insideLeft', offset: -5, fill: '#71717a', fontSize: 9, fontWeight: 900 }}
+                        />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                        <Bar dataKey="stops" radius={[8, 8, 0, 0]} maxBarSize={20}>
+                          {currentData.map((entry, i) => (
+                            <Cell key={i} fill="#3f3f46" />
+                          ))}
+                        </Bar>
+                        <Bar dataKey="completed" radius={[8, 8, 0, 0]} maxBarSize={20}>
+                          {currentData.map((entry, i) => (
+                            <Cell key={i} fill="#e11d48" />
+                          ))}
+                        </Bar>
+                      </BarChart>
                     </ResponsiveContainer>
-                    {/* Centered Dynamic Info */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
-                       <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
-                         {hoveredExpense ? hoveredExpense.name : 'Spent'}
-                       </p>
-                       <p className={`font-black tabular-nums transition-all ${hoveredExpense ? 'text-2xl text-surface-100' : 'text-xl text-crimson-500'}`}>
-                         RM {(hoveredExpense ? hoveredExpense.value : stats.totalExpenses).toLocaleString()}
-                       </p>
+                  ) : (
+                    <EmptyChartState label="Add stops to generate engagement reports" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <CarouselIndicators count={2} activeIndex={timeSeriesIndex} color="gold" />
+        </div>
+
+        {/* Category Analysis Row - Carousel on Mobile */}
+        <div className="xl:col-span-12">
+           <div 
+             className="flex md:grid md:grid-cols-2 gap-6 sm:gap-8 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory no-scrollbar pb-2 md:pb-0"
+             onScroll={(e) => handleScroll(e, setCategoryIndex)}
+           >
+              {/* Income Categories */}
+              <div className="min-w-full md:min-w-0 snap-center">
+                <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md h-full">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 bg-gold-500/10 text-gold-400 rounded-2xl border border-gold-500/20">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                  </>
-                ) : (
-                  <EmptyChartState label="No expense data categorized yet" />
-                )}
+                    <div>
+                      <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Income Streams</h3>
+                      <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Revenue by Source Category</p>
+                    </div>
+                  </div>
+                  <div className="h-64 sm:h-[350px] w-full relative">
+                    {stats.categoryData.income.length > 0 ? (
+                      <>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
+                          <PieChart>
+                            <Pie
+                              data={stats.categoryData.income}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={isMobile ? 70 : 90}
+                              outerRadius={isMobile ? 85 : 115}
+                              paddingAngle={2}
+                              dataKey="value"
+                              stroke="none"
+                              onMouseEnter={(_, index) => setHoveredIncome(stats.categoryData.income[index])}
+                              onMouseLeave={() => setHoveredIncome(null)}
+                            >
+                              {stats.categoryData.income.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={[
+                                  '#f59e0b', // gold-500
+                                  '#fbbf24', // gold-400
+                                  '#d97706', // gold-600
+                                  '#b45309', // gold-700
+                                  '#fbcf33', // custom yellow
+                                ][index % 5]} />
+                              ))}
+                            </Pie>
+                            <Legend 
+                              verticalAlign="bottom" 
+                              align="center"
+                              content={({ payload }) => (
+                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
+                                  {payload.map((entry, index) => (
+                                    <div key={index} className="flex items-center gap-1.5">
+                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                      <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        {/* Centered Dynamic Info */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
+                          <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
+                            {hoveredIncome ? hoveredIncome.name : 'Total'}
+                          </p>
+                          <p className={`font-black tabular-nums transition-all ${hoveredIncome ? 'text-2xl text-surface-100' : 'text-xl text-gold-500'}`}>
+                            RM {(hoveredIncome ? hoveredIncome.value : stats.totalRevenue).toLocaleString()}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <EmptyChartState label="No income data categorized yet" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Expense Categories */}
+              <div className="min-w-full md:min-w-0 snap-center">
+                <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md h-full">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 bg-crimson-500/10 text-crimson-400 rounded-2xl border border-crimson-500/20">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Cost Distribution</h3>
+                      <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Expenses by Operational Group</p>
+                    </div>
+                  </div>
+                  <div className="h-64 sm:h-[350px] w-full relative">
+                    {stats.categoryData.expense.length > 0 ? (
+                      <>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
+                          <PieChart>
+                            <Pie
+                              data={stats.categoryData.expense}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={isMobile ? 70 : 90}
+                              outerRadius={isMobile ? 85 : 115}
+                              paddingAngle={2}
+                              dataKey="value"
+                              stroke="none"
+                              onMouseEnter={(_, index) => setHoveredExpense(stats.categoryData.expense[index])}
+                              onMouseLeave={() => setHoveredExpense(null)}
+                            >
+                              {stats.categoryData.expense.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={[
+                                  '#e11d48', // crimson-600
+                                  '#fb7185', // rose-400
+                                  '#be123c', // crimson-700
+                                  '#f43f5e', // rose-500
+                                  '#9f1239', // crimson-800
+                                ][index % 5]} />
+                              ))}
+                            </Pie>
+                            <Legend 
+                              verticalAlign="bottom" 
+                              align="center"
+                              content={({ payload }) => (
+                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
+                                  {payload.map((entry, index) => (
+                                    <div key={index} className="flex items-center gap-1.5">
+                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                      <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        {/* Centered Dynamic Info */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
+                          <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
+                            {hoveredExpense ? hoveredExpense.name : 'Spent'}
+                          </p>
+                          <p className={`font-black tabular-nums transition-all ${hoveredExpense ? 'text-2xl text-surface-100' : 'text-xl text-crimson-500'}`}>
+                            RM {(hoveredExpense ? hoveredExpense.value : stats.totalExpenses).toLocaleString()}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <EmptyChartState label="No expense data categorized yet" />
+                    )}
+                  </div>
+                </div>
               </div>
            </div>
+           <CarouselIndicators count={2} activeIndex={categoryIndex} color="crimson" />
         </div>
       </div>
     </div>

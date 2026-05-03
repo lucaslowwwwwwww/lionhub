@@ -405,7 +405,8 @@ export default function TeamPage() {
 
 
   const { admins, regularMembers } = useMemo(() => {
-    const activeMembers = rawMembers.filter(m => m.status !== 'deleted')
+    // Filter out Super Admins from the association-level view
+    const activeMembers = rawMembers.filter(m => m.status !== 'deleted' && !m.is_super_admin)
     
     const adminsList = activeMembers
       .filter(m => m.role === 'admin')

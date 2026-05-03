@@ -78,17 +78,19 @@ const drawWatermarkAndFooter = (doc, logoImg, trackedPages = new Set()) => {
 
 /** Adds the standard club header to a jsPDF document. Returns the Y position after the header. */
 const addClubHeader = async (doc, settings, reportTitle) => {
-  const clubNameEn = settings?.clubnameen || 'Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka'
-  const clubNameCn = settings?.clubnamecn || '馬來西亞馬六甲傳承龍獅體育會'
-  const clubRegNo = settings?.clubregistrationno || '(PPM-015-04-30122019)'
-  const clubPhone = settings?.clubphone || '012-328 2862 / 013-666 0979'
-  const logoUrl = settings?.clublogo || '/logo1.jpeg'
+  const clubNameEn = settings?.clubnameen || ''
+  const clubNameCn = settings?.clubnamecn || ''
+  const clubRegNo = settings?.clubregistrationno || ''
+  const clubPhone = settings?.clubphone || ''
+  const logoUrl = settings?.clublogo || null
 
   const pageW = doc.internal.pageSize.width
   const centerX = pageW / 2
 
   // Header Logo (small, top-left)
-  await addImageToPdf(doc, logoUrl, 15, 10, 25, 25)
+  if (logoUrl) {
+    await addImageToPdf(doc, logoUrl, 15, 10, 25, 25)
+  }
 
   // English name
   doc.setFont('helvetica', 'bold')
@@ -251,8 +253,8 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   const defaultFont = fontBase64 ? 'NotoSansSC' : 'helvetica'
 
   const title = `Daily Report — ${meta.dayLabel || meta.dateKey} — ${meta.troupename || 'All Teams'}`
-  const logoUrl = settings?.clublogo || '/logo1.jpeg'
-  const logoImg = await preloadImage(logoUrl)
+  const logoUrl = settings?.clublogo || null
+  const logoImg = logoUrl ? await preloadImage(logoUrl) : null
   const trackedPages = new Set()
 
   // Add Watermark & Footer to first page before header
@@ -437,8 +439,8 @@ export const exportDayReportExcel = (stops, members, attendanceDetails, meta) =>
 export const exportFinancePDF = async (transactions, periodStats, settings, meta) => {
   const doc = new jsPDF()
   const title = `Finance Report — ${meta.periodLabel || 'All Time'}`
-  const logoUrl = settings?.clublogo || '/logo1.jpeg'
-  const logoImg = await preloadImage(logoUrl)
+  const logoUrl = settings?.clublogo || null
+  const logoImg = logoUrl ? await preloadImage(logoUrl) : null
   const trackedPages = new Set()
   
   // First page watermark & footer

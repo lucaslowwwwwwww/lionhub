@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
+import { useOrg } from '../contexts/OrgContext'
 
 /**
  * useInventory
@@ -12,6 +13,7 @@ export function useInventory() {
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const [error, setError] = useState(null)
+  const { orgId } = useOrg()
   const itemsRef = useRef([])
 
   // Keep ref in sync for use in callbacks
@@ -20,6 +22,7 @@ export function useInventory() {
   }, [items])
 
   const fetchInventory = useCallback(async () => {
+    if (!orgId) return
     setLoading(true)
     setTimeoutError(false)
     const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
@@ -28,6 +31,7 @@ export function useInventory() {
       const { data, error: fetchError } = await supabase
         .from('inventory')
         .select(TABLES.INVENTORY)
+        .eq('org_id', orgId)
         .order('name', { ascending: true })
 
       if (fetchError) {
@@ -44,18 +48,20 @@ export function useInventory() {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }, [])
+  }, [orgId])
 
   useEffect(() => {
     fetchInventory()
 
     // Subscribe to realtime changes
+    if (!orgId) return
+
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const channel = supabase
-      .channel(`inventory-${safeId}`)
+      .channel(`inventory-${orgId}-${safeId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'inventory' },
+        { event: '*', schema: 'public', table: 'inventory', filter: `org_id=eq.${orgId}` },
         (payload) => {
           if (payload.eventType === 'INSERT') {
             setItems(prev => [...prev, payload.new].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
@@ -71,7 +77,7 @@ export function useInventory() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchInventory])
+  }, [fetchInventory, orgId])
 
   /**
    * updateQuantity
@@ -144,6 +150,7 @@ export function useInventory() {
           lowstockthreshold: Number(itemData.lowstockthreshold) || 5,
           unit: itemData.unit || 'pcs',
           notes: itemData.notes || '',
+          org_id: orgId || itemData.org_id || null,
           createdat: new Date().toISOString(),
           lastupdated: new Date().toISOString()
         })

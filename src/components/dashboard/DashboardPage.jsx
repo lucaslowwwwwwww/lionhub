@@ -48,35 +48,35 @@ export default function DashboardPage() {
         </div>
       )}
       {/* Dynamic Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-surface-900/40 border border-surface-800/50 rounded-[2.5rem] p-6 sm:p-8 shadow-sm backdrop-blur-md">
-        <div className="space-y-1 text-center lg:text-left">
-          <h1 className="text-3xl sm:text-4xl font-black text-surface-100 tracking-tight flex items-center justify-center lg:justify-start gap-3">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 bg-surface-900/40 border border-surface-800/50 rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 shadow-sm backdrop-blur-md">
+        <div className="space-y-0.5 sm:space-y-1 text-center lg:text-left">
+          <h1 className="text-xl sm:text-4xl font-black text-surface-100 tracking-tight flex items-center justify-center lg:justify-start gap-2 sm:gap-3">
              {activeView === 'main' ? 'Main Dashboard' : 
               activeView === 'status' ? 'Daily Status' : 'Daily Assignment'}
           </h1>
-          <p className="text-surface-400 font-bold flex items-center justify-center lg:justify-start gap-2 text-sm sm:text-lg uppercase tracking-widest pl-1 opacity-80">
+          <p className="text-surface-400 font-bold flex items-center justify-center lg:justify-start gap-2 text-[10px] sm:text-lg uppercase tracking-widest opacity-80">
             {activeView === 'main' ? 'Full Season Dashboard' : 
              activeView === 'status' ? 'Real-Time Operational Status' : 'Team Assignment & Deployment'}
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center lg:items-end gap-3 lg:gap-4">
+        <div className="flex flex-row items-center justify-center lg:items-end gap-3 lg:gap-4">
           {/* Zodiac & Year Badge */}
-          <div className="flex items-center gap-3 px-4 py-2 bg-surface-950/30 rounded-2xl border border-surface-800/50 shadow-inner group/zodiac transition-all hover:border-gold-500/30">
+          <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-surface-950/30 rounded-xl sm:rounded-2xl border border-surface-800/50 shadow-inner group/zodiac transition-all hover:border-gold-500/30">
             <span className="text-gold-500">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             </span>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] leading-none mb-1">{zodiac.year}</span>
-              <span className="text-xs font-bold text-surface-200 uppercase tracking-tight leading-none">Year of the {zodiac.name}</span>
+              <span className="text-[8px] sm:text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] leading-none mb-0.5 sm:mb-1">{zodiac.year}</span>
+              <span className="text-[10px] sm:text-xs font-bold text-surface-200 uppercase tracking-tight leading-none">Year of the {zodiac.name}</span>
             </div>
           </div>
 
           <div className="flex flex-col items-center lg:items-end gap-1">
-            <span className="text-[10px] font-black text-surface-500 uppercase tracking-[0.3em]">Status</span>
-            <div className="flex items-center gap-2 px-4 py-2 bg-surface-950/50 rounded-full border border-surface-800 shadow-inner">
-               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
-               <span className="text-[10px] font-bold text-surface-200 uppercase tracking-widest">Real-Time Sync Active</span>
+            <span className="hidden sm:block text-[10px] font-black text-surface-500 uppercase tracking-[0.3em]">Status</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-surface-950/50 rounded-full border border-surface-800 shadow-inner">
+               <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
+               <span className="text-[8px] sm:text-[10px] font-bold text-surface-200 uppercase tracking-widest">Live Sync</span>
             </div>
           </div>
         </div>

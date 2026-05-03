@@ -214,7 +214,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
         </div>
 
         {/* PERFORMANCE TAGS: Horizontal Scrollable List */}
-        {(stop.lioncolor || stop.hasgodofwealth || stop.hasbigheadbuddha || stop.pluckingtype) && (
+        {(stop.lioncolor || stop.hasgodofwealth || stop.hasbigheadbuddha || stop.pluckingtype || stop.extra_characters) && (
           <div className="flex flex-wrap gap-2 pt-2">
             {stop.lioncolor && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface-800 text-surface-200 text-[10px] font-black border border-surface-700/50 shadow-sm uppercase tracking-tight gap-1.5">
@@ -224,16 +224,24 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
                   .join(' & ')} Lion
               </span>
             )}
-            {stop.hasgodofwealth && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight gap-1.5">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                God of Wealth
+            {/* Dynamic Characters */}
+            {Array.isArray(stop.extra_characters) ? stop.extra_characters.map(char => (
+              <span key={char} className="inline-flex items-center px-2.5 py-1 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight gap-1.5">
+                {char}
               </span>
-            )}
-            {stop.hasbigheadbuddha && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight text-center">
-                Buddha
-              </span>
+            )) : (
+              <>
+                {stop.hasgodofwealth && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight gap-1.5">
+                    God of Wealth
+                  </span>
+                )}
+                {stop.hasbigheadbuddha && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight text-center">
+                    Buddha
+                  </span>
+                )}
+              </>
             )}
             {stop.pluckingtype && (Array.isArray(stop.pluckingtype) ? stop.pluckingtype : [stop.pluckingtype]).map((type, i) => (
               <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-black shadow-sm uppercase tracking-tight gap-1.5">

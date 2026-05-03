@@ -49,12 +49,9 @@ export function AuthProvider({ children }) {
     }, 30000)
 
     try {
-      const authEmail = (authUser.email || '').toLowerCase().trim()
-      const MASTER_EMAIL = 'chuancheng2020@gmail.com'
-
       const { data: profileData, error } = await supabase
         .from('users')
-        .select(TABLES.USERS)
+        .select(`${TABLES.USERS}, organizations(status)`)
         .eq('id', authUser.id)
         .single()
 
@@ -62,31 +59,55 @@ export function AuthProvider({ children }) {
         console.error('Failed to fetch user profile:', error)
       }
 
-      const profileEmail = (profileData?.email || '').toLowerCase().trim()
-      const isMaster = authEmail === MASTER_EMAIL || profileEmail === MASTER_EMAIL
+      // Use database-driven flags instead of hardcoded email
+      const isSuperAdmin = profileData?.is_super_admin === true
+      const isMaster = isSuperAdmin || profileData?.role === 'master'
+      const isOrgInactive = profileData?.organizations?.status === 'inactive'
+
+      if (isOrgInactive && !isSuperAdmin) {
+        console.warn('Organization deactivated:', authUser.email)
+        sessionStorage.setItem('login_error', "Your association's account is currently inactive. Please contact support.")
+        await supabase.auth.signOut()
+        setUser(null)
+        setUserProfile(null)
+        setConnectionError(false)
+        setLoading(false)
+        return
+      }
 
       if (isMaster) {
+        if (isSuperAdmin) {
+          localStorage.setItem('ldms_is_super_admin', 'true')
+        } else {
+          localStorage.removeItem('ldms_is_super_admin')
+        }
+        
         setUserProfile({
           ...(profileData || {}),
           uid: authUser.id,
           displayname: profileData?.displayname || 'Master Admin',
           email: authUser.email || profileData?.email,
           role: 'master',
+          is_super_admin: isSuperAdmin,
+          org_id: profileData?.org_id || null,
           troupeid: null
         })
       } else if (profileData) {
         if (profileData.status === 'deleted' || profileData.role === 'member') {
           console.warn('User blocked:', authUser.email)
           sessionStorage.setItem('login_error', 'Access Denied.')
+          localStorage.removeItem('ldms_is_super_admin')
           await supabase.auth.signOut()
           setUser(null)
           setUserProfile(null)
         } else {
+          localStorage.removeItem('ldms_is_super_admin')
           setUserProfile({ uid: authUser.id, ...profileData })
         }
       } else {
         console.warn('No profile found for user:', authUser.email)
         sessionStorage.setItem('login_error', 'No profile found.')
+        localStorage.removeItem('ldms_is_super_admin')
         await supabase.auth.signOut()
         setUser(null)
         setUserProfile(null)
@@ -152,10 +173,8 @@ export function AuthProvider({ children }) {
               return
             }
 
-            // Master override — check both auth email and updated row email
-            const updEmail = (updated.email || '').toLowerCase().trim()
-            const aEmail = (authUser.email || '').toLowerCase().trim()
-            const isMasterUser = aEmail === 'chuancheng2020@gmail.com' || updEmail === 'chuancheng2020@gmail.com'
+            // Master override — use database flag
+            const isMasterUser = updated.is_super_admin === true || updated.role === 'master'
             
             if (isMasterUser) {
               setUserProfile(prev => ({
@@ -163,6 +182,8 @@ export function AuthProvider({ children }) {
                 ...updated,
                 uid: authUser.id,
                 role: 'master',
+                is_super_admin: updated.is_super_admin === true,
+                org_id: updated.org_id || prev?.org_id,
                 troupeid: null
               }))
             } else {
@@ -228,6 +249,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = async () => {
+    localStorage.removeItem('ldms_is_super_admin')
     await supabase.auth.signOut()
     setUser(null)
     setUserProfile(null)
@@ -260,6 +282,7 @@ export function AuthProvider({ children }) {
         .eq('id', uid)
       
       // 2. Sign out (cannot delete Supabase Auth user client-side)
+      localStorage.removeItem('ldms_is_super_admin')
       await supabase.auth.signOut()
       
       setUser(null)

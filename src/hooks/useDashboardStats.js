@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { getActualCnyDate } from '../utils/constants'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
+import { useOrg } from '../contexts/OrgContext'
 
 export function useDashboardStats() {
   const [stats, setStats] = useState({
@@ -21,8 +22,10 @@ export function useDashboardStats() {
   const [availableYears, setAvailableYears] = useState([new Date().getFullYear()])
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
+  const { orgId } = useOrg()
 
   useEffect(() => {
+    if (!orgId) return;
     const currentYear = new Date().getFullYear()
     const startYear = currentYear - 2
     const startIso = `${startYear}-01-01`
@@ -194,10 +197,10 @@ export function useDashboardStats() {
 
       try {
         const [itinRes, finRes, troupeRes, memberRes] = await Promise.all([
-          supabase.from('itineraries').select(TABLES.ITINERARIES).gte('date', startIso),
-          supabase.from('finance').select(TABLES.FINANCE).gte('date', startIso),
-          supabase.from('troupes').select('id', { count: 'exact', head: true }),
-          supabase.from('users').select('id', { count: 'exact', head: true })
+          supabase.from('itineraries').select(TABLES.ITINERARIES).eq('org_id', orgId).gte('date', startIso),
+          supabase.from('finance').select(TABLES.FINANCE).eq('org_id', orgId).gte('date', startIso),
+          supabase.from('troupes').select('id', { count: 'exact', head: true }).eq('org_id', orgId),
+          supabase.from('users').select('id', { count: 'exact', head: true }).eq('org_id', orgId)
         ])
 
         if (itinRes.data) processItineraries(itinRes.data)
@@ -223,18 +226,18 @@ export function useDashboardStats() {
     
     // Consolidated Realtime subscription
     const dashChannel = supabase
-      .channel(`dashboard-updates-${safeId()}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' }, async () => {
-        const { data } = await supabase.from('itineraries').select(TABLES.ITINERARIES).gte('date', startIso)
+      .channel(`dashboard-updates-${orgId}-${safeId()}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries', filter: `org_id=eq.${orgId}` }, async () => {
+        const { data } = await supabase.from('itineraries').select(TABLES.ITINERARIES).eq('org_id', orgId).gte('date', startIso)
         if (data) processItineraries(data)
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, async () => {
-        const { data } = await supabase.from('finance').select(TABLES.FINANCE).gte('date', startIso)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'finance', filter: `org_id=eq.${orgId}` }, async () => {
+        const { data } = await supabase.from('finance').select(TABLES.FINANCE).eq('org_id', orgId).gte('date', startIso)
         if (data) processFinance(data)
       })
 
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async () => {
-        const { count } = await supabase.from('users').select('id', { count: 'exact', head: true })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `org_id=eq.${orgId}` }, async () => {
+        const { count } = await supabase.from('users').select('id', { count: 'exact', head: true }).eq('org_id', orgId)
         setStats(prev => ({ ...prev, totalMembers: count || 0 }))
       })
       .subscribe()
@@ -242,7 +245,7 @@ export function useDashboardStats() {
     return () => {
       supabase.removeChannel(dashChannel)
     }
-  }, [])
+  }, [orgId])
 
   return { stats, availableYears, loading, timeoutError }
 }

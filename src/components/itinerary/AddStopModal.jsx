@@ -31,8 +31,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
     duration: 30,
     lioncolor: ['黄'],
     lionquantity: 2,
-    hasgodofwealth: false,
-    hasbigheadbuddha: false,
+    extra_characters: [], // Replaces hasgodofwealth/hasbigheadbuddha
     pluckingtype: [],
     remarks: '',
     maplink: ''
@@ -159,8 +158,9 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           duration: stop.duration || 30,
           lioncolor: initialColors,
           lionquantity: stop.lionquantity || initialColors.length || 1,
-          hasgodofwealth: stop.hasgodofwealth || false,
-          hasbigheadbuddha: stop.hasbigheadbuddha || false,
+          extra_characters: Array.isArray(stop.extra_characters) ? stop.extra_characters : (
+            [stop.hasgodofwealth && '财神爷', stop.hasbigheadbuddha && '大头佛'].filter(Boolean)
+          ),
           pluckingtype: Array.isArray(stop.pluckingtype) ? stop.pluckingtype : (stop.pluckingtype ? [stop.pluckingtype] : []),
           remarks: stop.remarks || '',
           maplink: stop.maplink || ''
@@ -175,8 +175,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           duration: settings?.defaultduration || 30,
           lioncolor: [colors[1] || '黄', colors[1] || '黄'],
           lionquantity: 2,
-          hasgodofwealth: false,
-          hasbigheadbuddha: false,
+          extra_characters: [],
           pluckingtype: [],
           remarks: '',
           maplink: ''
@@ -464,11 +463,12 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <div>
                 <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-2">Cai Qing (采青) - Click To Add</label>
                 <div className="grid grid-cols-2 gap-2 mb-4">
-                  {['五福临门', '步步高升', '招财进宝', '满地黄金', '车青', '地主'].map(type => (
+                  {(settings?.cai_qing_types?.length ? settings.cai_qing_types : ['五福临门', '步步高升', '招财进宝', '满地黄金', '车青', '地主']).map(type => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => {
+                        if (formData.pluckingtype.includes(type)) return
                         setFormData({ ...formData, pluckingtype: [...formData.pluckingtype, type] })
                       }}
                       className="px-3 py-2.5 rounded-xl border border-surface-800 bg-surface-900 text-surface-400 text-xs font-bold hover:border-green-500/50 hover:bg-surface-800 hover:text-green-400 transition-all text-center"
@@ -503,25 +503,23 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:gap-6 gap-3 pt-2">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={formData.hasgodofwealth}
-                  onChange={(e) => setFormData({...formData, hasgodofwealth: e.target.checked})}
-                  className="w-5 h-5 rounded accent-crimson-600 bg-surface-900 cursor-pointer"
-                />
-                <span className="text-sm font-bold text-surface-200">财神爷 (God of Wealth)</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={formData.hasbigheadbuddha}
-                  onChange={(e) => setFormData({...formData, hasbigheadbuddha: e.target.checked})}
-                  className="w-5 h-5 rounded accent-crimson-600 bg-surface-900 cursor-pointer"
-                />
-                <span className="text-sm font-bold text-surface-200">大头佛 (Big Head Buddha)</span>
-              </label>
+            <div className="flex flex-wrap gap-4 pt-2">
+              {(settings?.extra_characters?.length ? settings.extra_characters : ['财神爷', '大头佛']).map(char => (
+                <label key={char} className="flex items-center gap-3 cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.extra_characters.includes(char)}
+                    onChange={(e) => {
+                      const newChars = e.target.checked 
+                        ? [...formData.extra_characters, char]
+                        : formData.extra_characters.filter(c => c !== char)
+                      setFormData({...formData, extra_characters: newChars})
+                    }}
+                    className="w-5 h-5 rounded accent-crimson-600 bg-surface-900 cursor-pointer"
+                  />
+                  <span className="text-sm font-bold text-surface-200 group-hover:text-surface-50 transition-colors">{char}</span>
+                </label>
+              ))}
             </div>
           </div>
 

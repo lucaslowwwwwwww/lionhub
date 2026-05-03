@@ -11,15 +11,15 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   doc.setFont("helvetica")
   
   // Configuration Overrides
-  const clubNameEn = settings?.clubnameen || "Persatuan Tarian Singa Dan Naga Chuan Cheng Melaka"
-  const clubNameCn = settings?.clubnamecn || "馬來西亞馬六甲傳承龍獅體育會"
-  const clubRegNo = settings?.clubregistrationno || "(PPM-015-04-30122019)"
-  const clubAddress = settings?.clubaddress || "NO 23-1, JALAN IMJ 2, TAMAN INDUSTRI MALIM JAYA, 75250, MELAKA"
-  const clubPhone = settings?.clubphone || "012-328 2862 / 013-666 0979"
-  const prepName = settings?.receiptpreparedby || "REX YONG"
-  const bankName = settings?.bankname || "PERSATUAN TARIAN NAGA DAN SINGA CHUAN CHENG MELAKA"
-  const bankType = settings?.banktype || "CIMB"
-  const bankNumber = settings?.banknumber || "8011396083"
+  const clubNameEn = settings?.clubnameen || ""
+  const clubNameCn = settings?.clubnamecn || ""
+  const clubRegNo = settings?.clubregistrationno || ""
+  const clubAddress = settings?.clubaddress || ""
+  const clubPhone = settings?.clubphone || ""
+  const prepName = settings?.receiptpreparedby || ""
+  const bankName = settings?.bankname || ""
+  const bankType = settings?.banktype || ""
+  const bankNumber = settings?.banknumber || ""
 
   // Load and add Chinese font
   const fontBase64 = await loadChineseFont()
@@ -30,8 +30,8 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   }
   const defaultFont = fontBase64 ? 'NotoSansSC' : 'helvetica'
   
-  // Logo URL - Kept as requested by user (don't change logo yet)
-  const logoUrl = '/logo1.jpeg' 
+  // Logo URL
+  const logoUrl = settings?.clublogo || null 
   
   // Helper to add Image to PDF
   const addImageToPdf = (url, x, y, w, h, opacity = 1) => {
@@ -59,14 +59,18 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   // ---------------------------------------------------------
   // WATERMARK (Half Transparent)
   // ---------------------------------------------------------
-  await addImageToPdf(logoUrl, 30, 80, 150, 150, 0.12)
+  if (logoUrl) {
+    await addImageToPdf(logoUrl, 30, 80, 150, 150, 0.12)
+  }
 
   // ---------------------------------------------------------
   // HEADER SECTION (PRECISE CENTERING)
   // ---------------------------------------------------------
   
   // Logo (Top Left)
-  await addImageToPdf(logoUrl, 15, 15, 30, 30)
+  if (logoUrl) {
+    await addImageToPdf(logoUrl, 15, 15, 30, 30)
+  }
   
   doc.setFontSize(14)
   doc.setFont(defaultFont, "bold")

@@ -1,12 +1,14 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { OrgProvider } from './contexts/OrgContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { LoginPage, ProtectedRoute, SessionGuard } from './components/auth'
 import { AppShell, SplashScreen } from './components/layout'
 import { useAuth } from './hooks/useAuth'
 import { useSettings } from './hooks/useSettings'
 import { useMembers } from './hooks/useMembers'
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useContext, lazy, Suspense } from 'react'
+import { OrgContext } from './contexts/OrgContext'
 import './index.css'
 
 import DashboardPage from './components/dashboard/DashboardPage'
@@ -19,6 +21,7 @@ const CustomersPage = lazy(() => import('./components/customers/CustomersPage'))
 const FinancePage = lazy(() => import('./components/finance/FinancePage'))
 const InventoryPage = lazy(() => import('./components/inventory').then(m => ({ default: m.InventoryPage })))
 const BillingPage = lazy(() => import('./components/billing/BillingPage'))
+const SuperAdminDashboard = lazy(() => import('./components/superadmin/SuperAdminDashboard'))
 
 /**
  * LoginGuard — redirects already-authenticated users away from /login.
@@ -140,6 +143,7 @@ function ConnectionOverlay() {
 function AppContent() {
   const { settings } = useSettings()
   const { loading: authLoading } = useAuth()
+  const orgCtx = useContext(OrgContext)
   const [showSplash, setShowSplash] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
 
@@ -163,18 +167,33 @@ function AppContent() {
 
   if (showSplash) return <SplashScreen isExiting={isExiting} />
 
+  // If Super Admin and NOT impersonating, render the dedicated dashboard
+  if (orgCtx?.isSuperAdmin && !orgCtx?.impersonatedOrgId) {
+    return (
+      <ThemeManager>
+        <ConnectionOverlay />
+        <Routes>
+          <Route path="/login" element={<LoginGuard />} />
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <SessionGuard>
+                <Suspense fallback={<SplashScreen isExiting={false} />}>
+                  <SuperAdminDashboard />
+                </Suspense>
+              </SessionGuard>
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </ThemeManager>
+    )
+  }
+
   return (
     <>
       <ThemeManager>
       <ConnectionOverlay />
       {/* Global Watermark Logo - Top Layer Overlay but Pointer-Disabled */}
-      <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.10] pointer-events-none z-50 overflow-hidden select-none translate-y-[-10vh]">
-        <img 
-          src={settings?.clublogo || "/chuan_cheng_logo.png"} 
-          alt="Watermark" 
-          className="w-[80vw] md:w-[70vw] max-w-[600px] h-auto object-contain"
-        />
-      </div>
+      <WatermarkOverlay />
       <Routes>
         {/* Public */}
         <Route path="/login" element={<LoginGuard />} />
@@ -217,13 +236,40 @@ function AppContent() {
   )
 }
 
+function WatermarkOverlay() {
+  const orgCtx = useContext(OrgContext)
+  const { settings } = useSettings()
+
+  // Disable watermark completely for pure Super Admin sessions
+  if (orgCtx?.isSuperAdmin && !orgCtx?.impersonatedOrgId) {
+    return null
+  }
+
+  // Prefer org logo, then settings if not impersonating
+  const logoSrc = orgCtx?.logoUrl || (!orgCtx?.orgId ? settings?.clublogo : null)
+  
+  if (!logoSrc) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.10] pointer-events-none z-50 overflow-hidden select-none translate-y-[-10vh]">
+      <img 
+        src={logoSrc} 
+        alt="Watermark" 
+        className="w-[80vw] md:w-[70vw] max-w-[600px] h-auto object-contain"
+      />
+    </div>
+  )
+}
+
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
+        <OrgProvider>
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
+        </OrgProvider>
       </AuthProvider>
     </Router>
   )

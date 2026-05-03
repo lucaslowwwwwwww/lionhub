@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useOrg } from '../../contexts/OrgContext'
 
 const NAV_GROUPS = [
   {
@@ -82,7 +83,10 @@ const NAV_GROUPS = [
 export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen, setIsMobileMenuOpen }) {
   const { pathname } = useLocation()
   const { userProfile, logout } = useAuth()
+  const { impersonatedOrgId, setImpersonatedOrgId, logoUrl, nameCn, nameEn } = useOrg()
   const userRole = userProfile?.role || 'member'
+
+  const displayName = nameCn || nameEn || 'LDMS'
 
   const handleLinkClick = () => {
     if (window.innerWidth < 768) {
@@ -111,11 +115,15 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
         <div className={`pt-11 pb-6 px-4 flex items-center shrink-0 transition-all ${isCollapsed ? 'md:justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-surface-800 bg-surface-900 shadow-sm">
-              <img src="/chuan_cheng_logo.png" alt="Logo" className="w-full h-full object-cover" />
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-surface-400 text-xs font-black">{displayName.charAt(0)}</span>
+              )}
             </div>
             {!isCollapsed && (
-              <div className="whitespace-nowrap animate-fade-in">
-                <h1 className="text-sm font-bold text-surface-50 tracking-tight">传承龙狮</h1>
+              <div className="min-w-0 animate-fade-in">
+                <h1 className="text-sm font-bold text-surface-50 tracking-tight truncate max-w-[140px]">{displayName}</h1>
               </div>
             )}
           </div>
@@ -145,7 +153,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
         {/* ── Scrollable Menu ── */}
         <div className="flex-1 overflow-y-auto px-3 py-2 hidden-scrollbar space-y-7">
           {NAV_GROUPS.map((group) => {
-            const visibleItems = group.items.filter(item => item.roles.includes(userRole))
+            const visibleItems = group.items.filter(item => {
+              if (item.superAdminOnly && !userProfile?.is_super_admin) return false
+              return item.roles.includes(userRole)
+            })
             if (visibleItems.length === 0) return null
 
             return (
@@ -220,6 +231,21 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
           })}
         </div>
 
+        {/* ── Impersonation Quit Banner ── */}
+        {impersonatedOrgId && (
+          <div className="p-3 border-t border-surface-800/50 bg-crimson-950/20">
+            <button
+              onClick={() => setImpersonatedOrgId(null)}
+              className="w-full py-2.5 bg-crimson-600 hover:bg-crimson-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-lg shadow-crimson-600/20"
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+              </svg>
+              {!isCollapsed && <span>Quit Impersonation</span>}
+            </button>
+          </div>
+        )}
+
         {/* ── Footer / Profile Settings ── */}
         <div className="p-3 border-t border-surface-800/50">
           <div className="p-1 flex items-center gap-3 transition-all duration-300">
@@ -230,7 +256,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
             </div>
             <div className={`flex-1 min-w-0 transition-all duration-300 ${isCollapsed ? 'md:w-0 md:opacity-0 md:overflow-hidden' : 'opacity-100'}`}>
               <p className="text-xs font-semibold text-surface-200 truncate">{userProfile?.displayname || userProfile?.displayName || 'Admin User'}</p>
-              <p className="text-[10px] text-surface-500 uppercase tracking-widest truncate">{userRole}</p>
+              <p className="text-[10px] text-surface-500 uppercase tracking-widest truncate">{userProfile?.is_super_admin ? 'Super Admin' : userRole}</p>
             </div>
             {!isCollapsed && (
               <button onClick={logout} className="p-1.5 text-surface-500 hover:text-crimson-400 rounded-lg transition-colors animate-fade-in shrink-0">

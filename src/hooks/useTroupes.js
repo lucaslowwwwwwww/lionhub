@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 import { useAudit } from './useAudit'
+import { useOrg } from '../contexts/OrgContext'
 
 export function useTroupes() {
   const { logAction } = useAudit()
@@ -20,8 +21,10 @@ export function useTroupes() {
   })
   const [loading, setLoading] = useState(!troupes.length)
   const [timeoutError, setTimeoutError] = useState(false)
+  const { orgId } = useOrg()
 
   const fetchTroupes = useCallback(async () => {
+    if (!orgId) return;
     setLoading(true)
     setTimeoutError(false)
 
@@ -31,6 +34,7 @@ export function useTroupes() {
       const { data, error } = await supabase
         .from('troupes')
         .select(TABLES.TROUPES)
+        .eq('org_id', orgId)
         .order('name')
 
       if (error) {
@@ -48,17 +52,19 @@ export function useTroupes() {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }, [])
+  }, [orgId, CACHE_KEY])
 
   useEffect(() => {
+    if (!orgId) return
+
     fetchTroupes()
 
     // Subscribe to realtime changes
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
-    const channelName = `troupes-${safeId}`
+    const channelName = `troupes-${orgId}-${safeId}`
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'troupes', filter: `org_id=eq.${orgId}` }, (payload) => {
         if (payload.eventType === 'INSERT') {
           setTroupes(prev => [...prev, payload.new].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
         } else if (payload.eventType === 'UPDATE') {
@@ -72,7 +78,7 @@ export function useTroupes() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchTroupes])
+  }, [fetchTroupes, orgId])
 
   const addTroupe = async (troupeData) => {
     const { error } = await supabase
@@ -80,6 +86,7 @@ export function useTroupes() {
       .insert({
         ...troupeData,
         memberids: [],
+        org_id: orgId || troupeData.org_id || null,
         createdat: new Date().toISOString()
       })
 

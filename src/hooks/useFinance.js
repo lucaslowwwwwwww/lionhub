@@ -3,14 +3,17 @@ import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
+import { useOrg } from '../contexts/OrgContext'
 
 export function useFinance(troupeId) {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
+  const { orgId } = useOrg()
 
   const fetchTransactions = useCallback(async () => {
+    if (!orgId) return;
     setLoading(true)
     setTimeoutError(false)
 
@@ -20,6 +23,7 @@ export function useFinance(troupeId) {
       let query = supabase
         .from('finance')
         .select(TABLES.FINANCE)
+        .eq('org_id', orgId)
         .order('date', { ascending: false })
         .limit(100)
 
@@ -40,17 +44,19 @@ export function useFinance(troupeId) {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }, [troupeId])
+  }, [troupeId, orgId])
 
   useEffect(() => {
     fetchTransactions()
 
     // Subscribe to realtime changes
+    if (!orgId) return;
+
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
-    const channelName = `finance-${safeId}`
+    const channelName = `finance-${orgId}-${safeId}`
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'finance' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'finance', filter: `org_id=eq.${orgId}` }, (payload) => {
         if (payload.eventType === 'INSERT') {
           const newRow = payload.new
           if (troupeId && troupeId !== 'all' && newRow.troupeid !== troupeId) return
@@ -66,7 +72,7 @@ export function useFinance(troupeId) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchTransactions, troupeId])
+  }, [fetchTransactions, troupeId, orgId])
 
   const stats = useMemo(() => {
     let income = 0
@@ -101,6 +107,7 @@ export function useFinance(troupeId) {
         id: generatedId,
         ...sanitizeObject(data),
         troupeid: tid,
+        org_id: orgId || data.org_id || null,
         createdat: now
       })
 

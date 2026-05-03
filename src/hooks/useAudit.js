@@ -21,6 +21,7 @@ export function useAudit() {
           name: userProfile.displayname || userProfile.email,
           role: userProfile.role
         },
+        org_id: userProfile.org_id || null,
         timestamp: new Date().toISOString()
       })
 

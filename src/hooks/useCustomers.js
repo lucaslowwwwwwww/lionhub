@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { useAuth } from './useAuth'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
+import { useOrg } from '../contexts/OrgContext'
 
 /**
  * useCustomers — Global Customer Management
@@ -19,10 +20,11 @@ export function useCustomers(options = {}) {
   const [searchQuery, setSearchQuery] = useState('')
   
   const { userProfile, user } = useAuth()
+  const { orgId } = useOrg()
   const troupeId = userProfile?.troupeid
 
   const fetchCustomers = useCallback(async () => {
-    if (!user) return;
+    if (!user || !orgId) return;
     
     setLoading(true)
     setTimeoutError(false)
@@ -32,6 +34,7 @@ export function useCustomers(options = {}) {
       let query = supabase
         .from('customers')
         .select(TABLES.CUSTOMERS, { count: 'exact' })
+        .eq('org_id', orgId)
 
       if (searchQuery) {
         query = query.ilike('name', `%${searchQuery}%`)
@@ -59,10 +62,10 @@ export function useCustomers(options = {}) {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }, [user, page, pageSize, searchQuery])
+  }, [user, orgId, page, pageSize, searchQuery])
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !orgId) {
       setLoading(false)
       return
     }
@@ -72,10 +75,10 @@ export function useCustomers(options = {}) {
     // Subscribe to realtime changes
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const channel = supabase
-      .channel(`customers-${safeId}`)
+      .channel(`customers-${orgId}-${safeId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'customers' },
+        { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` },
         (payload) => {
           if (payload.eventType === 'INSERT') {
             setCustomers(prev => [...prev, payload.new].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
@@ -91,7 +94,7 @@ export function useCustomers(options = {}) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user, fetchCustomers])
+  }, [user, orgId, fetchCustomers])
 
   const addCustomer = async (customerData) => {
     if (!user) throw new Error("Authentication required.")
@@ -100,6 +103,7 @@ export function useCustomers(options = {}) {
       .insert({
         ...sanitizeObject(customerData),
         troupeid: troupeId || null,
+        org_id: orgId || customerData.org_id || null,
         createdat: new Date().toISOString(),
         updatedat: new Date().toISOString()
       })

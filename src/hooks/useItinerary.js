@@ -4,6 +4,7 @@ import { useAudit } from './useAudit'
 import { useToast } from '../contexts/ToastContext'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
+import { useOrg } from '../contexts/OrgContext'
 
 export function useItinerary(troupeId, date) {
   const [itinerary, setItinerary] = useState(null)
@@ -14,6 +15,7 @@ export function useItinerary(troupeId, date) {
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
   const { showToast } = useToast()
+  const { orgId } = useOrg()
   
   const itinRef = useRef(null)
   const stopsRef = useRef([])
@@ -28,6 +30,7 @@ export function useItinerary(troupeId, date) {
       const { data, error } = await supabase
         .from('stops')
         .select(TABLES.STOPS)
+        .eq('org_id', orgId)
         .eq('itinerary_id', itinId)
         .order('order', { ascending: true })
 
@@ -44,7 +47,7 @@ export function useItinerary(troupeId, date) {
   }, [])
 
   const fetchItinerary = useCallback(async () => {
-    if (!troupeId || !date) return
+    if (!troupeId || !date || !orgId) return
 
     setLoading(true)
     setTimeoutError(false)
@@ -54,6 +57,7 @@ export function useItinerary(troupeId, date) {
       const { data, error } = await supabase
         .from('itineraries')
         .select(TABLES.ITINERARIES)
+        .eq('org_id', orgId)
         .eq('troupeid', troupeId)
         .eq('date', date)
         .limit(1)
@@ -85,7 +89,7 @@ export function useItinerary(troupeId, date) {
     } finally {
       clearTimeout(timeoutId)
     }
-  }, [troupeId, date, fetchStops])
+  }, [troupeId, date, fetchStops, orgId])
 
   useEffect(() => {
     // Reset state immediately when parameters change to avoid showing stale data
@@ -95,7 +99,7 @@ export function useItinerary(troupeId, date) {
     setAttendance([])
     setAttendanceDetails({})
 
-    if (!troupeId || !date) {
+    if (!troupeId || !date || !orgId) {
       setLoading(false)
       return
     }
@@ -108,8 +112,8 @@ export function useItinerary(troupeId, date) {
       if (stopsChannel) supabase.removeChannel(stopsChannel)
       const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
       stopsChannel = supabase
-        .channel(`stops-${itinId}-${safeId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'stops', filter: `itinerary_id=eq.${itinId}` }, 
+        .channel(`stops-${orgId}-${itinId}-${safeId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'stops', filter: `org_id=eq.${orgId}` }, 
         (payload) => {
           if (payload.eventType === 'INSERT') {
             setStops(prev => {
@@ -132,8 +136,8 @@ export function useItinerary(troupeId, date) {
     // 4. Subscribe to itinerary changes
     const itinSafeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     itinChannel = supabase
-      .channel(`itin-${troupeId}-${date}-${itinSafeId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' },
+      .channel(`itin-${orgId}-${troupeId}-${date}-${itinSafeId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries', filter: `org_id=eq.${orgId}` },
         (payload) => {
           const row = payload.new || payload.old
           if (row?.troupeid !== troupeId || row?.date !== date) return
@@ -154,7 +158,7 @@ export function useItinerary(troupeId, date) {
       if (itinChannel) supabase.removeChannel(itinChannel)
       if (stopsChannel) supabase.removeChannel(stopsChannel)
     }
-  }, [troupeId, date, fetchItinerary])
+  }, [troupeId, date, orgId, fetchItinerary])
 
   // Helper to mark a stop as in-progress, completed, or skipped
   const updateStopStatus = async (stopId, newStatus, extraData = {}) => {
@@ -240,6 +244,7 @@ export function useItinerary(troupeId, date) {
         description: `Performance: ${customerName} (${itinerary.troupename || 'Unknown'})`,
         paymentmethod: extraData.paymentmethod || 'Cash',
         troupeid: currentItin.troupeid,
+        org_id: currentItin.org_id || null,
         sourcestopid: stopId,
         createdat: now
       })
@@ -282,6 +287,7 @@ export function useItinerary(troupeId, date) {
           completedstops: 0,
           skippedstops: 0,
           totalrevenue: 0,
+          org_id: orgId || itinData.org_id || null,
           createdat: new Date().toISOString(),
           ...sanitizeObject(itinData)
         })
@@ -312,6 +318,7 @@ export function useItinerary(troupeId, date) {
         .insert({
           ...sanitizeObject(stopData),
           itinerary_id: activeItinId,
+          org_id: orgId || stopData.org_id || null,
           order: newOrder,
           status: 'pending',
           createdby: userId,
@@ -503,8 +510,10 @@ export function useAllPerformanceDates(troupeId) {
   })
   const [loading, setLoading] = useState(!allItineraries.length)
   const [error, setError] = useState(null)
+  const { orgId } = useOrg()
 
   const fetchItineraries = useCallback(async () => {
+    if (!orgId) return;
     const startRange = new Date()
     startRange.setMonth(startRange.getMonth() - 2)
     const endRange = new Date()
@@ -516,6 +525,7 @@ export function useAllPerformanceDates(troupeId) {
     const { data, error: fetchError } = await supabase
       .from('itineraries')
       .select(TABLES.ITINERARIES)
+      .eq('org_id', orgId)
       .gte('date', startStr)
       .lte('date', endStr)
 
@@ -533,18 +543,20 @@ export function useAllPerformanceDates(troupeId) {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
     } catch (e) { console.warn('Performance dates cache write failed:', e) }
-  }, [CACHE_KEY])
+  }, [CACHE_KEY, orgId])
 
   useEffect(() => {
+    if (!orgId) return
+
     fetchItineraries()
 
     // Subscribe to realtime changes on itineraries
     const allItinSafeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const channel = supabase
-      .channel(`all-itin-${allItinSafeId}`)
+      .channel(`all-itin-${orgId}-${allItinSafeId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'itineraries' },
+        { event: '*', schema: 'public', table: 'itineraries', filter: `org_id=eq.${orgId}` },
         (payload) => {
           if (payload.eventType === 'INSERT') {
             setAllItineraries(prev => [...prev, payload.new])
@@ -560,7 +572,7 @@ export function useAllPerformanceDates(troupeId) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchItineraries])
+  }, [fetchItineraries, orgId])
 
   const { dates, dateStopCounts, unfinishedDates, dateTroupes } = useMemo(() => {
     const counts = {}

@@ -11,11 +11,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'inline',
-      includeAssets: ['chuan_cheng_logo.png', 'NotoSansSC.ttf'],
+      includeAssets: ['ldms_logo.png', 'NotoSansSC.ttf'],
       manifest: {
-        name: '传承龙狮体育会',
-        short_name: '传承',
-        description: 'Professional performance management for Chuan Cheng Lion Dance.',
+        name: 'Lion Dance Management System',
+        short_name: 'LDMS',
+        description: 'Professional performance and association management platform.',
         theme_color: '#e11d48',
         background_color: '#09090b',
         display: 'standalone',
@@ -23,13 +23,13 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: 'chuan_cheng_logo.png',
+            src: 'ldms_logo.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'chuan_cheng_logo.png',
+            src: 'ldms_logo.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

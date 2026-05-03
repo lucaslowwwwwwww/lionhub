@@ -1,9 +1,12 @@
 import { useAuth } from '../../hooks/useAuth'
 import { useScrollDirection } from '../../hooks/useScrollDirection'
+import { useOrg } from '../../contexts/OrgContext'
 
 export default function TopBar({ setIsMobileMenuOpen }) {
   const { userProfile, logout } = useAuth()
   const scrollDirection = useScrollDirection()
+  const { logoUrl, nameCn, nameEn } = useOrg()
+  const displayName = nameCn || nameEn || 'LDMS'
 
   return (
     <header className={`fixed md:sticky top-0 left-0 right-0 md:left-auto md:right-auto z-50 md:z-30 bg-surface-950/80 backdrop-blur-xl border-b border-surface-800 transition-transform duration-300 ease-in-out ${
@@ -21,10 +24,16 @@ export default function TopBar({ setIsMobileMenuOpen }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
           </button>
-          <div className="w-8 h-8 rounded-lg overflow-hidden border border-surface-800">
-            <img src="/chuan_cheng_logo.png" alt="Logo" className="w-full h-full object-cover" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-surface-800 flex items-center justify-center bg-surface-900">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-surface-400 text-xs font-black">{displayName.charAt(0)}</span>
+            )}
           </div>
-          <h1 className="text-base font-bold text-surface-200 tracking-tight">传承</h1>
+          <div className="min-w-0 animate-fade-in">
+            <h1 className="text-sm font-bold text-surface-200 tracking-tight truncate max-w-[140px]">{displayName}</h1>
+          </div>
         </div>
 
         {/* Mobile User Actions (hidden on desktop because Sidebar handles it) */}
