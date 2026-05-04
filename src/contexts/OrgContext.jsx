@@ -39,24 +39,6 @@ export function OrgProvider({ children }) {
         console.error('Failed to fetch organization:', error)
       } else if (data) {
         setOrg(data)
-        if (data.logo_url) {
-          localStorage.setItem('ldms_cached_logo', data.logo_url)
-        } else {
-          localStorage.removeItem('ldms_cached_logo')
-        }
-        
-        // Cache org names for splash screen
-        if (data.name_en) {
-          localStorage.setItem('ldms_cached_name_en', data.name_en)
-        } else {
-          localStorage.removeItem('ldms_cached_name_en')
-        }
-
-        if (data.name_cn) {
-          localStorage.setItem('ldms_cached_name_cn', data.name_cn)
-        } else {
-          localStorage.removeItem('ldms_cached_name_cn')
-        }
       }
     } catch (err) {
       console.error('Unexpected org fetch error:', err)
@@ -98,11 +80,6 @@ export function OrgProvider({ children }) {
         (payload) => {
           if (payload.new) {
             setOrg(prev => ({ ...prev, ...payload.new }))
-            if (payload.new.logo_url) {
-              localStorage.setItem('ldms_cached_logo', payload.new.logo_url)
-            } else {
-              localStorage.removeItem('ldms_cached_logo')
-            }
           }
         }
       )

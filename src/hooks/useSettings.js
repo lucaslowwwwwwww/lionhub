@@ -27,8 +27,8 @@ export function useSettings() {
     defaultduration: 30,
     lioncolors: [],
     cnyoverrides: {},
-    clubnameen: '',
-    clubnamecn: '',
+    clubnameen: 'Lion Dance Management System',
+    clubnamecn: 'Lion Dance Management System',
     clubregistrationno: '',
     clubaddress: '',
     clubphone: '',
@@ -137,6 +137,7 @@ export function useSettings() {
     
     return legacySettings
   }, [orgCtx?.org, legacySettings])
+
 
   const updateSettings = async (newValues) => {
     try {

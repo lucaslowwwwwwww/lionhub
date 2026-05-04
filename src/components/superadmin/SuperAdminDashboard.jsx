@@ -161,13 +161,36 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  // Helper: compute time remaining from expiration date
+  const getTimeRemaining = (expiresAt) => {
+    if (!expiresAt) return { text: 'No Plan', color: 'text-surface-500', urgent: false }
+    const now = new Date()
+    const exp = new Date(expiresAt)
+    const diffMs = exp - now
+    if (diffMs <= 0) return { text: 'Expired', color: 'text-crimson-500', urgent: true }
+    
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+    if (diffDays <= 7) return { text: `${diffDays} Day${diffDays > 1 ? 's' : ''} Left`, color: 'text-crimson-500', urgent: true }
+    if (diffDays <= 30) return { text: `${diffDays} Days Left`, color: 'text-yellow-500', urgent: true }
+    if (diffDays <= 90) return { text: `${Math.floor(diffDays / 30)} Month${Math.floor(diffDays / 30) > 1 ? 's' : ''} Left`, color: 'text-yellow-400', urgent: false }
+    
+    const months = Math.floor(diffDays / 30)
+    if (months >= 12) {
+      const years = Math.floor(months / 12)
+      const remainMonths = months % 12
+      return { text: remainMonths > 0 ? `${years}y ${remainMonths}m Left` : `${years} Year${years > 1 ? 's' : ''} Left`, color: 'text-green-500', urgent: false }
+    }
+    return { text: `${months} Month${months > 1 ? 's' : ''} Left`, color: 'text-green-500', urgent: false }
+  }
+
   const handleRenewSubscription = async () => {
     if (!orgToRenew) return
     
     setRenewing(true)
     try {
-      // Always start from the existing expiration date to ensure strict stacking of plans
-      const baseDate = orgToRenew.expires_at ? new Date(orgToRenew.expires_at) : new Date()
+      // Start from the existing expiration or today (whichever is later)
+      const existingExpiry = orgToRenew.expires_at ? new Date(orgToRenew.expires_at) : new Date()
+      const baseDate = existingExpiry > new Date() ? existingExpiry : new Date()
       
       const durationMap = { '1m': 1, '3m': 3, '6m': 6, '1y': 12 }
       const additionalMonths = durationMap[renewDuration] || 12
@@ -176,17 +199,8 @@ export default function SuperAdminDashboard() {
       newExpiry.setMonth(baseDate.getMonth() + additionalMonths)
       const expires_at = newExpiry.toISOString().split('T')[0]
 
-      // Accumulate the total duration correctly
-      const parseDurationToMonths = (dur) => {
-        if (!dur) return 0
-        const val = parseInt(dur.replace(/[^0-9]/g, '')) || 0
-        if (dur.toLowerCase().includes('y')) return val * 12
-        return val
-      }
-
-      const currentMonths = parseDurationToMonths(orgToRenew.subscription_duration)
-      const totalMonths = currentMonths + additionalMonths
-      const subscription_duration = `${totalMonths}m`
+      // Store only the latest plan duration (don't accumulate)
+      const subscription_duration = renewDuration
 
       const { data, error } = await supabase
         .from('organizations')
@@ -379,22 +393,26 @@ export default function SuperAdminDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between px-1">
-                        <span className="text-[10px] font-black text-surface-600 uppercase tracking-widest">Total Coverage</span>
+                        <span className="text-[10px] font-black text-surface-600 uppercase tracking-widest">Current Plan</span>
                         <span className="text-[10px] font-bold text-surface-300">
                           {(() => {
                             const dur = org.subscription_duration
                             if (!dur) return 'N/A'
-                            const val = parseInt(dur.replace(/[^0-9]/g, '')) || 0
-                            if (dur.toLowerCase().includes('y')) {
-                              return val === 1 ? '1 Year' : `${val} Years`
-                            }
-                            if (dur.toLowerCase().includes('m')) {
-                              if (val >= 12 && val % 12 === 0) return `${val / 12} Year${val / 12 > 1 ? 's' : ''}`
-                              return `${val} Month${val > 1 ? 's' : ''}`
-                            }
-                            return `${val} Months`
+                            const map = { '1m': '1 Month', '3m': '3 Months', '6m': '6 Months', '1y': '1 Year' }
+                            return map[dur] || dur
                           })()}
                         </span>
+                      </div>
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[10px] font-black text-surface-600 uppercase tracking-widest">Time Remaining</span>
+                        {(() => {
+                          const remaining = getTimeRemaining(org.expires_at)
+                          return (
+                            <span className={`text-[10px] font-black uppercase tracking-tight ${remaining.color} ${remaining.urgent ? 'animate-pulse' : ''}`}>
+                              {remaining.text}
+                            </span>
+                          )
+                        })()}
                       </div>
                       <div className="flex items-center justify-between px-1 pt-2 border-t border-surface-800/50">
                         <span className="text-[10px] font-black text-surface-600 uppercase tracking-widest">Expiration</span>

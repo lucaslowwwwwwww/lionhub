@@ -7,7 +7,7 @@ import { AppShell, SplashScreen } from './components/layout'
 import { useAuth } from './hooks/useAuth'
 import { useSettings } from './hooks/useSettings'
 import { useMembers } from './hooks/useMembers'
-import { useState, useEffect, useContext, lazy, Suspense } from 'react'
+import { useState, useEffect, useContext, useRef, lazy, Suspense } from 'react'
 import { OrgContext } from './contexts/OrgContext'
 import './index.css'
 
@@ -29,19 +29,7 @@ const SuperAdminDashboard = lazy(() => import('./components/superadmin/SuperAdmi
 function LoginGuard() {
   const { user, loading } = useAuth()
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-surface-950 gap-4">
-        <svg className="animate-spin h-10 w-10 text-crimson-500" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        <p className="text-surface-500 font-bold uppercase tracking-[0.2em] text-[10px] animate-pulse">
-          Securing Connection...
-        </p>
-      </div>
-    )
-  }
+  if (loading) return null
 
   return user ? <Navigate to="/dashboard" replace /> : <LoginPage />
 }
@@ -142,28 +130,45 @@ function ConnectionOverlay() {
 
 function AppContent() {
   const { settings } = useSettings()
-  const { loading: authLoading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const orgCtx = useContext(OrgContext)
   const [showSplash, setShowSplash] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
+  const [initialSplashDone, setInitialSplashDone] = useState(false)
+  const prevUserRef = useRef(undefined)
 
+  // Detect login transition — re-show splash ONLY after the initial one is done
   useEffect(() => {
-    const minTime = 1500
-    const maxTime = 3500 // Slightly longer max for safety
+    if (initialSplashDone && prevUserRef.current === null && user) {
+      setShowSplash(true)
+      setIsExiting(false)
+    }
+    prevUserRef.current = user ?? null
+  }, [user, initialSplashDone])
+
+  // Timer to dismiss splash (runs on initial load AND on login re-trigger)
+  useEffect(() => {
+    if (!showSplash) return
+
+    const minTime = 1200
+    const maxTime = 3500
     const startTime = Date.now()
 
     const checkLoading = setInterval(() => {
       const elapsed = Date.now() - startTime
-      
+
       if ((!authLoading && elapsed >= minTime) || elapsed >= maxTime) {
         clearInterval(checkLoading)
         setIsExiting(true)
-        setTimeout(() => setShowSplash(false), 700)
+        setTimeout(() => {
+          setShowSplash(false)
+          setInitialSplashDone(true)
+        }, 700)
       }
     }, 100)
 
     return () => clearInterval(checkLoading)
-  }, [authLoading])
+  }, [showSplash, authLoading])
 
   if (showSplash) return <SplashScreen isExiting={isExiting} />
 
@@ -177,7 +182,12 @@ function AppContent() {
           <Route path="/*" element={
             <ProtectedRoute>
               <SessionGuard>
-                <Suspense fallback={<SplashScreen isExiting={false} />}>
+                <Suspense fallback={
+                  <div className="flex flex-col items-center justify-center min-h-screen bg-surface-950 gap-4">
+                    <div className="w-12 h-12 border-4 border-surface-800 border-t-crimson-600 rounded-full animate-spin" />
+                    <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Loading Console...</p>
+                  </div>
+                }>
                   <SuperAdminDashboard />
                 </Suspense>
               </SessionGuard>
