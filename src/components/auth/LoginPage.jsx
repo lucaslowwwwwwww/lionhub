@@ -87,17 +87,9 @@ export default function LoginPage() {
         )}
       </div>
 
-      <div className="w-full max-w-6xl min-h-[650px] md:h-[750px] bg-surface-900/40 backdrop-blur-3xl rounded-[32px] md:rounded-[40px] border border-surface-800 shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+      <div className="w-full max-w-6xl min-h-screen md:min-h-[750px] bg-surface-900/40 backdrop-blur-3xl rounded-none md:rounded-[40px] border-none md:border md:border-surface-800 shadow-2xl overflow-y-auto md:overflow-hidden flex flex-col relative">
         
-        {/* ── MOBILE BRANDING ── */}
-        <div className="md:hidden pt-12 pb-6 text-center flex flex-col items-center">
-           <div className="w-20 h-20 rounded-full bg-surface-950 border-2 border-surface-800 flex items-center justify-center mb-4 shadow-glow overflow-hidden">
-              <span className="text-crimson-500 font-black text-xl tracking-tighter">LDMS</span>
-           </div>
-           <h2 className="text-lg font-black text-white tracking-tight uppercase px-8">
-              Lion Dance <span className="text-crimson-500">Management</span> System
-           </h2>
-        </div>
+        {/* MOBILE BRANDING MOVED INSIDE FORMS */}
 
         {/* ── VISUAL SLIDING PANEL (DESKTOP) ── */}
         <div className={`hidden md:flex absolute top-0 bottom-0 w-1/2 bg-surface-950 z-30 transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) items-center justify-center border-x border-surface-800 ${
@@ -105,12 +97,15 @@ export default function LoginPage() {
         }`}>
           <div className="relative text-center p-12">
              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-crimson-600/5 rounded-full blur-[80px]" />
-             <div className="relative w-44 h-44 rounded-full bg-surface-900 border-2 border-surface-800 flex items-center justify-center mx-auto mb-10 shadow-inner overflow-hidden">
-                <span className="text-crimson-500 font-black text-5xl tracking-tighter drop-shadow-glow">LDMS</span>
+             <div className="relative w-52 h-52 rounded-full bg-surface-900 border-2 border-surface-800 flex items-center justify-center mx-auto mb-10 shadow-inner overflow-hidden">
+                <img src="/lionhub_logo.jpeg" alt="Lionhub" className="w-full h-full object-cover" />
              </div>
-             <h2 className="text-2xl font-black text-white tracking-tight uppercase leading-tight mb-3">
-                Lion Dance <span className="text-crimson-500">Management</span> System
+             <h2 className="text-2xl font-black text-white tracking-tight uppercase leading-tight mb-1">
+                LIONHUB
              </h2>
+             <p className="text-xs font-bold text-crimson-500 uppercase tracking-widest mb-6">
+                Lion Dance Management System
+             </p>
              <p className="text-[10px] font-black text-surface-500 tracking-[0.4em] uppercase opacity-60">
                 Professional Platform v2.0
              </p>
@@ -118,16 +113,29 @@ export default function LoginPage() {
         </div>
 
         {/* ── FORMS CONTAINER ── */}
-        <div className="flex-1 relative min-h-[450px] md:min-h-0">
+        <div className="flex-1 relative min-h-[550px] md:min-h-0 bg-surface-900/20 md:bg-transparent flex flex-col">
           
-          {/* REGISTER FORM */}
-          <div className={`absolute inset-y-0 left-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-700 ${
-            !isRegistering 
-              ? 'opacity-0 -translate-x-12 pointer-events-none' 
-              : 'opacity-100 translate-x-0'
-          }`}>
+          {/* Static Mobile Branding */}
+          <div className="md:hidden pt-12 pb-2 text-center flex flex-col items-center z-20">
+             <div className="w-40 h-40 rounded-full bg-surface-950 border-2 border-surface-800 flex items-center justify-center mb-4 shadow-glow overflow-hidden">
+                <img src="/lionhub_logo.jpeg" alt="Lionhub" className="w-full h-full object-cover" />
+             </div>
+             <h2 className="text-3xl font-black text-white tracking-tight uppercase">LIONHUB</h2>
+             <p className="text-xs font-bold text-crimson-500 uppercase tracking-widest mt-2">
+                Lion Dance Management System
+             </p>
+          </div>
+          
+          {/* Forms Wrapper (Remaining Space) */}
+          <div className="flex-1 relative">
+            {/* REGISTER FORM */}
+            <div className={`absolute inset-y-0 left-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-500 ease-out ${
+              isRegistering 
+                ? 'opacity-100 translate-x-0 z-10' 
+                : 'opacity-0 -translate-x-8 pointer-events-none z-0'
+            }`}>
             <div className="w-full max-w-sm mx-auto">
-              <header className="mb-8 md:mb-10 text-center md:text-left pt-4 md:pt-0">
+              <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
                 <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Initialize</h1>
                 <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Master Admin Enrollment</p>
               </header>
@@ -176,14 +184,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* LOGIN FORM */}
-          <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-700 ${
-            isRegistering 
-              ? 'opacity-0 translate-x-12 pointer-events-none' 
-              : 'opacity-100 translate-x-0'
-          }`}>
+            {/* LOGIN FORM */}
+            <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-500 ease-out ${
+              !isRegistering 
+                ? 'opacity-100 translate-x-0 z-10' 
+                : 'opacity-0 translate-x-8 pointer-events-none z-0'
+            }`}>
             <div className="w-full max-w-sm mx-auto">
-              <header className="mb-8 md:mb-10 text-center md:text-left pt-4 md:pt-0">
+              <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
                 <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Console Access</h1>
                 <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Authorized Personnel Only</p>
               </header>
@@ -234,6 +242,7 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  </div>
+)
 }
 

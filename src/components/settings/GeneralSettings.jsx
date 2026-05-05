@@ -69,15 +69,10 @@ export default function GeneralSettings() {
     }
   }, [settings, userProfile?.appearance?.theme])
 
-  const handleLocalThemeChange = async (newTheme) => {
+  const handleLocalThemeChange = (newTheme) => {
     setLocalSettings(prev => ({ ...prev, theme: newTheme }))
+    // Update UI immediately for preview
     window.dispatchEvent(new CustomEvent('theme-changed', { detail: newTheme }))
-    localStorage.setItem('ldms-theme', newTheme)
-    try {
-      await updateProfile({ appearance: { ...userProfile?.appearance, theme: newTheme } })
-    } catch (err) {
-      console.warn('Failed to sync theme to cloud:', err)
-    }
   }
 
   const handleLogoUpload = async (e) => {
@@ -101,10 +96,19 @@ export default function GeneralSettings() {
     setSaveMessage('')
     try {
       const { theme, ...globalData } = localSettings
+      
+      // Persist association settings
       await updateSettings({
         ...globalData,
         defaultduration: Number(localSettings.defaultduration) || 30
       })
+
+      // Persist personal theme preference
+      localStorage.setItem('ldms-theme', theme)
+      await updateProfile({ 
+        appearance: { ...userProfile?.appearance, theme } 
+      })
+
       setSaveMessage('Success: Configuration synchronized.')
       setTimeout(() => setSaveMessage(''), 3000)
     } catch (err) {

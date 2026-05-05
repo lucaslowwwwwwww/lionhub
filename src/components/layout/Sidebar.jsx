@@ -77,6 +77,20 @@ const NAV_GROUPS = [
         </svg>
       )},
     ]
+  },
+  {
+    label: 'Information',
+    items: [
+      { 
+        name: 'About & Legal', 
+        path: '/about', 
+        roles: ['master', 'admin', 'member'], 
+        icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )}
+    ]
   }
 ]
 
@@ -86,7 +100,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
   const { impersonatedOrgId, setImpersonatedOrgId, logoUrl, nameCn, nameEn } = useOrg()
   const userRole = userProfile?.role || 'member'
 
-  const displayName = nameCn || nameEn || 'LDMS'
+  const displayName = nameCn || nameEn || 'Lionhub'
 
   const handleLinkClick = () => {
     if (window.innerWidth < 768) {

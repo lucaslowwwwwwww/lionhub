@@ -6,7 +6,7 @@ export default function TopBar({ setIsMobileMenuOpen }) {
   const { userProfile, logout } = useAuth()
   const scrollDirection = useScrollDirection()
   const { logoUrl, nameCn, nameEn } = useOrg()
-  const displayName = nameCn || nameEn || 'LDMS'
+  const displayName = nameCn || nameEn || 'Lionhub'
 
   return (
     <header className={`fixed md:sticky top-0 left-0 right-0 md:left-auto md:right-auto z-50 md:z-30 bg-surface-950/80 backdrop-blur-xl border-b border-surface-800 transition-transform duration-300 ease-in-out ${

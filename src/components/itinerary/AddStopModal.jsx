@@ -258,7 +258,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           <div>
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Household Name</label>
             <input 
@@ -468,7 +469,6 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                       key={type}
                       type="button"
                       onClick={() => {
-                        if (formData.pluckingtype.includes(type)) return
                         setFormData({ ...formData, pluckingtype: [...formData.pluckingtype, type] })
                       }}
                       className="px-3 py-2.5 rounded-xl border border-surface-800 bg-surface-900 text-surface-400 text-xs font-bold hover:border-green-500/50 hover:bg-surface-800 hover:text-green-400 transition-all text-center"
@@ -523,6 +523,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             </div>
           </div>
 
+
+
           <div>
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Special Remarks / Requests</label>
             <textarea 
@@ -534,17 +536,19 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             />
           </div>
 
-          <div className="pt-4 flex gap-3 sticky bottom-0 bg-surface-900 pb-2 z-20">
+          </div>
+
+          <div className="p-6 pt-2 border-t border-surface-800 bg-surface-900 flex gap-3 shrink-0">
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-lg bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors"
+              className="flex-1 py-3 rounded-xl bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="flex-1 py-3 rounded-lg bg-crimson-600 text-white font-bold hover:bg-crimson-500 transition-colors shadow-lg shadow-crimson-500/20"
+              className="flex-1 py-3 rounded-xl bg-crimson-600 text-white font-bold hover:bg-crimson-500 transition-colors shadow-lg shadow-crimson-500/20"
             >
               {stop ? 'Update Stop' : 'Save Stop'}
             </button>

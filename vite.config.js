@@ -11,10 +11,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'inline',
-      includeAssets: ['ldms_logo.png', 'NotoSansSC.ttf'],
+      includeAssets: ['lionhub_logo.jpeg', 'NotoSansSC.ttf'],
       manifest: {
-        name: 'Lion Dance Management System',
-        short_name: 'LDMS',
+        name: 'Lionhub',
+        short_name: 'Lionhub',
         description: 'Professional performance and association management platform.',
         theme_color: '#e11d48',
         background_color: '#09090b',
@@ -23,13 +23,13 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: 'ldms_logo.png',
+            src: 'lionhub_logo.jpeg',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'ldms_logo.png',
+            src: 'lionhub_logo.jpeg',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

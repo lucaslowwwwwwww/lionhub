@@ -1,4 +1,4 @@
-# Lion Dance Management System (LDMS)
+# Lionhub
 
 Professional performance and itinerary management for Chuan Cheng (传承) Lion Dance.
 

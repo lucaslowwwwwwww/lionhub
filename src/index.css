@@ -43,6 +43,10 @@
   --color-surface-50: #fafafa;
   --color-surface-100: #f4f4f5;
   --color-surface-200: #e4e4e7;
+  --color-surface-300: #d4d4d8;
+  --color-surface-400: #a1a1aa;
+  --color-surface-500: #71717a;
+  --color-surface-600: #52525b;
   --color-surface-700: #3f3f46;
   --color-surface-800: #27272a;
   --color-surface-900: #18181b;
@@ -65,11 +69,11 @@
   --color-surface-900: #ffffff; /* Card background */
   --color-surface-800: #e4e4e7; /* Borders */
   --color-surface-700: #d4d4d8; /* Hover states */
-  --color-surface-500: #71717a; /* Muted text */
-  --color-surface-400: #a1a1aa; /* Icons/Secondary */
-  --color-surface-200: #3f3f46; /* Primary text */
-  --color-surface-100: #27272a; /* Headings */
-  --color-surface-50:  #18181b; /* Boldest text */
+  --color-surface-500: #52525b; 
+  --color-surface-400: #71717a; 
+  --color-surface-200: #000000; /* Pure Black Text */
+  --color-surface-100: #000000; /* Pure Black Text */
+  --color-surface-50:  #000000; /* Pure Black Text */
 
   --shadow-card: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
   --shadow-card-hover: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);

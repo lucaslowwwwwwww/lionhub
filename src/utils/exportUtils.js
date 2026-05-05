@@ -72,7 +72,7 @@ const drawWatermarkAndFooter = (doc, logoImg, trackedPages = new Set()) => {
   doc.setFontSize(7)
   doc.setFont('helvetica', 'italic')
   doc.setTextColor(150)
-  doc.text(`Generated on ${new Date().toLocaleString()} — Lion Dance Management System`, 15, footerY)
+  doc.text(`Generated on ${new Date().toLocaleString()} — Lionhub`, 15, footerY)
   doc.setTextColor(0)
 }
 
