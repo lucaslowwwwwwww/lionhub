@@ -263,11 +263,11 @@ function WatermarkOverlay() {
   if (!logoSrc) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.10] pointer-events-none z-50 overflow-hidden select-none translate-y-[-10vh]">
+    <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.08] pointer-events-none z-0 overflow-hidden select-none">
       <img 
         src={logoSrc} 
         alt="Watermark" 
-        className="w-[80vw] md:w-[70vw] max-w-[600px] h-auto object-contain"
+        className="w-[90vw] md:w-[80vw] max-w-[1000px] h-auto object-contain"
       />
     </div>
   )

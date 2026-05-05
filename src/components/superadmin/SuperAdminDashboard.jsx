@@ -245,18 +245,25 @@ export default function SuperAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-950 flex flex-col">
+    <div className="min-h-screen bg-surface-950 flex flex-col relative overflow-hidden">
+      {/* Platform Watermark */}
+      <div className="fixed inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none z-0 select-none overflow-hidden">
+        <img 
+          src="/lionhub_logo.jpeg" 
+          alt="Lion Hub" 
+          className="w-[150%] sm:w-[100%] max-w-none h-auto object-contain grayscale"
+        />
+      </div>
+
       {/* Super Admin Topbar */}
-      <header className="sticky top-0 z-50 bg-surface-900/80 backdrop-blur-xl border-b border-surface-800 px-6 sm:px-10 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-crimson-600 rounded-xl flex items-center justify-center shadow-lg shadow-crimson-600/20">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
+      <header className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur-xl border-b border-surface-800 px-4 sm:px-10 py-3 sm:py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border border-surface-700/50 shadow-lg shadow-black/20 shrink-0">
+            <img src="/lionhub_logo.jpeg" alt="Lionhub" className="w-full h-full object-cover" />
           </div>
           <div>
-            <h1 className="text-lg font-black text-surface-50 tracking-tight uppercase">Platform Hub</h1>
-            <p className="text-crimson-500 text-[9px] font-black uppercase tracking-[0.2em] mt-0.5">Super Admin Terminal</p>
+            <h1 className="text-sm sm:text-lg font-black text-surface-50 tracking-tight uppercase leading-tight">Lionhub</h1>
+            <p className="text-crimson-500 text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] mt-0.5">Super Admin Terminal</p>
           </div>
         </div>
         
@@ -277,10 +284,10 @@ export default function SuperAdminDashboard() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-10 space-y-10 animate-fade-in">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-10 space-y-6 sm:space-y-10 animate-fade-in relative z-10">
         
         {/* Global Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="bg-surface-900 border border-surface-800 rounded-3xl p-6 relative overflow-hidden group">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-crimson-500/10 blur-[40px] rounded-full group-hover:bg-crimson-500/20 transition-all" />
             <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1 relative z-10">Total Tenants</p>
@@ -296,15 +303,15 @@ export default function SuperAdminDashboard() {
             <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1 relative z-10">Platform Users</p>
             <p className="text-4xl font-black text-surface-50 relative z-10">{loading ? '-' : totalUsers}</p>
           </div>
-          <div className="bg-surface-900 border border-surface-800 rounded-3xl p-6 flex flex-col justify-center relative overflow-hidden">
+          <div className="bg-surface-900 border border-surface-800 rounded-3xl p-4 sm:p-6 flex flex-col justify-center relative overflow-hidden">
              <button 
                onClick={() => setShowRegisterModal(true)}
-               className="w-full h-full min-h-[80px] bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-lg shadow-crimson-600/20"
+               className="w-full h-full min-h-[70px] sm:min-h-[80px] bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl flex flex-col items-center justify-center gap-1 sm:gap-2 transition-all shadow-lg shadow-crimson-600/20"
              >
-               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                </svg>
-               <span className="text-[10px] font-black uppercase tracking-widest">Register Tenant</span>
+               <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Register Tenant</span>
              </button>
           </div>
         </div>
@@ -313,7 +320,7 @@ export default function SuperAdminDashboard() {
           <h2 className="text-sm font-black text-surface-200 uppercase tracking-widest">Active Associations</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {loading ? (
             Array(3).fill(0).map((_, i) => (
               <div key={i} className="bg-surface-900 border border-surface-800 rounded-3xl p-6 h-64 animate-pulse" />
