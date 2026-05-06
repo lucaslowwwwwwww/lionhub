@@ -11,7 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'inline',
-      includeAssets: ['lionhub_logo.jpeg', 'lionhub_logo.png', 'NotoSansSC.ttf'],
+      includeAssets: ['lionhub_logo.jpeg', 'lionhub_logo.png', 'manifest.json', 'NotoSansSC.ttf'],
       manifest: {
         name: 'Lionhub',
         short_name: 'Lionhub',
