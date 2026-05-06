@@ -87,12 +87,12 @@ export default function LoginPage() {
         )}
       </div>
 
-      <div className="w-full max-w-6xl min-h-screen md:min-h-[750px] bg-surface-900/40 backdrop-blur-3xl rounded-none md:rounded-[40px] border-none md:border md:border-surface-800 shadow-2xl overflow-y-auto md:overflow-hidden flex flex-col relative">
+      <div className="w-full max-w-6xl min-h-screen md:min-h-[750px] bg-surface-900/40 backdrop-blur-none md:backdrop-blur-3xl rounded-none md:rounded-[40px] border-none md:border md:border-surface-800 shadow-2xl overflow-y-auto md:overflow-hidden flex flex-col relative">
         
         {/* MOBILE BRANDING MOVED INSIDE FORMS */}
 
         {/* ── VISUAL SLIDING PANEL (DESKTOP) ── */}
-        <div className={`hidden md:flex absolute top-0 bottom-0 w-1/2 bg-surface-950 z-30 transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) items-center justify-center border-x border-surface-800 ${
+        <div className={`hidden md:flex absolute top-0 bottom-0 w-1/2 bg-surface-950 z-30 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform items-center justify-center border-x border-surface-800 ${
           isRegistering ? 'translate-x-full' : 'translate-x-0'
         }`}>
           <div className="relative text-center p-12">
@@ -127,12 +127,12 @@ export default function LoginPage() {
           </div>
           
           {/* Forms Wrapper (Remaining Space) */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-h-[420px] md:min-h-0">
             {/* REGISTER FORM */}
-            <div className={`absolute inset-y-0 left-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-500 ease-out ${
+            <div className={`absolute inset-y-0 left-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
               isRegistering 
                 ? 'opacity-100 translate-x-0 z-10' 
-                : 'opacity-0 -translate-x-8 pointer-events-none z-0'
+                : 'opacity-0 -translate-x-0 md:-translate-x-8 pointer-events-none z-0'
             }`}>
             <div className="w-full max-w-sm mx-auto">
               <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
@@ -185,10 +185,10 @@ export default function LoginPage() {
           </div>
 
             {/* LOGIN FORM */}
-            <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-all duration-500 ease-out ${
+            <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
               !isRegistering 
                 ? 'opacity-100 translate-x-0 z-10' 
-                : 'opacity-0 translate-x-8 pointer-events-none z-0'
+                : 'opacity-0 translate-x-0 md:translate-x-8 pointer-events-none z-0'
             }`}>
             <div className="w-full max-w-sm mx-auto">
               <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">

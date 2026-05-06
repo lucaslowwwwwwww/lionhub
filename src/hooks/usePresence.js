@@ -10,7 +10,7 @@ export function usePresence() {
   const { userProfile } = useAuth()
 
   useEffect(() => {
-    if (!userProfile?.uid || userProfile.role === 'master') return
+    if (!userProfile?.uid) return
 
     // Update immediately on mount
     const updatePresence = async () => {

@@ -340,15 +340,16 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
               <div>
                 <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Role</label>
                 <select value={role} onChange={e => setRole(e.target.value)}
-                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none">
+                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none font-bold">
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
+                  {isMaster && <option value="master">Master</option>}
                 </select>
               </div>
             )}
           </div>
 
-          {role === 'admin' && !member.uid && (
+          {(role === 'admin' || role === 'master') && !member.uid && (
             <div className="grid grid-cols-2 gap-4 animate-fade-in border-t border-surface-800 pt-4">
               <div>
                 <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">New Email *</label>
@@ -409,7 +410,12 @@ export default function TeamPage() {
     const activeMembers = rawMembers.filter(m => m.status !== 'deleted' && !m.is_super_admin)
     
     const adminsList = activeMembers
-      .filter(m => m.role === 'admin')
+      .filter(m => m.role === 'admin' || m.role === 'master')
+      .sort((a, b) => {
+        if (a.role === 'master' && b.role !== 'master') return -1
+        if (a.role !== 'master' && b.role === 'master') return 1
+        return (a.displayname || '').localeCompare(b.displayname || '')
+      })
     
     const membersList = activeMembers
       .filter(m => m.role !== 'admin' && m.role !== 'master')
@@ -628,7 +634,7 @@ export default function TeamPage() {
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
                               <div className="relative">
-                                <span className="w-8 h-8 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center text-xs font-bold shrink-0 border border-gold-500/20">
+                                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 border ${m.role === 'master' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-gold-500/10 text-gold-400 border-gold-500/20'}`}>
                                   {m.displayname?.charAt(0) || '?'}
                                 </span>
                                 {isOnline(m.lastactive) && (
@@ -645,7 +651,7 @@ export default function TeamPage() {
                           </td>
                           <td className="px-5 py-4">
                             <div className={`flex flex-col ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-500'}`}>
-                              <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-gold-500/10 text-gold-400 border border-gold-500/20">
+                              <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit border ${m.role === 'master' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-gold-500/10 text-gold-400 border-gold-500/20'}`}>
                                 {m.role || 'admin'}
                               </span>
                               {!isOnline(m.lastactive) && m.lastactive && (
@@ -752,7 +758,7 @@ export default function TeamPage() {
                          <div className="flex items-center justify-between">
                            <div className="flex items-center gap-3">
                               <div className="relative">
-                                <span className="w-10 h-10 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center text-sm font-bold shrink-0 border border-gold-500/20">
+                                <span className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 border ${m.role === 'master' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-gold-500/10 text-gold-400 border-gold-500/20'}`}>
                                   {m.displayname?.charAt(0) || '?'}
                                 </span>
                                 {isOnline(m.lastactive) && (
@@ -761,7 +767,7 @@ export default function TeamPage() {
                               </div>
                               <div>
                                 <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
-                                <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-gold-500/10 text-gold-400 border border-gold-500/20">
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest border ${m.role === 'master' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-gold-500/10 text-gold-400 border-gold-500/20'}`}>
                                   {m.role || 'admin'}
                                 </span>
                               </div>

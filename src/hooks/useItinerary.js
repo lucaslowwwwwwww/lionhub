@@ -583,9 +583,11 @@ export function useAllPerformanceDates(troupeId) {
       if (!itin.date) return
       const total = Math.max(0, Number(itin.totalstops) || 0)
       const comp = Math.max(0, Number(itin.completedstops) || 0)
+      const skipped = Math.max(0, Number(itin.skippedstops) || 0)
+      const unfinishedCount = Math.max(0, total - comp - skipped)
 
-      counts[itin.date] = (counts[itin.date] || 0) + total
-      if (comp < total) {
+      counts[itin.date] = (counts[itin.date] || 0) + unfinishedCount
+      if (unfinishedCount > 0) {
         unfinishedSet.add(itin.date)
       }
 
