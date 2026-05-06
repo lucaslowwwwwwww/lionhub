@@ -186,7 +186,7 @@ export default function LoginPage() {
                   By registering, you agree to our{' '}
                   <button type="button" onClick={() => setActivePolicyModal('terms')} className="text-crimson-500 hover:underline">Terms of Service</button>,{' '}
                   <button type="button" onClick={() => setActivePolicyModal('privacy')} className="text-crimson-500 hover:underline">Privacy Policy</button>, and{' '}
-                  <button type="button" onClick={() => setActivePolicyModal('refund')} className="text-crimson-500 hover:underline">Refund Policy</button>.
+                  <button type="button" onClick={() => setActivePolicyModal('refund')} className="text-crimson-500 hover:underline">Cancellation & Refund Policy</button>.
                 </p>
               </form>
             </div>
@@ -249,7 +249,7 @@ export default function LoginPage() {
                   By signing in, you agree to our{' '}
                   <button type="button" onClick={() => setActivePolicyModal('terms')} className="text-crimson-500 hover:underline">Terms of Service</button>,{' '}
                   <button type="button" onClick={() => setActivePolicyModal('privacy')} className="text-crimson-500 hover:underline">Privacy Policy</button>, and{' '}
-                  <button type="button" onClick={() => setActivePolicyModal('refund')} className="text-crimson-500 hover:underline">Refund Policy</button>.
+                  <button type="button" onClick={() => setActivePolicyModal('refund')} className="text-crimson-500 hover:underline">Cancellation & Refund Policy</button>.
                 </p>
               </form>
             </div>
@@ -274,16 +274,39 @@ export default function LoginPage() {
               <div className="space-y-6 text-left">
                 <header>
                   <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1">Terms of Service</h2>
-                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Lionhub System Agreement</p>
+                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Lionhub System Agreement — Last Updated: 5 May 2026</p>
                 </header>
                 <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium">
-                  <p>Welcome to **Lionhub**, a professional performance and association management platform designed to streamline operations for troupes and associations globally.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. User Eligibility & Accounts</h3>
-                  <p>Access is restricted strictly to authorized administrators, master coordinators, and assigned personnel of subscribing associations. You are fully responsible for maintaining the confidentiality of your login credentials.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">2. Acceptable Use</h3>
-                  <p>You agree to use this system exclusively for legitimate operational planning, troupe scheduling, member rosters, and accounting records. Unauthorized reverse-engineering, system scanning, or data scraping is strictly prohibited.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">3. Platform Modifications</h3>
-                  <p>The platform owner (Super Admin) reserves the right to deploy updates, perform background maintenance, and modify interface features to ensure optimal security, performance, and stability.</p>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Acceptance of Terms</h3>
+                  <p>By accessing or using the Lionhub platform ("the Platform"), you agree to be bound by these Terms of Service. If you are registering on behalf of a Lion or Dragon Dance association, troupe, or club, you represent and warrant that you have the legal authority to bind said entity to this agreement. <strong>If you disagree with any part of these terms, you must immediately cease all access to the Platform and discontinue the use of our management services.</strong></p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">2. Roles and Data Responsibility</h3>
+                  <p><strong>Data Controller</strong>: Your association remains the Data Controller at all times. By inputting member contact details and customer information into Lionhub, you warrant that you have obtained explicit consent from those individuals to manage their data in a cloud-based management system.</p>
+                  <p><strong>Data Processor</strong>: Lionhub acts solely as the Data Processor, providing the secure software infrastructure and tools required to store, organize, and manage your operational data.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">3. Acceptable Use</h3>
+                  <p>Lionhub is designed exclusively for the professional management of cultural arts troupe operations, deployments, and finances. Users agree not to:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Attempt to breach or circumvent the Platform's security architectures.</li>
+                    <li>Reverse-engineer, decompile, or disassemble any portion of the software.</li>
+                    <li>Use the system for any illegal activities or unauthorized data harvesting.</li>
+                  </ul>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">4. Subscriptions and Payments</h3>
+                  <p>Access to the Platform requires an active annual or half-yearly subscription.</p>
+                  <p>Payments are settled via direct bank transfer or authorized payment gateways.</p>
+                  <p><strong>Suspension</strong>: Failure to renew a subscription will result in automatic account suspension. Access to database records will be restricted until all outstanding payments are settled.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">5. Limitation of Liability</h3>
+                  <p>The Lionhub platform is provided on an "as is" and "as available" basis. While we utilize enterprise-grade infrastructure to ensure high availability, Lionhub and its operator, Low Phak Hey, shall not be held liable for any indirect damages, lost performance revenue, or business interruptions resulting from:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Third-party internet provider failures.</li>
+                    <li>Unscheduled system downtime.</li>
+                    <li>Accidental data deletion by your authorized committee members.</li>
+                  </ul>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">6. Governing Law</h3>
+                  <p>These terms shall be governed by and construed in accordance with the laws of Malaysia.</p>
                 </div>
               </div>
             )}
@@ -292,16 +315,39 @@ export default function LoginPage() {
               <div className="space-y-6 text-left">
                 <header>
                   <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1">Privacy Policy</h2>
-                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Data Safety & Compliance</p>
+                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Data Safety & Compliance — Last Updated: 5 May 2026</p>
                 </header>
                 <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium">
-                  <p>At **Lionhub**, we take the privacy of your association, members, and transactions extremely seriously.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Data Collected</h3>
-                  <p>We store basic coordinator names, emails, active-status indicators (presence logs), member roster details, troupe allocations, equipment inventories, and financial ledger transactions.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">2. Strict Multi-Tenant Isolation</h3>
-                  <p>All stored records are fully isolated using database-level Row-Level Security (RLS) policies. Your data can only be accessed by authenticated accounts inside your specific association. We never sell, share, or monetize any customer data.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">3. Administrative Access</h3>
-                  <p>SaaS platform administrators may access system records strictly for necessary technical diagnostics, support ticket debugging, and server infrastructure maintenance.</p>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Introduction</h3>
+                  <p>Lionhub is committed to protecting your troupe's operational and personal data in strict compliance with the <strong>Personal Data Protection Act 2010 (PDPA)</strong> of Malaysia.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">2. Data Collection Scope</h3>
+                  <p>We securely store the following operational information provided by your committee:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><strong>Account Credentials</strong>: Committee names, emails, and phone numbers.</li>
+                    <li><strong>Troupe Personnel</strong>: Member names and contact details for deployment tracking.</li>
+                    <li><strong>Client Records</strong>: Customer names, performance addresses, and contact numbers.</li>
+                    <li><strong>Financial Records</strong>: Invoices, quotes, and troupe financial entries.</li>
+                  </ul>
+                  <p><em>Note: Lionhub explicitly does not collect or store highly sensitive personal documents, such as NRIC copies or bank passwords.</em></p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">3. Utilization of Information</h3>
+                  <p>Your data is used strictly to operate the Lionhub platform, including:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Facilitating performance scheduling and itinerary management.</li>
+                    <li>Tracking member deployments and availability.</li>
+                    <li>Generating financial reports and invoices.</li>
+                    <li>Sending critical system alerts and subscription updates.</li>
+                  </ul>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">4. Data Isolation and Security</h3>
+                  <p>Your data is hosted using enterprise-grade PostgreSQL cloud infrastructure. We implement strict <strong>Row Level Security (RLS)</strong> protocols. This ensures that your association’s records are completely isolated; it is technically impossible for another troupe or unauthorized third party to view or access your data.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">5. Non-Disclosure Guarantee</h3>
+                  <p>Lionhub will never sell, rent, or share your association's operational data, client lists, or financial records with any third parties, marketing agencies, or competing associations.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">6. Rights of Access (PDPA)</h3>
+                  <p>Under the PDPA, your association has the right to request access to, correct, or export the data stored on our platform at any time.</p>
                 </div>
               </div>
             )}
@@ -309,17 +355,28 @@ export default function LoginPage() {
             {activePolicyModal === 'refund' && (
               <div className="space-y-6 text-left">
                 <header>
-                  <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1">Refund & Cancellation</h2>
-                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Billing & Subscription Terms</p>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1">Cancellation & Refund</h2>
+                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Billing & Subscription Terms — Last Updated: 5 May 2026</p>
                 </header>
                 <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium">
-                  <p>Our commitment is to provide a reliable, premium service to power your association's daily operations.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Subscription Cycles</h3>
-                  <p>Subscriptions are billed on a recurring monthly or annual basis. The subscription fee is fully disclosed before onboarding.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">2. Cancellation Policy</h3>
-                  <p>You can cancel your subscription at any time. Upon cancellation, your association retains full console access until the end of the current billing cycle, and no further automatic charges will occur.</p>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">3. Refund Terms</h3>
-                  <p>Due to the active server resource and database provisioning required to host your multi-tenant portal, refunds are generally evaluated on a case-by-case basis under special circumstances (such as extended server downtime).</p>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Subscription Cancellations</h3>
+                  <p>Users may cancel their Lionhub subscription at any time by notifying support or opting not to renew a pending annual/half-yearly invoice. Access will remain active until the end of the current paid billing cycle.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">2. No Prorated Refunds</h3>
+                  <p>Because Lionhub reserves dedicated server infrastructure and database resources for your association immediately upon payment, we do not offer prorated refunds for mid-cycle cancellations.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">3. The 12-Month Seasonal Archive (Grace Period)</h3>
+                  <p>We recognize the seasonal nature of the Lion Dance industry. If a subscription lapses:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><strong>Secure Archive</strong>: Your account and all operational history will be placed into a "Frozen Archive" for exactly 12 months.</li>
+                    <li><strong>Reactivation</strong>: Renewing within this 12-month window will instantly restore all your data exactly as it was.</li>
+                  </ul>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">4. Permanent Data Purge</h3>
+                  <p>If an account remains inactive and unpaid for more than 12 consecutive months, all data associated with the troupe will be permanently and irreversibly deleted from our servers to ensure continuous data privacy.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">5. Data Export Prior to Expiration</h3>
+                  <p>We strongly encourage all treasurers and troupe masters to utilize the built-in <strong>Export Tools</strong> to download member lists and financial records prior to allowing a subscription to expire.</p>
                 </div>
               </div>
             )}
