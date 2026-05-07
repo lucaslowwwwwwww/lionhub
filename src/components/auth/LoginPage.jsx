@@ -10,9 +10,30 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
+  const [isForgotPassword, setIsForgotPassword] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [activePolicyModal, setActivePolicyModal] = useState(null)
   const navigate = useNavigate()
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/login',
+      })
+
+      if (resetError) throw resetError
+      setResetSent(true)
+    } catch (err) {
+      setError(err.message || 'Failed to send password reset email.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true)
@@ -137,8 +158,8 @@ export default function LoginPage() {
             }`}>
             <div className="w-full max-w-sm mx-auto">
               <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
-                <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Initialize</h1>
-                <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Master Admin Enrollment</p>
+                <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Initialize Account</h1>
+                <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Setup Your Password & Access</p>
               </header>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -151,14 +172,14 @@ export default function LoginPage() {
 
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Owner Email</label>
+                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Email Address</label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
-                      placeholder="owner@association.com"
+                      placeholder="name@example.com"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -175,7 +196,7 @@ export default function LoginPage() {
                 </div>
 
                 <button type="submit" disabled={loading} className="w-full py-5 bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-crimson-600/20 transition-all">
-                  {loading ? 'Processing...' : 'Register Console'}
+                  {loading ? 'Processing...' : 'Register Account'}
                 </button>
 
                 <button type="button" onClick={() => setIsRegistering(false)} className="w-full text-[10px] font-black text-surface-600 hover:text-surface-300 uppercase tracking-widest pt-2">
@@ -192,68 +213,140 @@ export default function LoginPage() {
             </div>
           </div>
 
-            {/* LOGIN FORM */}
-            <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
-              !isRegistering 
-                ? 'opacity-100 translate-x-0 z-10' 
-                : 'opacity-0 translate-x-0 md:translate-x-8 pointer-events-none z-0'
-            }`}>
-            <div className="w-full max-w-sm mx-auto">
-              <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
-                <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Console Access</h1>
-                <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Authorized Personnel Only</p>
-              </header>
+            {/* LOGIN & RECOVERY FORMS */}
+            {isForgotPassword ? (
+              <div className="absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 animate-fade-in z-10">
+                <div className="w-full max-w-sm mx-auto">
+                  <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
+                    <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Recover Access</h1>
+                    <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Request Password Reset Link</p>
+                  </header>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && !isRegistering && (
-                  <div className="p-4 bg-crimson-900/10 border border-crimson-500/20 rounded-2xl text-crimson-400 text-[11px] font-bold flex gap-3 items-center">
-                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    {error}
-                  </div>
-                )}
+                  {resetSent ? (
+                    <div className="space-y-6 text-center md:text-left">
+                      <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto md:mx-0 mb-4 animate-in zoom-in">
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-black text-white uppercase tracking-tight">Reset Link Sent</h3>
+                      <p className="text-sm text-surface-400 leading-relaxed">
+                        We have sent a secure password reset link to <span className="text-crimson-400 font-bold">{email}</span>. Please check your inbox.
+                      </p>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setIsForgotPassword(false)
+                          setResetSent(false)
+                          setEmail('')
+                        }}
+                        className="w-full py-5 bg-surface-800 hover:bg-surface-700 text-surface-200 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all mt-4"
+                      >
+                        Back to Login
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleForgotPasswordSubmit} className="space-y-6">
+                      {error && (
+                        <div className="p-4 bg-crimson-900/10 border border-crimson-500/20 rounded-2xl text-crimson-400 text-[11px] font-bold flex gap-3 items-center">
+                          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                          {error}
+                        </div>
+                      )}
 
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Login Email</label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
-                      placeholder="operator@system.v2"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Password</label>
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
-                      placeholder="••••••••••••"
-                    />
-                  </div>
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Email Address</label>
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
+                            placeholder="name@example.com"
+                          />
+                        </div>
+                      </div>
+
+                      <button type="submit" disabled={loading} className="w-full py-5 bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-crimson-600/20 transition-all">
+                        {loading ? 'Sending...' : 'Send Reset Link'}
+                      </button>
+
+                      <button type="button" onClick={() => { setIsForgotPassword(false); setEmail(''); setError(''); }} className="w-full text-[10px] font-black text-surface-600 hover:text-surface-300 uppercase tracking-widest pt-2">
+                        Back to Secure Login
+                      </button>
+                    </form>
+                  )}
                 </div>
+              </div>
+            ) : (
+              <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
+                !isRegistering 
+                  ? 'opacity-100 translate-x-0 z-10' 
+                  : 'opacity-0 translate-x-0 md:translate-x-8 pointer-events-none z-0'
+              }`}>
+                <div className="w-full max-w-sm mx-auto">
+                  <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
+                    <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Console Access</h1>
+                    <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Authorized Personnel Only</p>
+                  </header>
 
-                <button type="submit" disabled={loading} className="w-full py-5 bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-crimson-600/20 transition-all">
-                  {loading ? 'Validating...' : 'Initiate Session'}
-                </button>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {error && !isRegistering && (
+                      <div className="p-4 bg-crimson-900/10 border border-crimson-500/20 rounded-2xl text-crimson-400 text-[11px] font-bold flex gap-3 items-center">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        {error}
+                      </div>
+                    )}
 
-                <button type="button" onClick={() => setIsRegistering(true)} className="w-full text-[10px] font-black text-surface-600 hover:text-surface-300 uppercase tracking-widest pt-2">
-                  New Association? Initialize Portal
-                </button>
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Login Email</label>
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
+                          placeholder="operator@system.v2"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center px-1">
+                          <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest">Password</label>
+                          <button type="button" onClick={() => { setIsForgotPassword(true); setError(''); }} className="text-[9px] font-black text-crimson-500 hover:text-crimson-400 uppercase tracking-widest">
+                            Forgot?
+                          </button>
+                        </div>
+                        <input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full px-5 py-4 bg-surface-950/50 border border-surface-800 rounded-2xl text-white focus:border-crimson-500/50 transition-all outline-none text-sm font-medium"
+                          placeholder="••••••••••••"
+                        />
+                      </div>
+                    </div>
 
-                <p className="text-[10px] text-surface-500 font-bold leading-normal text-center mt-6">
-                  By signing in, you agree to our{' '}
-                  <button type="button" onClick={() => setActivePolicyModal('terms')} className="text-crimson-500 hover:underline">Terms of Service</button>,{' '}
-                  <button type="button" onClick={() => setActivePolicyModal('privacy')} className="text-crimson-500 hover:underline">Privacy Policy</button>, and{' '}
-                  <button type="button" onClick={() => setActivePolicyModal('refund')} className="text-crimson-500 hover:underline">Cancellation & Refund Policy</button>.
-                </p>
-              </form>
-            </div>
-          </div>
+                    <button type="submit" disabled={loading} className="w-full py-5 bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-crimson-600/20 transition-all">
+                      {loading ? 'Validating...' : 'Initiate Session'}
+                    </button>
+
+                    <button type="button" onClick={() => setIsRegistering(true)} className="w-full text-[10px] font-black text-surface-600 hover:text-surface-300 uppercase tracking-widest pt-2">
+                      First Time? Register & Setup Password
+                    </button>
+
+                    <p className="text-[10px] text-surface-500 font-bold leading-normal text-center mt-6">
+                      By signing in, you agree to our{' '}
+                      <button type="button" onClick={() => setActivePolicyModal('terms')} className="text-crimson-500 hover:underline">Terms of Service</button>,{' '}
+                      <button type="button" onClick={() => setActivePolicyModal('privacy')} className="text-crimson-500 hover:underline">Privacy Policy</button>, and{' '}
+                      <button type="button" onClick={() => setActivePolicyModal('refund')} className="text-crimson-500 hover:underline">Cancellation & Refund Policy</button>.
+                    </p>
+                  </form>
+                </div>
+              </div>
+            )}
         </div>
       </div>
 

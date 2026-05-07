@@ -80,8 +80,20 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
   const [role, setRole] = useState('member')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [recruitedAdmin, setRecruitedAdmin] = useState(null)
 
   if (!isOpen) return null
+
+  const handleClose = () => {
+    setDisplayName('')
+    setEmail('')
+    setPassword('')
+    setPhone('')
+    setRole('member')
+    setError('')
+    setRecruitedAdmin(null)
+    onClose()
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -89,15 +101,9 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
 
     const isAdmin = role === 'admin'
 
-    if (isAdmin) {
-      if (!email || !password) {
-        setError('Email and password are required for admin accounts.')
-        return
-      }
-      if (password.length < 6) {
-        setError('Password must be at least 6 characters.')
-        return
-      }
+    if (isAdmin && !email) {
+      setError('Email is required for admin accounts.')
+      return
     }
 
     if (!displayName || !phone) {
@@ -107,105 +113,121 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
 
     setSaving(true)
     try {
-      let uid = null
-      
-      if (isAdmin) {
-        const tempClient = createAuthClient()
-        const { data: authData, error: authError } = await tempClient.auth.signUp({
-          email,
-          password,
-          options: { data: { displayName, role } }
-        })
-        if (authError) throw authError
-        uid = authData.user?.id || null
-      }
-
       await onAdd({
-        uid: uid,
+        uid: null,
         displayname: displayName,
         email: isAdmin ? email : '',
         phone,
         role
       })
 
-      setDisplayName('')
-      setEmail('')
-      setPassword('')
-      setPhone('')
-      setRole('member')
-      onClose()
+      if (isAdmin) {
+        setRecruitedAdmin({ displayName, email })
+      } else {
+        handleClose()
+      }
     } catch (err) {
       console.error('Error in handleSubmit:', err)
-      if (err.code === 'auth/email-already-in-use' || err.message?.includes('email-already-in-use')) {
-        setError('This email is already registered.')
-      } else {
-        setError(err.message || 'Failed to create account. Please try again.')
-      }
+      setError(err.message || 'Failed to create account. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-surface-800 flex justify-between items-center sticky top-0 bg-surface-900 z-10">
-          <h3 className="text-xl font-bold text-surface-100">Add Member</h3>
-          <button onClick={onClose} className="text-surface-400 hover:text-surface-100 transition-colors">✕</button>
+          <h3 className="text-xl font-bold text-surface-100">
+            {recruitedAdmin ? 'Recruit Admin' : 'Add Member'}
+          </h3>
+          <button onClick={handleClose} className="text-surface-400 hover:text-surface-100 transition-colors">✕</button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="bg-crimson-500/10 border border-crimson-500/20 rounded-lg px-4 py-3 text-crimson-400 text-sm font-medium">
-              {error}
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
-            <input required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
-              className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-              placeholder="e.g. Ah Huat" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
-              <input required type="text" value={phone} onChange={e => setPhone(e.target.value)}
-                className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-                placeholder="+60 12-345 6789" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Role</label>
-              <select value={role} onChange={e => setRole(e.target.value)}
-                className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none">
-                <option value="member">Member (Personnel)</option>
-                <option value="admin">Admin (Full Access)</option>
-              </select>
-            </div>
-          </div>
 
-          {role === 'admin' && (
-            <div className="grid grid-cols-2 gap-4 animate-fade-in">
-              <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email *</label>
-                <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-                  placeholder="ah@huat.com" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Password *</label>
-                <input required type="password" value={password} onChange={e => setPassword(e.target.value)}
-                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-                  placeholder="Min 6 chars" />
-              </div>
+        {recruitedAdmin ? (
+          <div className="p-6 space-y-6 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-          )}
-          <div className="pt-4 flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-lg bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors">Cancel</button>
-            <button type="submit" disabled={saving}
-              className="flex-1 py-3 rounded-lg bg-crimson-600 text-white font-bold hover:bg-crimson-500 transition-colors disabled:opacity-50">
-              {saving ? 'Creating...' : 'Create Account'}
+            <div className="text-center">
+              <h4 className="text-lg font-black text-white uppercase tracking-tight">Admin Recruited Successfully</h4>
+              <p className="text-sm text-surface-400 mt-2 px-4 leading-relaxed">
+                Admin <span className="text-crimson-500 font-black">{recruitedAdmin.displayName}</span> is now registered.
+              </p>
+            </div>
+
+            <div className="bg-surface-950 border border-surface-800 rounded-2xl p-6 space-y-4">
+              <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest text-center">Next Steps for Admin</p>
+              <div className="p-4 bg-surface-900 border border-surface-800 rounded-xl text-center">
+                <p className="text-xs font-bold text-surface-200 mb-1">Tell the admin to Sign Up using:</p>
+                <p className="text-sm font-black text-crimson-400 tracking-wide">{recruitedAdmin.email}</p>
+              </div>
+              <p className="text-[9px] text-surface-600 text-center font-medium leading-relaxed">
+                Their account will be automatically recognized as an Admin upon registration. You do not need to share any passwords.
+              </p>
+            </div>
+
+            <button 
+              onClick={handleClose}
+              className="w-full py-4 bg-surface-800 hover:bg-surface-700 text-surface-200 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+            >
+              Close & Refresh List
             </button>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {error && (
+              <div className="bg-crimson-500/10 border border-crimson-500/20 rounded-lg px-4 py-3 text-crimson-400 text-sm font-medium">
+                {error}
+              </div>
+            )}
+            <div>
+              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
+              <input required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
+                className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
+                placeholder="e.g. Ah Huat" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
+                <input required type="text" value={phone} onChange={e => setPhone(e.target.value)}
+                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
+                  placeholder="+60 12-345 6789" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Role</label>
+                <select value={role} onChange={e => setRole(e.target.value)}
+                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none">
+                  <option value="member">Member (Personnel)</option>
+                  <option value="admin">Admin (Full Access)</option>
+                </select>
+              </div>
+            </div>
+
+            {role === 'admin' && (
+              <div className="animate-fade-in space-y-1">
+                <div>
+                  <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
+                  <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
+                    className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
+                    placeholder="admin@example.com" />
+                </div>
+                <p className="text-[10px] text-surface-500 font-bold uppercase tracking-wider leading-relaxed pt-1">
+                  The user will set their password when they first register on the login page.
+                </p>
+              </div>
+            )}
+            <div className="pt-4 flex gap-3">
+              <button type="button" onClick={handleClose} className="flex-1 py-3 rounded-lg bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors">Cancel</button>
+              <button type="submit" disabled={saving}
+                className="flex-1 py-3 rounded-lg bg-crimson-600 text-white font-bold hover:bg-crimson-500 transition-colors disabled:opacity-50">
+                {saving ? 'Creating...' : 'Create Account'}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   )
@@ -241,35 +263,16 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
     setError('')
 
     const isPromotingToAdmin = role === 'admin' && !member.uid
-    const isAdmin = role === 'admin'
 
-    if (isPromotingToAdmin) {
-      if (!email || !password) {
-        setError('Email and password are required to promote to admin.')
-        return
-      }
-      if (password.length < 6) {
-        setError('Password must be at least 6 characters.')
-        return
-      }
+    if (isPromotingToAdmin && !email && !member.email) {
+      setError('Email is required to promote to admin.')
+      return
     }
 
     setSaving(true)
     try {
       let uid = member.uid
       let currentEmail = email || member.email
-
-      if (isPromotingToAdmin) {
-        const tempClient = createAuthClient()
-        const { data: authData, error: authError } = await tempClient.auth.signUp({
-          email,
-          password,
-          options: { data: { displayName, role } }
-        })
-        if (authError) throw authError
-        uid = authData.user?.id || null
-        currentEmail = email
-      }
 
       const oldRole = member.role || 'member'
       await onSave(member.id, { 
@@ -287,11 +290,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
       onClose()
     } catch (err) {
       console.error('Error in EditMemberModal:', err)
-      if (err.code === 'auth/email-already-in-use' || err.message?.includes('email-already-in-use')) {
-        setError('This email is already registered.')
-      } else {
-        setError(err.message || 'Failed to update member. Please try again.')
-      }
+      setError(err.message || 'Failed to update member. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -350,19 +349,16 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
           </div>
 
           {(role === 'admin' || role === 'master') && !member.uid && (
-            <div className="grid grid-cols-2 gap-4 animate-fade-in border-t border-surface-800 pt-4">
+            <div className="animate-fade-in border-t border-surface-800 pt-4 space-y-1">
               <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">New Email *</label>
+                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
                 <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                   placeholder="admin@example.com" />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Initial Password *</label>
-                <input required type="password" value={password} onChange={e => setPassword(e.target.value)}
-                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-                  placeholder="Min 6 chars" />
-              </div>
+              <p className="text-[10px] text-surface-500 font-bold uppercase tracking-wider leading-relaxed pt-1">
+                The user will set their password when they first register on the login page.
+              </p>
             </div>
           )}
 
@@ -651,8 +647,14 @@ export default function TeamPage() {
                           </td>
                           <td className="px-5 py-4">
                             <div className={`flex flex-col ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-500'}`}>
-                              <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit border ${m.role === 'master' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-gold-500/10 text-gold-400 border-gold-500/20'}`}>
-                                {m.role || 'admin'}
+                              <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit border ${
+                                !m.uid 
+                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
+                                  : m.role === 'master' 
+                                    ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                                    : 'bg-gold-500/10 text-gold-400 border-gold-500/20'
+                              }`}>
+                                {m.role || 'admin'} {!m.uid && '(Pending Setup)'}
                               </span>
                               {!isOnline(m.lastactive) && m.lastactive && (
                                 <span className="text-[10px] mt-1 font-medium opacity-80">Seen {formatLastActive(m.lastactive)}</span>
