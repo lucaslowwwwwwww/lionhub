@@ -367,9 +367,9 @@ export default function LoginPage() {
               <div className="space-y-6 text-left">
                 <header>
                   <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1">Terms of Service</h2>
-                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Lionhub System Agreement — Last Updated: 5 May 2026</p>
+                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Lionhub System Agreement — Last Updated: 7 May 2026</p>
                 </header>
-                <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium">
+                <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium font-sans">
                   <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Acceptance of Terms</h3>
                   <p>By accessing or using the Lionhub platform ("the Platform"), you agree to be bound by these Terms of Service. If you are registering on behalf of a Lion or Dragon Dance association, troupe, or club, you represent and warrant that you have the legal authority to bind said entity to this agreement. <strong>If you disagree with any part of these terms, you must immediately cease all access to the Platform and discontinue the use of our management services.</strong></p>
                   
@@ -390,15 +390,17 @@ export default function LoginPage() {
                   <p>Payments are settled via direct bank transfer or authorized payment gateways.</p>
                   <p><strong>Suspension</strong>: Failure to renew a subscription will result in automatic account suspension. Access to database records will be restricted until all outstanding payments are settled.</p>
                   
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">5. Limitation of Liability</h3>
-                  <p>The Lionhub platform is provided on an "as is" and "as available" basis. While we utilize enterprise-grade infrastructure to ensure high availability, Lionhub and its operator, Low Phak Hey, shall not be held liable for any indirect damages, lost performance revenue, or business interruptions resulting from:</p>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li>Third-party internet provider failures.</li>
-                    <li>Unscheduled system downtime.</li>
-                    <li>Accidental data deletion by your authorized committee members.</li>
-                  </ul>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">5. Disclaimer of Warranties & Limitation of Liability</h3>
+                  <p><strong>THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. WE DO NOT WARRANT THAT THE SERVICES WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE.</strong></p>
+                  <p>To the maximum extent permitted by applicable law, in no event shall Lionhub or its developer, Low Phak Hey, be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, loss of data, loss of bookings, loss of performance revenue, or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort arising in any way out of the use of this software, even if advised of the possibility of such damage.</p>
                   
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">6. Governing Law</h3>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">6. Indemnification</h3>
+                  <p>You agree to defend, indemnify, and hold harmless Lionhub and Low Phak Hey from and against any and all claims, damages, obligations, losses, liabilities, costs, or debt, and expenses (including but not limited to attorney's fees) arising from: (i) your use of and access to the Platform; (ii) your violation of any term of these Terms of Service; (iii) your violation of any third-party right, including without limitation any copyright, property, or privacy right (such as PDPA violations by inputting unauthorized member or customer data).</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">7. Intellectual Property</h3>
+                  <p>All content, features, database schemas, code, visual designs, and software functionalities of the Platform are and will remain the exclusive property of Lionhub and its developer. You are strictly prohibited from copying, modifying, distributing, reverse-engineering, or using any part of our platform for competitive benchmarking or unauthorized commercial purposes.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">8. Governing Law</h3>
                   <p>These terms shall be governed by and construed in accordance with the laws of Malaysia.</p>
                 </div>
               </div>
@@ -408,9 +410,9 @@ export default function LoginPage() {
               <div className="space-y-6 text-left">
                 <header>
                   <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1">Privacy Policy</h2>
-                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Data Safety & Compliance — Last Updated: 5 May 2026</p>
+                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Data Safety & Compliance — Last Updated: 7 May 2026</p>
                 </header>
-                <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium">
+                <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium font-sans">
                   <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Introduction</h3>
                   <p>Lionhub is committed to protecting your troupe's operational and personal data in strict compliance with the <strong>Personal Data Protection Act 2010 (PDPA)</strong> of Malaysia.</p>
                   
@@ -441,6 +443,10 @@ export default function LoginPage() {
                   
                   <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">6. Rights of Access (PDPA)</h3>
                   <p>Under the PDPA, your association has the right to request access to, correct, or export the data stored on our platform at any time.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">7. Local Storage & Sub-processors</h3>
+                  <p><strong>Local Storage:</strong> To maintain secure sessions and remember your layout preferences (such as Dark Mode), the Platform utilizes local browser storage (LocalStorage/SessionStorage). No marketing or tracking cookies are used.</p>
+                  <p><strong>Sub-processors:</strong> We utilize world-class, secure third-party sub-processors (such as Supabase and AWS) to host the cloud database and manage emails. These services operate under strict compliance standards to ensure your data remains isolated and encrypted at all times.</p>
                 </div>
               </div>
             )}
@@ -449,9 +455,9 @@ export default function LoginPage() {
               <div className="space-y-6 text-left">
                 <header>
                   <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1">Cancellation & Refund</h2>
-                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Billing & Subscription Terms — Last Updated: 5 May 2026</p>
+                  <p className="text-[9px] font-black text-crimson-500 uppercase tracking-widest">Billing & Subscription Terms — Last Updated: 7 May 2026</p>
                 </header>
-                <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium">
+                <div className="space-y-4 text-surface-300 text-xs leading-relaxed font-medium font-sans">
                   <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">1. Subscription Cancellations</h3>
                   <p>Users may cancel their Lionhub subscription at any time by notifying support or opting not to renew a pending annual/half-yearly invoice. Access will remain active until the end of the current paid billing cycle.</p>
                   
@@ -470,6 +476,9 @@ export default function LoginPage() {
                   
                   <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">5. Data Export Prior to Expiration</h3>
                   <p>We strongly encourage all treasurers and troupe masters to utilize the built-in <strong>Export Tools</strong> to download member lists and financial records prior to allowing a subscription to expire.</p>
+                  
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider pt-2">6. Subscription Pricing Adjustment</h3>
+                  <p>We reserve the right to adjust subscription rates or introduce new payment tiers at any time. Any changes in pricing will be communicated to your primary master admin email at least 30 days in advance, allowing you ample time to cancel or modify your subscription prior to the changes taking effect.</p>
                 </div>
               </div>
             )}

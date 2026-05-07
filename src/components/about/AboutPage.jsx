@@ -3,7 +3,7 @@ import { useOrg } from '../../contexts/OrgContext';
 
 // Legal Content based on the drafted documents
 const TERMS_CONTENT = `
-*Last Updated: 5 May 2026*
+*Last Updated: 7 May 2026*
 
 ### 1. Acceptance of Terms
 By accessing or using the Lionhub platform ("the Platform"), you agree to be bound by these Terms of Service. If you are registering on behalf of a Lion or Dragon Dance association, troupe, or club, you represent and warrant that you have the legal authority to bind said entity to this agreement. **If you disagree with any part of these terms, you must immediately cease all access to the Platform and discontinue the use of our management services.**
@@ -23,18 +23,22 @@ Lionhub is designed exclusively for the professional management of cultural arts
 *   Payments are settled via direct bank transfer or authorized payment gateways.
 *   **Suspension**: Failure to renew a subscription will result in automatic account suspension. Access to database records will be restricted until all outstanding payments are settled.
 
-### 5. Limitation of Liability
-The Lionhub platform is provided on an "as is" and "as available" basis. While we utilize enterprise-grade infrastructure to ensure high availability, Lionhub and its operator, Low Phak Hey, shall not be held liable for any indirect damages, lost performance revenue, or business interruptions resulting from:
-*   Third-party internet provider failures.
-*   Unscheduled system downtime.
-*   Accidental data deletion by your authorized committee members.
+### 5. Disclaimer of Warranties & Limitation of Liability
+**THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. WE DO NOT WARRANT THAT THE SERVICES WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE.**
+To the maximum extent permitted by applicable law, in no event shall Lionhub or its developer, Low Phak Hey, be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, loss of data, loss of bookings, loss of performance revenue, or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort arising in any way out of the use of this software, even if advised of the possibility of such damage.
 
-### 6. Governing Law
+### 6. Indemnification
+You agree to defend, indemnify, and hold harmless Lionhub and Low Phak Hey from and against any and all claims, damages, obligations, losses, liabilities, costs, or debt, and expenses (including but not limited to attorney's fees) arising from: (i) your use of and access to the Platform; (ii) your violation of any term of these Terms of Service; (iii) your violation of any third-party right, including without limitation any copyright, property, or privacy right (such as PDPA violations by inputting unauthorized member or customer data).
+
+### 7. Intellectual Property
+All content, features, database schemas, code, visual designs, and software functionalities of the Platform are and will remain the exclusive property of Lionhub and its developer. You are strictly prohibited from copying, modifying, distributing, reverse-engineering, or using any part of our platform for competitive benchmarking or unauthorized commercial purposes.
+
+### 8. Governing Law
 These terms shall be governed by and construed in accordance with the laws of Malaysia.
 `;
 
 const PRIVACY_CONTENT = `
-*Last Updated: 5 May 2026*
+*Last Updated: 7 May 2026*
 
 ### 1. Introduction
 Lionhub is committed to protecting your troupe's operational and personal data in strict compliance with the **Personal Data Protection Act 2010 (PDPA)** of Malaysia.
@@ -62,10 +66,14 @@ Lionhub will never sell, rent, or share your association's operational data, cli
 
 ### 6. Rights of Access (PDPA)
 Under the PDPA, your association has the right to request access to, correct, or export the data stored on our platform at any time.
+
+### 7. Local Storage & Sub-processors
+*   **Local Storage**: To maintain secure sessions and remember your layout preferences (such as Dark Mode), the Platform utilizes local browser storage (LocalStorage/SessionStorage). No marketing or tracking cookies are used.
+*   **Sub-processors**: We utilize world-class, secure third-party sub-processors (such as Supabase and AWS) to host the cloud database and manage emails. These services operate under strict compliance standards to ensure your data remains isolated and encrypted at all times.
 `;
 
 const REFUND_CONTENT = `
-*Last Updated: 5 May 2026*
+*Last Updated: 7 May 2026*
 
 ### 1. Subscription Cancellations
 Users may cancel their Lionhub subscription at any time by notifying support or opting not to renew a pending annual/half-yearly invoice. Access will remain active until the end of the current paid billing cycle.
@@ -83,6 +91,9 @@ If an account remains inactive and unpaid for more than 12 consecutive months, a
 
 ### 5. Data Export Prior to Expiration
 We strongly encourage all treasurers and troupe masters to utilize the built-in **Export Tools** to download member lists and financial records prior to allowing a subscription to expire.
+
+### 6. Subscription Pricing Adjustment
+We reserve the right to adjust subscription rates or introduce new payment tiers at any time. Any changes in pricing will be communicated to your primary master admin email at least 30 days in advance, allowing you ample time to cancel or modify your subscription prior to the changes taking effect.
 `;
 
 // Helper component to render simple markdown
