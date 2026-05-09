@@ -124,7 +124,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
     setFormData(prev => {
       const newColors = [...prev.lioncolor]
       if (newColors.length < qty) {
-        while (newColors.length < qty) newColors.push(settings?.lioncolors?.[0] || '黄')
+        while (newColors.length < qty) newColors.push(settings?.lioncolors?.[0] || '')
       } else if (newColors.length > qty) {
         newColors.length = qty
       }
@@ -136,7 +136,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-      const colors = settings?.lioncolors || ['黑', '黄', '紫', '橙', '青', '红']
+      const colors = settings?.lioncolors || []
       
       if (stop) {
         // Normalize lioncolor to array
@@ -146,7 +146,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
         } else if (stop.lioncolor || stop.lionColor) {
           initialColors = [stop.lioncolor || stop.lionColor]
         } else {
-          initialColors = [colors[1] || '黄']
+          initialColors = [colors[0] || '']
         }
 
         setFormData({
@@ -173,7 +173,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           amount: '',
           scheduledtime: '',
           duration: settings?.defaultduration || 30,
-          lioncolor: [colors[1] || '黄', colors[1] || '黄'],
+          lioncolor: [colors[0] || '', colors[0] || ''],
           lionquantity: 2,
           extra_characters: [],
           pluckingtype: [],
@@ -445,7 +445,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                         }}
                         className="w-full bg-surface-900/50 border border-surface-800 rounded-xl pl-8 pr-8 h-[44px] text-surface-200 focus:outline-none focus:border-crimson-500/50 transition-all text-[11px] font-bold appearance-none cursor-pointer"
                       >
-                        {(settings?.lioncolors || ['黑', '黄', '紫', '橙', '青', '红']).map(c => (
+                        {(settings?.lioncolors || []).map(c => (
                           <option key={c} value={c}>
                             {typeof c === 'string' && c.includes('|') ? c.split('|')[0].trim() : c}
                           </option>
@@ -464,7 +464,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <div>
                 <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-2">Cai Qing (采青) - Click To Add</label>
                 <div className="grid grid-cols-2 gap-2 mb-4">
-                  {(settings?.cai_qing_types?.length ? settings.cai_qing_types : ['五福临门', '步步高升', '招财进宝', '满地黄金', '车青', '地主']).map(type => (
+                  {(settings?.cai_qing_types || []).map(type => (
                     <button
                       key={type}
                       type="button"
@@ -476,6 +476,11 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                       + {type}
                     </button>
                   ))}
+                  {(!settings?.cai_qing_types?.length) && (
+                    <div className="col-span-2 text-center text-xs text-surface-500 py-4 border border-dashed border-surface-800 rounded-xl bg-surface-950/20">
+                      No Cai Qing types configured under Settings.
+                    </div>
+                  )}
                 </div>
 
                 {formData.pluckingtype.length > 0 && (
@@ -504,7 +509,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             </div>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              {(settings?.extra_characters?.length ? settings.extra_characters : ['财神爷', '大头佛']).map(char => (
+              {(settings?.extra_characters || []).map(char => (
                 <label key={char} className="flex items-center gap-3 cursor-pointer group">
                   <input 
                     type="checkbox" 
@@ -520,6 +525,11 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                   <span className="text-sm font-bold text-surface-200 group-hover:text-surface-50 transition-colors">{char}</span>
                 </label>
               ))}
+              {(!settings?.extra_characters?.length) && (
+                <div className="text-xs text-surface-500 py-2 italic">
+                  No extra characters configured under Settings.
+                </div>
+              )}
             </div>
           </div>
 

@@ -183,7 +183,7 @@ export const generateBillingPDF = async (data, settings, userProfile, type = 'IN
   doc.text("PHONE :", 120, phoneLabelY)
   doc.line(120, phoneLabelY + 1, 135, phoneLabelY + 1)
   doc.setFont(defaultFont, "normal")
-  const sigPhone = settings?.signatoryphone || clubPhone.split('/')[0].trim()
+  const sigPhone = settings?.signatoryphone || (clubPhone ? clubPhone.split('/')[0].trim() : "")
   doc.text(sigPhone.replace(/\s/g, ''), 140, phoneLabelY)
 
   // Items Table

@@ -279,6 +279,7 @@ export function useItinerary(troupeId, date) {
         .upsert({
           id: docId,
           troupeid: troupeId,
+          troupename: itinData.troupename || itinData.troupeName || 'Unknown',
           date,
           status: 'published',
           attendance: [],
@@ -426,6 +427,7 @@ export function useItinerary(troupeId, date) {
       const updates = newStops.map((stop, index) => ({
         id: stop.id,
         itinerary_id: itinerary.id,
+        org_id: stop.org_id || orgId,
         order: index,
         updatedat: now
       }))
@@ -491,13 +493,142 @@ export function useItinerary(troupeId, date) {
     }
   }
 
-  return { itinerary, stops, attendance, attendanceDetails, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary, refresh: fetchItinerary }
+  // Transfer a stop to another team (troupe) on the same date
+  const transferStop = async (stopId, targetTroupeId, targetTroupeName) => {
+    try {
+      const stopData = stops.find(s => s.id === stopId)
+      if (!stopData) throw new Error('Stop not found')
+      if (!date || !orgId) throw new Error('Missing date or organization context')
+
+      const now = new Date().toISOString()
+      const targetItinId = `${date}_${targetTroupeId}`
+
+      // 1. Ensure target itinerary exists
+      const { data: targetItin, error: targetFetchError } = await supabase
+        .from('itineraries')
+        .select('*')
+        .eq('id', targetItinId)
+        .maybeSingle()
+
+      if (targetFetchError) throw targetFetchError
+
+      if (!targetItin) {
+        // Create target itinerary if it doesn't exist
+        const { error: targetCreateError } = await supabase
+          .from('itineraries')
+          .insert({
+            id: targetItinId,
+            troupeid: targetTroupeId,
+            troupename: targetTroupeName || 'Unknown',
+            date,
+            status: 'published',
+            attendance: [],
+            attendancedetails: {},
+            totalstops: 0,
+            completedstops: 0,
+            skippedstops: 0,
+            totalrevenue: 0,
+            org_id: orgId,
+            createdat: now
+          })
+        if (targetCreateError) throw targetCreateError
+      }
+
+      // 2. Fetch target stops to determine the new order index
+      const { data: targetStops, error: targetStopsError } = await supabase
+        .from('stops')
+        .select('id')
+        .eq('itinerary_id', targetItinId)
+        .eq('org_id', orgId)
+
+      if (targetStopsError) throw targetStopsError
+      const targetOrder = targetStops ? targetStops.length : 0
+
+      // 3. Update the stop's itinerary_id and order
+      const { error: updateError } = await supabase
+        .from('stops')
+        .update({
+          itinerary_id: targetItinId,
+          order: targetOrder,
+          updatedat: now
+        })
+        .eq('id', stopId)
+
+      if (updateError) throw updateError
+
+      // 4. Update source itinerary counters (decrease by 1)
+      if (itinerary) {
+        const sourceUpdates = {
+          totalstops: Math.max(0, (itinerary.totalstops || 0) - 1),
+          updatedat: now
+        }
+        if (stopData.status === 'completed') {
+          sourceUpdates.completedstops = Math.max(0, (itinerary.completedstops || 0) - 1)
+          sourceUpdates.totalrevenue = (itinerary.totalrevenue || 0) - (Number(stopData.actualamount) || 0)
+        } else if (stopData.status === 'skipped') {
+          sourceUpdates.skippedstops = Math.max(0, (itinerary.skippedstops || 0) - 1)
+        }
+
+        const { error: sourceItinError } = await supabase
+          .from('itineraries')
+          .update(sourceUpdates)
+          .eq('id', itinerary.id)
+
+        if (sourceItinError) throw sourceItinError
+        setItinerary(prev => prev ? ({ ...prev, ...sourceUpdates }) : null)
+      }
+
+      // 5. Update destination itinerary counters (increase by 1)
+      const targetUpdates = {
+        totalstops: ((targetItin?.totalstops || 0) + 1),
+        updatedat: now
+      }
+      if (stopData.status === 'completed') {
+        targetUpdates.completedstops = ((targetItin?.completedstops || 0) + 1)
+        targetUpdates.totalrevenue = ((targetItin?.totalrevenue || 0) + (Number(stopData.actualamount) || 0))
+      } else if (stopData.status === 'skipped') {
+        targetUpdates.skippedstops = ((targetItin?.skippedstops || 0) + 1)
+      }
+
+      const { error: targetItinUpdateError } = await supabase
+        .from('itineraries')
+        .update(targetUpdates)
+        .eq('id', targetItinId)
+
+      if (targetItinUpdateError) throw targetItinUpdateError
+
+      // 6. Sync finance record troupe if completed
+      if (stopData.status === 'completed') {
+        try {
+          const financeId = `FIN_${stopData.scheduleddate || date}_${stopId}`
+          await supabase
+            .from('finance')
+            .update({
+              troupeid: targetTroupeId,
+              description: `Performance: ${stopData.householdname || 'Standard Performance'} (${targetTroupeName || 'Unknown'})`
+            })
+            .eq('id', financeId)
+        } catch (err) {
+          console.error('Failed to update associated finance record troupe:', err)
+        }
+      }
+
+      // 7. Optimistic Local Update
+      setStops(prev => prev.filter(s => s.id !== stopId))
+      showToast('Stop transferred successfully', 'success')
+      logAction('TRANSFER_STOP', { stopId, fromItinId: itinerary?.id, toItinId: targetItinId })
+    } catch (err) {
+      console.error('Failed to transfer stop:', err)
+      showToast('Failed to transfer stop', 'error')
+      throw err
+    }
+  }
+
+  return { itinerary, stops, attendance, attendanceDetails, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary, transferStop, refresh: fetchItinerary }
 }
 
 export function useAllPerformanceDates(troupeId) {
   const CACHE_KEY = 'liondance_cache_perf_dates'
-  const CACHE_EXPIRY = 10 * 60 * 1000
-
   const [allItineraries, setAllItineraries] = useState(() => {
     try {
       const cached = localStorage.getItem(CACHE_KEY)

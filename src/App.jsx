@@ -23,6 +23,7 @@ const InventoryPage = lazy(() => import('./components/inventory').then(m => ({ d
 const BillingPage = lazy(() => import('./components/billing/BillingPage'))
 const SuperAdminDashboard = lazy(() => import('./components/superadmin/SuperAdminDashboard'))
 const AboutPage = lazy(() => import('./components/about').then(m => ({ default: m.AboutPage })))
+const SalaryCalculator = lazy(() => import('./components/salary/SalaryCalculator'))
 
 /**
  * LoginGuard — redirects already-authenticated users away from /login.
@@ -234,6 +235,7 @@ function AppContent() {
                     <Route path="/settings/general" element={<GeneralSettings />} />
                     <Route path="/settings/team" element={<TeamPage />} />
                     <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
+                    <Route path="/salary" element={<SalaryCalculator />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>

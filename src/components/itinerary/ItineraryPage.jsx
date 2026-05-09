@@ -13,6 +13,8 @@ import TeamSelectionModal from '../dashboard/TeamSelectionModal'
 import { useSettings } from '../../hooks/useSettings'
 import { useTroupes } from '../../hooks/useTroupes'
 import { useMembers } from '../../hooks/useMembers'
+import { useOrg } from '../../contexts/OrgContext'
+import { supabase } from '../../supabase'
 import { exportDayReportPDF, exportDayReportExcel } from '../../utils/exportUtils'
 
 
@@ -22,6 +24,7 @@ export default function ItineraryPage() {
   const { settings } = useSettings()
   const { troupes } = useTroupes()
   const { members } = useMembers()
+  const { orgId } = useOrg()
   
   const overrides = settings?.cnyoverrides || {}
 
@@ -54,32 +57,42 @@ export default function ItineraryPage() {
     return [...sortedActive, ...orphanIds]
   }, [dateTroupes, dateKey, troupes])
 
-  const busyMemberIds = useMemo(() => {
-    return allItineraries
+  const { busyMemberIds } = useMemo(() => {
+    const busyIds = new Set()
+
+    allItineraries
       .filter(itin => itin.date === dateKey && itin.troupeid !== activeTroupeId)
-      .flatMap(itin => itin.attendance || [])
+      .forEach(itin => {
+        const attendanceList = itin.attendance || []
+        attendanceList.forEach(memberId => {
+          busyIds.add(memberId)
+        })
+      })
+
+    return {
+      busyMemberIds: Array.from(busyIds)
+    }
   }, [allItineraries, dateKey, activeTroupeId])
 
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
   const troupeIdToUse = activeTroupeId || (isAdmin ? null : userProfile?.troupeid)
 
   useEffect(() => {
-    if (activeTroupesOnDate.length > 0) {
-      if (!activeTroupeId || !activeTroupesOnDate.includes(activeTroupeId)) {
-        setActiveTroupeId(activeTroupesOnDate[0])
-      }
-    } else if (activeTroupesOnDate.length === 0) {
-      // Default to "Team A" if no other teams are active and we are an admin
-      if (isAdmin && troupes.length > 0) {
-        const teamA = troupes.find(t => t.name.toLowerCase().includes('team a')) || troupes[0]
-        if (teamA) setActiveTroupeId(teamA.id)
-      } else {
-        setActiveTroupeId(null)
-      }
+    if (activeTroupeId && troupes.some(t => t.id === activeTroupeId)) {
+      return
     }
-  }, [activeTroupesOnDate, activeTroupeId, isAdmin, troupes])
 
-  const { itinerary, stops = [], attendance = [], attendanceDetails = {}, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary } = useItinerary(troupeIdToUse, dateKey)
+    if (activeTroupesOnDate.length > 0) {
+      setActiveTroupeId(activeTroupesOnDate[0])
+    } else if (troupes.length > 0) {
+      const teamA = troupes.find(t => t.name.toLowerCase().includes('team a')) || troupes[0]
+      if (teamA) setActiveTroupeId(teamA.id)
+    } else {
+      setActiveTroupeId(null)
+    }
+  }, [activeTroupesOnDate, activeTroupeId, troupes])
+
+  const { itinerary, stops = [], attendance = [], attendanceDetails = {}, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary, transferStop } = useItinerary(troupeIdToUse, dateKey)
 
   const { activeStops, finishedStops } = useMemo(() => {
     const active = stops.filter(s => s.status !== 'completed' && s.status !== 'skipped')
@@ -169,12 +182,38 @@ export default function ItineraryPage() {
 
   const handleExportPDF = async () => {
     setIsExportOpen(false)
-    await exportDayReportPDF(stops, participatingMembers, attendanceDetails, settings, exportMeta)
+    let checkInsList = []
+    try {
+      if (orgId && dateKey) {
+        const { data } = await supabase
+          .from('check_ins')
+          .select('*')
+          .eq('org_id', orgId)
+          .eq('date', dateKey)
+        checkInsList = data || []
+      }
+    } catch (e) {
+      console.error('Error fetching check-ins for PDF export:', e)
+    }
+    await exportDayReportPDF(stops, participatingMembers, attendanceDetails, settings, exportMeta, checkInsList)
   }
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     setIsExportOpen(false)
-    exportDayReportExcel(stops, participatingMembers, attendanceDetails, exportMeta)
+    let checkInsList = []
+    try {
+      if (orgId && dateKey) {
+        const { data } = await supabase
+          .from('check_ins')
+          .select('*')
+          .eq('org_id', orgId)
+          .eq('date', dateKey)
+        checkInsList = data || []
+      }
+    } catch (e) {
+      console.error('Error fetching check-ins for Excel export:', e)
+    }
+    exportDayReportExcel(stops, participatingMembers, attendanceDetails, exportMeta, checkInsList)
   }
 
   return (
@@ -207,21 +246,18 @@ export default function ItineraryPage() {
       />
 
       {/* Compact Troupe Switcher */}
-      {activeTroupesOnDate.length > 1 && (
+      {troupes.length > 1 && (
         <div className="flex gap-2 p-1 bg-surface-950/50 rounded-2xl border border-surface-800/50 overflow-x-auto no-scrollbar">
-          {activeTroupesOnDate.map(tId => {
-            const tName = troupes.find(t => t.id === tId)?.name || 
-                         allItineraries.find(i => i.date === dateKey && i.troupeid === tId)?.troupename || 
-                         'Unknown'
+          {troupes.map(t => {
             return (
               <button
-                key={tId}
-                onClick={() => setActiveTroupeId(tId)}
+                key={t.id}
+                onClick={() => setActiveTroupeId(t.id)}
                 className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  activeTroupeId === tId ? 'bg-surface-800 text-brand-400 border border-brand-500/20 shadow-lg' : 'text-surface-500 hover:text-surface-300'
+                  activeTroupeId === t.id ? 'bg-surface-800 text-brand-400 border border-brand-500/20 shadow-lg' : 'text-surface-500 hover:text-surface-300'
                 }`}
               >
-                {tName}
+                {t.name}
               </button>
             )
           })}
@@ -328,6 +364,9 @@ export default function ItineraryPage() {
                                 dragHandleProps={provided.dragHandleProps}
                                 isAdmin={isAdmin}
                                 canStart={canStart}
+                                troupes={troupes}
+                                currentTroupeId={activeTroupeId}
+                                onTransfer={transferStop}
                               />
                             ) : (
                               <StopCard 
@@ -338,6 +377,9 @@ export default function ItineraryPage() {
                                 onDelete={handleDeleteStop} 
                                 dragHandleProps={provided.dragHandleProps}
                                 canStart={canStart}
+                                troupes={troupes}
+                                currentTroupeId={activeTroupeId}
+                                onTransfer={transferStop}
                               />
                             )}
                           </div>

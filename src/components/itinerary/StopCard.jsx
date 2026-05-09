@@ -5,12 +5,13 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSettings } from '../../hooks/useSettings'
 import { formatWhatsAppLink, formatPhoneForCall } from '../../utils/constants'
 
-export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index, canStart = true, dragHandleProps }) {
+export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index, canStart = true, dragHandleProps, troupes = [], currentTroupeId = null, onTransfer = () => {} }) {
   const { userProfile } = useAuth()
   const { settings } = useSettings()
   const [isGenerating, setIsGenerating] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
+  const [isTransferring, setIsTransferring] = useState(false)
   const [receivedAmount, setReceivedAmount] = useState(stop.amount || 0)
   const [paymentMethod, setPaymentMethod] = useState('Cash') // 'Cash' or 'Bank In'
   
@@ -80,6 +81,67 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
     )
   }
 
+  const renderTransferModal = () => {
+    if (!isTransferring) return null
+    const otherTroupes = (troupes || []).filter(t => t.id !== currentTroupeId)
+
+    return (
+      <div 
+        className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200" 
+        onClick={(e) => { e.stopPropagation(); setIsTransferring(false); }}
+      >
+        <div 
+          className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden mt-auto sm:mt-0 transition-transform animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300" 
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-900/50 backdrop-blur-md">
+            <h3 className="text-xl font-black text-surface-100 uppercase tracking-tight">Transfer Stop</h3>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsTransferring(false); }} 
+              className="text-surface-400 hover:text-surface-100 transition-colors p-2 hover:bg-surface-800 rounded-full"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="p-6 space-y-4">
+            <p className="text-xs text-surface-400 font-medium">
+              Transfer <strong className="text-gold-400">{stop.householdname}</strong> to another team:
+            </p>
+            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto no-scrollbar">
+              {otherTroupes.length === 0 ? (
+                <p className="text-xs text-surface-500 font-bold uppercase tracking-widest text-center py-4">No other teams found.</p>
+              ) : (
+                otherTroupes.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      try {
+                        await onTransfer(stop.id, t.id, t.name)
+                        setIsTransferring(false)
+                      } catch (err) {
+                        console.error(err)
+                      }
+                    }}
+                    className="w-full px-5 py-4 rounded-2xl bg-surface-950 border border-surface-800 hover:border-brand-500/50 hover:bg-brand-500/5 text-left transition-all flex items-center justify-between group animate-fade-in"
+                  >
+                    <div>
+                      <p className="font-black text-sm text-surface-100 uppercase tracking-wider">{t.name}</p>
+                      <p className="text-[10px] text-surface-500 font-bold mt-0.5">Transfer to this team</p>
+                    </div>
+                    <svg className="w-5 h-5 text-surface-600 group-hover:text-brand-400 transform group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div {...dragHandleProps} className={`relative overflow-hidden bg-surface-900 border rounded-3xl p-6 shadow-2xl transition-all duration-500 group ${
       isCompleted ? 'border-green-900/40 opacity-80 grayscale-[0.3]' :
@@ -112,7 +174,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
             
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black text-surface-50 tracking-tight leading-none">{stop.householdname}</h3>
+                <h3 className="text-xl font-black text-surface-550 tracking-tight leading-none">{stop.householdname}</h3>
                 {isAdmin && (
                   <div className="flex items-center gap-1 transition-opacity">
                     <button 
@@ -121,6 +183,15 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => setIsTransferring(true)}
+                      className="p-1.5 rounded-lg text-surface-500 hover:text-brand-400 hover:bg-brand-500/10 transition-all"
+                      title="Transfer Stop"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                       </svg>
                     </button>
                     <button 
@@ -257,7 +328,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
           <div className="bg-amber-500/10 border-l-2 border-amber-500/50 p-3 rounded-r-xl">
              <div className="flex items-center gap-2 mb-1">
                 <svg className="w-3 h-3 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                 </svg>
                 <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Team Note</span>
              </div>
@@ -362,12 +433,12 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
                         </div>
                      </div>
                   ) : (
-                    <button 
-                      onClick={() => { setReceivedAmount(stop.amount); setIsConfirming(true); }}
-                      className="w-full py-4 rounded-2xl bg-brand-500 text-white font-black text-xs hover:bg-brand-400 transition-all shadow-xl shadow-brand-500/20 ring-1 ring-inset ring-brand-400/50 uppercase tracking-widest"
-                    >
-                      Complete Performance
-                    </button>
+                     <button 
+                       onClick={() => { setReceivedAmount(stop.amount); setIsConfirming(true); }}
+                       className="w-full py-4 rounded-2xl bg-brand-500 text-white font-black text-xs hover:bg-brand-400 transition-all shadow-xl shadow-brand-500/20 ring-1 ring-inset ring-brand-400/50 uppercase tracking-widest"
+                     >
+                       Complete Performance
+                     </button>
                   )}
                 </div>
               )}
@@ -404,6 +475,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
         </div>
       </div>
       {renderNavModal()}
+      {renderTransferModal()}
     </div>
   )
 }

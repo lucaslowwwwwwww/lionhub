@@ -5,10 +5,13 @@ import { supabase } from '../../supabase'
 import CreateDocModal from './CreateDocModal'
 import { generateBillingPDF, formatPerformanceDescription } from '../../utils/billingUtils'
 import { TABLES } from '../../utils/fetchHelper'
+import { useOrg } from '../../contexts/OrgContext'
+
 
 export default function BillingPage() {
   const { userProfile } = useAuth()
   const { settings } = useSettings()
+  const { orgId } = useOrg()
   
   // History Docs
   const [docs, setDocs] = useState([])
@@ -29,11 +32,13 @@ export default function BillingPage() {
   // 2. Fetch Itinerary Stops for selected date (flat table)
   useEffect(() => {
     async function fetchStops() {
+      if (!orgId) return
       setLoadingStops(true)
       try {
         const { data, error } = await supabase
           .from('stops')
           .select(TABLES.STOPS)
+          .eq('org_id', orgId)
           .eq('scheduleddate', selectedDate)
           .order('order', { ascending: true })
 
@@ -46,7 +51,7 @@ export default function BillingPage() {
       }
     }
     fetchStops()
-  }, [selectedDate])
+  }, [selectedDate, orgId])
 
   const handleDownload = (doc) => {
     generateBillingPDF(doc, settings, userProfile, doc.type)

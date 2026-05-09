@@ -8,6 +8,8 @@ import { getActualCnyDate, getDayInfo } from '../../utils/constants'
 import TeamSelectionModal from './TeamSelectionModal'
 import { useSettings } from '../../hooks/useSettings'
 import { supabase } from '../../supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { useCheckIn } from '../../hooks/useCheckIn'
 
 function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel" }) {
   if (!isOpen) return null
@@ -103,6 +105,15 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     ? `${selectedDay}_${selectedYear}`
     : selectedDay
 
+  const { userProfile } = useAuth()
+  const { activeCheckIn, dailyCheckIns, checkIn, checkOut, loading: loadingC } = useCheckIn(dateKey)
+
+  const filteredCheckIns = useMemo(() => {
+    if (isAdmin) return dailyCheckIns
+    const currentMemberId = userProfile?.id || userProfile?.uid
+    return dailyCheckIns.filter(log => log.member_id === currentMemberId)
+  }, [dailyCheckIns, isAdmin, userProfile])
+
   const localIsoDate = currentActualDate.toISOString().split('T')[0]
   const currentDayInfo = getDayInfo(currentActualDate, overrides)
 
@@ -145,10 +156,21 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     }
   }, [allItineraries, transactions, dateKey])
 
-  const busyMemberIds = useMemo(() => {
-    return allItineraries
+  const { busyMemberIds } = useMemo(() => {
+    const busyIds = new Set()
+
+    allItineraries
       .filter(itin => itin.date === dateKey && itin.troupeid !== activeTroupeId)
-      .flatMap(itin => itin.attendance || [])
+      .forEach(itin => {
+        const attendanceList = itin.attendance || []
+        attendanceList.forEach(memberId => {
+          busyIds.add(memberId)
+        })
+      })
+
+    return {
+      busyMemberIds: Array.from(busyIds)
+    }
   }, [allItineraries, dateKey, activeTroupeId])
 
   useEffect(() => {
@@ -212,6 +234,14 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     return itinerary?.troupename || 'Unknown'
   }
   const participatingMembers = members.filter(m => attendance.includes(m.id))
+
+  const userAssignedTroupes = useMemo(() => {
+    const memberId = userProfile?.id || userProfile?.uid
+    if (!memberId) return []
+    return allItineraries
+      .filter(itin => itin.date === dateKey && (itin.attendance || []).includes(memberId))
+      .map(itin => itin.troupeid)
+  }, [allItineraries, dateKey, userProfile])
 
   const completedStops = stops.filter(s => s.status === 'completed').length
   const totalRevenue = stops
@@ -283,6 +313,62 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
           )}
         </div>
       </div>
+ 
+      {/* Real-time Check-In/Check-Out Widget */}
+      {userProfile && (
+        <div className="bg-surface-900 border border-surface-800 rounded-3xl p-5 shadow-lg space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Timesheet Check-In</p>
+              <h4 className="text-sm font-black text-surface-100 uppercase mt-0.5">Assigned Daily Support</h4>
+            </div>
+            {activeCheckIn && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-brand-500/10 border border-brand-500/20 text-brand-400 rounded-full">
+                <span className="w-2 h-2 bg-brand-500 rounded-full animate-ping" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Active Check-In</span>
+              </div>
+            )}
+          </div>
+
+          {activeCheckIn ? (
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-950/40 border border-surface-800/80 p-4 rounded-2xl">
+              <div>
+                <p className="text-[10px] font-black text-brand-500 uppercase">Currently On</p>
+                <p className="text-sm font-black text-surface-100 uppercase mt-1">
+                  {troupes.find(t => t.id === activeCheckIn.troupe_id)?.name || 'Deploying Team'}
+                </p>
+                <p className="text-[10px] text-surface-500 font-bold mt-1">
+                  Started at {new Date(activeCheckIn.check_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              <button onClick={checkOut} className="w-full sm:w-auto px-6 py-3 rounded-xl bg-crimson-600 hover:bg-crimson-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-crimson-600/20 transition-all">
+                Check Out
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-[11px] text-surface-400 font-bold">Select your assigned team to check in for today:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {userAssignedTroupes.length > 0 ? (
+                  userAssignedTroupes.map(tid => {
+                    const tName = troupes.find(t => t.id === tid)?.name || 'Unknown Team'
+                    return (
+                      <button key={tid} onClick={() => checkIn(tid)} className="flex items-center justify-between p-3 rounded-xl bg-surface-950 border border-surface-800 hover:border-brand-500/50 text-left transition-all group">
+                        <span className="text-xs font-black text-surface-200 group-hover:text-brand-400 uppercase">{tName}</span>
+                        <span className="text-[9px] font-black text-brand-500 uppercase bg-brand-500/10 px-2 py-0.5 rounded-md">Check In</span>
+                      </button>
+                    )
+                  })
+                ) : (
+                  <p className="text-xs text-surface-500 font-bold col-span-2 py-2">
+                    You are not assigned to any team rosters on this date. Please ask an Admin to assemble your roster first.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         {/* Operations Grid */}
@@ -423,17 +509,109 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {participatingMembers.map(member => (
+              {participatingMembers.map(member => {
+                const isLiveHere = dailyCheckIns.some(log => log.member_id === member.id && !log.check_out_at && log.troupe_id === activeTroupeId)
+                return (
                 <div key={member.id} className="px-4 py-3 rounded-2xl bg-surface-950/40 border border-surface-800 flex items-center gap-3 group/member hover:border-brand-500/50 transition-all shadow-sm">
                   <div className="w-8 h-8 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-[10px] font-black text-surface-400 group-hover/member:bg-brand-600 group-hover/member:text-white transition-colors">
                     {(member.displayname || member.displayName)?.charAt(0)}
                   </div>
                   <p className="text-[11px] font-bold text-surface-200 tracking-tight truncate">{member.displayname || member.displayName}</p>
+                  {isLiveHere && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" title="Currently Live" />
+                  )}
                   {attendanceDetails[member.id] === 'half' && (
                     <span className="text-[8px] font-black text-orange-400 uppercase bg-orange-500/20 px-1.5 py-0.5 rounded ml-auto">Half</span>
                   )}
                 </div>
-              ))}
+                )
+              })}
+            </div>
+
+            {/* Live Timesheet Dashboard */}
+            <div className="bg-surface-900/60 border border-surface-800/50 rounded-3xl p-6 shadow-sm space-y-4 mt-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-[9px] font-black text-brand-500 uppercase tracking-widest">Active Operations</p>
+                  <h3 className="text-base font-black text-surface-50 uppercase tracking-tight">Daily Timesheet Summary</h3>
+                </div>
+                <div className="px-3 py-1 bg-surface-950 border border-surface-800 text-surface-400 rounded-full text-[10px] font-bold">
+                  {filteredCheckIns.length} recorded segments
+                </div>
+              </div>
+
+              {filteredCheckIns.length > 0 ? (
+                <div className="divide-y divide-surface-800/30">
+                  {Object.values(
+                    filteredCheckIns.reduce((acc, log) => {
+                      const memberId = log.member_id
+                      const mName = log.member?.displayname || 'Unknown Member'
+                      if (!acc[memberId]) {
+                        acc[memberId] = {
+                          name: mName,
+                          sessions: [],
+                          totalHrs: 0,
+                          isCurrentlyCheckedIn: false,
+                          activeTroupe: null
+                        }
+                      }
+
+                      const start = new Date(log.check_in_at)
+                      const end = log.check_out_at ? new Date(log.check_out_at) : new Date()
+                      const diffHrs = (end - start) / 3600000
+                      
+                      acc[memberId].sessions.push({
+                        id: log.id,
+                        team: log.troupe?.name || 'Assigned Team',
+                        checkIn: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        checkOut: log.check_out_at ? end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Present',
+                        hrs: diffHrs,
+                        isLive: !log.check_out_at
+                      })
+
+                      acc[memberId].totalHrs += diffHrs
+                      if (!log.check_out_at) {
+                        acc[memberId].isCurrentlyCheckedIn = true
+                        acc[memberId].activeTroupe = log.troupe?.name
+                      }
+
+                      return acc
+                    }, {})
+                  ).map((mRecord, idx) => (
+                    <div key={idx} className="py-4 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-black text-surface-100">{mRecord.name}</p>
+                          {mRecord.isCurrentlyCheckedIn && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-[8px] font-black uppercase rounded-full tracking-widest animate-pulse">
+                              🟢 Live on {mRecord.activeTroupe}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {mRecord.sessions.map((sess, sIdx) => (
+                            <div key={sIdx} className="px-2 py-1 bg-surface-950 border border-surface-800 rounded-lg text-[9px] font-bold text-surface-400">
+                              <span className="text-surface-500">{sess.team}:</span> {sess.checkIn} - {sess.checkOut} ({sess.hrs.toFixed(1)}h)
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest">Total Worked</p>
+                        <p className="text-lg font-black text-brand-400 tracking-tighter mt-0.5">
+                          {mRecord.totalHrs.toFixed(1)} hrs
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-surface-950/20 rounded-2xl border border-dashed border-surface-800 text-xs font-bold text-surface-500 uppercase tracking-widest">
+                  No check-ins registered for today.
+                </div>
+              )}
             </div>
           </div>
         </>

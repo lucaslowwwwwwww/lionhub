@@ -80,7 +80,7 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
   const [role, setRole] = useState('member')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [recruitedAdmin, setRecruitedAdmin] = useState(null)
+  const [recruitedUser, setRecruitedUser] = useState(null)
 
   if (!isOpen) return null
 
@@ -91,7 +91,7 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
     setPhone('')
     setRole('member')
     setError('')
-    setRecruitedAdmin(null)
+    setRecruitedUser(null)
     onClose()
   }
 
@@ -99,10 +99,8 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
     e.preventDefault()
     setError('')
 
-    const isAdmin = role === 'admin'
-
-    if (isAdmin && !email) {
-      setError('Email is required for admin accounts.')
+    if (!email) {
+      setError('Email is required for account login.')
       return
     }
 
@@ -116,16 +114,12 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
       await onAdd({
         uid: null,
         displayname: displayName,
-        email: isAdmin ? email : '',
+        email: email,
         phone,
         role
       })
 
-      if (isAdmin) {
-        setRecruitedAdmin({ displayName, email })
-      } else {
-        handleClose()
-      }
+      setRecruitedUser({ displayName, email, role })
     } catch (err) {
       console.error('Error in handleSubmit:', err)
       setError(err.message || 'Failed to create account. Please try again.')
@@ -139,12 +133,12 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
       <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-surface-800 flex justify-between items-center sticky top-0 bg-surface-900 z-10">
           <h3 className="text-xl font-bold text-surface-100">
-            {recruitedAdmin ? 'Recruit Admin' : 'Add Member'}
+            {recruitedUser ? 'Recruit Successful' : 'Add Member'}
           </h3>
           <button onClick={handleClose} className="text-surface-400 hover:text-surface-100 transition-colors">✕</button>
         </div>
 
-        {recruitedAdmin ? (
+        {recruitedUser ? (
           <div className="p-6 space-y-6 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -152,20 +146,20 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
               </svg>
             </div>
             <div className="text-center">
-              <h4 className="text-lg font-black text-white uppercase tracking-tight">Admin Recruited Successfully</h4>
+              <h4 className="text-lg font-black text-white uppercase tracking-tight">Personnel Recruited Successfully</h4>
               <p className="text-sm text-surface-400 mt-2 px-4 leading-relaxed">
-                Admin <span className="text-crimson-500 font-black">{recruitedAdmin.displayName}</span> is now registered.
+                {recruitedUser.role === 'admin' ? 'Admin' : 'Member'} <span className="text-crimson-500 font-black">{recruitedUser.displayName}</span> is now registered.
               </p>
             </div>
 
             <div className="bg-surface-950 border border-surface-800 rounded-2xl p-6 space-y-4">
-              <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest text-center">Next Steps for Admin</p>
+              <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest text-center">Next Steps for User</p>
               <div className="p-4 bg-surface-900 border border-surface-800 rounded-xl text-center">
-                <p className="text-xs font-bold text-surface-200 mb-1">Tell the admin to Sign Up using:</p>
-                <p className="text-sm font-black text-crimson-400 tracking-wide">{recruitedAdmin.email}</p>
+                <p className="text-xs font-bold text-surface-200 mb-1">Tell them to Sign Up using:</p>
+                <p className="text-sm font-black text-crimson-400 tracking-wide">{recruitedUser.email}</p>
               </div>
               <p className="text-[9px] text-surface-600 text-center font-medium leading-relaxed">
-                Their account will be automatically recognized as an Admin upon registration. You do not need to share any passwords.
+                Their account will be automatically recognized as a {recruitedUser.role} upon registration. They can set their own password on the login screen.
               </p>
             </div>
 
@@ -206,19 +200,16 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
               </div>
             </div>
 
-            {role === 'admin' && (
-              <div className="animate-fade-in space-y-1">
-                <div>
-                  <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
-                  <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-                    placeholder="admin@example.com" />
-                </div>
-                <p className="text-[10px] text-surface-500 font-bold uppercase tracking-wider leading-relaxed pt-1">
-                  The user will set their password when they first register on the login page.
-                </p>
-              </div>
-            )}
+            <div>
+              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
+              <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
+                className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
+                placeholder="member@example.com" />
+            </div>
+            <p className="text-[10px] text-surface-500 font-bold uppercase tracking-wider leading-relaxed pt-1">
+              The user will set their password when they first register on the login page.
+            </p>
+
             <div className="pt-4 flex gap-3">
               <button type="button" onClick={handleClose} className="flex-1 py-3 rounded-lg bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors">Cancel</button>
               <button type="submit" disabled={saving}

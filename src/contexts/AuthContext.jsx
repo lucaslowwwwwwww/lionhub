@@ -94,7 +94,7 @@ export function AuthProvider({ children }) {
           troupeid: null
         })
       } else if (profileData) {
-        if (profileData.status === 'deleted' || profileData.role === 'member') {
+        if (profileData.status === 'deleted') {
           console.warn('User blocked:', authUser.email)
           sessionStorage.setItem('login_error', 'Access Denied.')
           localStorage.removeItem('ldms_is_super_admin')
@@ -166,13 +166,7 @@ export function AuthProvider({ children }) {
               return
             }
 
-            if (updated.role === 'member') {
-              sessionStorage.setItem('login_error', 'Access Denied: Members cannot log in.')
-              supabase.auth.signOut()
-              setUser(null)
-              setUserProfile(null)
-              return
-            }
+
 
             // Master override — use database flag
             const isMasterUser = updated.is_super_admin === true || updated.role === 'master'

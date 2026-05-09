@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react'
 import { useMembers } from '../../hooks/useMembers'
 import { useTroupes } from '../../hooks/useTroupes'
 
-export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds = [], onSave, busyMemberIds = [], currentTroupeId = null, currentAttendanceDetails = {} }) {
+export default function TeamSelectionModal({ 
+  isOpen, 
+  onClose, 
+  selectedMemberIds = [], 
+  onSave, 
+  busyMemberIds = [], 
+  currentTroupeId = null, 
+  currentAttendanceDetails = {}
+}) {
   const { members = [], loading: loadingM, addMember } = useMembers()
   const { troupes = [], loading: loadingT } = useTroupes()
   
@@ -47,11 +55,14 @@ export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds 
 
   const handleToggle = (id) => {
     if ((busyMemberIds || []).includes(id)) return
+
     setTempSelected(prev => {
       const next = { ...prev }
-      if (!next[id]) next[id] = 'full'
-      else if (next[id] === 'full') next[id] = 'half'
-      else delete next[id]
+      if (!next[id]) {
+        next[id] = 'full'
+      } else {
+        delete next[id]
+      }
       return next
     })
   }
@@ -123,17 +134,16 @@ export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds 
                   <p className="px-3 pt-4 pb-2 text-[9px] font-black text-gold-500 uppercase tracking-widest">Command & Admin ({admins.length})</p>
                   {admins.map(m => {
                     const isSelected = Object.keys(tempSelected).includes(m.id)
-                    const isHalf = tempSelected[m.id] === 'half'
+
                     return (
-                    <button key={m.id} onClick={() => handleToggle(m.id)} disabled={(busyMemberIds || []).includes(m.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${(busyMemberIds || []).includes(m.id) ? 'opacity-40' : isSelected ? (isHalf ? 'bg-orange-500/10 border border-orange-500/30' : 'bg-crimson-500/10 border border-crimson-500/30') : 'hover:bg-surface-800'}`}>
-                      <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${(busyMemberIds || []).includes(m.id) ? 'bg-surface-900' : isSelected ? (isHalf ? 'bg-orange-500 border-orange-500' : m.role === 'master' ? 'bg-purple-500 border-purple-500' : 'bg-gold-500 border-gold-500') : 'bg-surface-950 border-surface-700'}`}>
+                    <button key={m.id} onClick={() => handleToggle(m.id)} disabled={(busyMemberIds || []).includes(m.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${(busyMemberIds || []).includes(m.id) ? 'opacity-40' : isSelected ? 'bg-crimson-500/10 border border-crimson-500/30' : 'hover:bg-surface-800'}`}>
+                      <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${(busyMemberIds || []).includes(m.id) ? 'bg-surface-900' : isSelected ? (m.role === 'master' ? 'bg-purple-500 border-purple-500' : 'bg-gold-500 border-gold-500') : 'bg-surface-950 border-surface-700'}`}>
                         {isSelected && <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" /></svg>}
                       </div>
                       <div className="flex-1 text-left">
                         <div className="flex justify-between items-center">
-                          <p className={`font-black text-sm ${isSelected ? (isHalf ? 'text-orange-400' : m.role === 'master' ? 'text-purple-400' : 'text-gold-400') : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
+                          <p className={`font-black text-sm ${isSelected ? (m.role === 'master' ? 'text-purple-400' : 'text-gold-400') : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
                           {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-500 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
-                          {isHalf && <span className="text-[8px] font-black text-orange-400 uppercase bg-orange-500/20 px-1.5 py-0.5 rounded ml-2">Half Day</span>}
                         </div>
                         <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • {m.role === 'master' ? 'Master' : 'Admin'}</p>
                       </div>
@@ -149,17 +159,16 @@ export default function TeamSelectionModal({ isOpen, onClose, selectedMemberIds 
                   <p className="px-3 pt-6 pb-2 text-[9px] font-black text-surface-500 uppercase tracking-widest">Personnel ({regular.length})</p>
                   {regular.map(m => {
                     const isSelected = Object.keys(tempSelected).includes(m.id)
-                    const isHalf = tempSelected[m.id] === 'half'
+
                     return (
-                    <button key={m.id} onClick={() => handleToggle(m.id)} disabled={(busyMemberIds || []).includes(m.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${(busyMemberIds || []).includes(m.id) ? 'opacity-40' : isSelected ? (isHalf ? 'bg-orange-500/10 border border-orange-500/30' : 'bg-crimson-500/10 border border-crimson-500/30') : 'hover:bg-surface-800'}`}>
-                      <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${(busyMemberIds || []).includes(m.id) ? 'bg-surface-900' : isSelected ? (isHalf ? 'bg-orange-500 border-orange-500' : 'bg-crimson-600 border-crimson-600') : 'bg-surface-950 border-surface-700'}`}>
+                    <button key={m.id} onClick={() => handleToggle(m.id)} disabled={(busyMemberIds || []).includes(m.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${(busyMemberIds || []).includes(m.id) ? 'opacity-40' : isSelected ? 'bg-crimson-500/10 border border-crimson-500/30' : 'hover:bg-surface-800'}`}>
+                      <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${(busyMemberIds || []).includes(m.id) ? 'bg-surface-900' : isSelected ? 'bg-crimson-600 border-crimson-600' : 'bg-surface-950 border-surface-700'}`}>
                         {isSelected && <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" /></svg>}
                       </div>
                       <div className="flex-1 text-left">
                         <div className="flex justify-between items-center">
-                          <p className={`font-black text-sm ${isSelected ? (isHalf ? 'text-orange-400' : 'text-crimson-400') : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
+                          <p className={`font-black text-sm ${isSelected ? 'text-crimson-400' : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
                           {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-500 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
-                          {isHalf && <span className="text-[8px] font-black text-orange-400 uppercase bg-orange-500/20 px-1.5 py-0.5 rounded ml-2">Half Day</span>}
                         </div>
                         <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • Member</p>
                       </div>

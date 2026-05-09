@@ -240,7 +240,33 @@ const buildDuration = (stop) => {
 // COMBINED ITINERARY + ROSTER EXPORT
 // ─────────────────────────────────────────────────────────────
 
-export const exportDayReportPDF = async (stops, members, attendanceDetails, settings, meta) => {
+const formatTimeOnly = (isoString) => {
+  if (!isoString) return '-'
+  try {
+    const d = new Date(isoString)
+    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+  } catch (e) {
+    return '-'
+  }
+}
+
+const calcCheckInDuration = (inIso, outIso) => {
+  if (!inIso) return '-'
+  try {
+    const start = new Date(inIso).getTime()
+    const end = outIso ? new Date(outIso).getTime() : Date.now()
+    const diffMs = end - start
+    if (diffMs <= 0) return '0h 0m'
+    const totalMins = Math.round(diffMs / 60000)
+    const hours = Math.floor(totalMins / 60)
+    const mins = totalMins % 60
+    return `${hours}h ${mins}m`
+  } catch (e) {
+    return '-'
+  }
+}
+
+export const exportDayReportPDF = async (stops, members, attendanceDetails, settings, meta, checkIns = []) => {
   const doc = new jsPDF({ orientation: 'landscape' })
   
   // Load and add Chinese font
@@ -267,29 +293,35 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   doc.setFont(defaultFont, 'bold')
   doc.text(`ROSTER (${members.length} Members)`, 15, startY)
 
-  const sortedMembers = [...members].sort((a, b) => {
-    const aStatus = attendanceDetails[a.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
-    const bStatus = attendanceDetails[b.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
-    if (aStatus !== bStatus) return aStatus === 'FULL DAY' ? -1 : 1
-    return (a.displayname || '').localeCompare(b.displayname || '')
-  })
+  const sortedMembers = [...members].sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
 
-  const rosterRows = sortedMembers.map((m, i) => [
-    i + 1,
-    m.displayname || '-',
-    attendanceDetails[m.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
-  ])
+  const rosterRows = sortedMembers.map((m, i) => {
+    const memberCheckIn = (checkIns || []).find(c => c.member_id === m.id)
+    const checkInStr = memberCheckIn ? formatTimeOnly(memberCheckIn.check_in_at) : '-'
+    const checkOutStr = memberCheckIn ? (memberCheckIn.check_out_at ? formatTimeOnly(memberCheckIn.check_out_at) : 'ACTIVE') : '-'
+    const durationStr = memberCheckIn ? calcCheckInDuration(memberCheckIn.check_in_at, memberCheckIn.check_out_at) : '-'
+
+    return [
+      i + 1,
+      m.displayname || '-',
+      checkInStr,
+      checkOutStr,
+      durationStr
+    ]
+  })
 
   autoTable(doc, {
     startY: startY + 3,
     theme: 'grid',
     styles: { font: defaultFont, fontSize: 8, cellPadding: 3, textColor: [0, 0, 0], lineColor: [180, 180, 180], lineWidth: 0.1 },
     headStyles: { font: defaultFont, fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
-    head: [['#', 'NAME', 'ATTENDANCE']],
-    body: rosterRows.length > 0 ? rosterRows : [['', 'No members assigned', '']],
+    head: [['#', 'NAME', 'CHECK IN', 'CHECK OUT', 'DURATION']],
+    body: rosterRows.length > 0 ? rosterRows : [['', 'No members assigned', '', '', '']],
     columnStyles: {
       0: { halign: 'center', cellWidth: 15 },
-      2: { halign: 'center', cellWidth: 40 }
+      2: { halign: 'center', cellWidth: 40 },
+      3: { halign: 'center', cellWidth: 40 },
+      4: { halign: 'center', cellWidth: 40 }
     },
     didDrawPage: (data) => {
       drawWatermarkAndFooter(doc, logoImg, trackedPages)
@@ -364,29 +396,33 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   doc.save(fileName)
 }
 
-export const exportDayReportExcel = (stops, members, attendanceDetails, meta) => {
+export const exportDayReportExcel = (stops, members, attendanceDetails, meta, checkIns = []) => {
   const wb = XLSX.utils.book_new()
 
-  const sortedMembers = [...members].sort((a, b) => {
-    const aStatus = attendanceDetails[a.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
-    const bStatus = attendanceDetails[b.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
-    if (aStatus !== bStatus) return aStatus === 'FULL DAY' ? -1 : 1
-    return (a.displayname || '').localeCompare(b.displayname || '')
-  })
+  const sortedMembers = [...members].sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
 
   // Sheet 1: Roster
   const rosterData = [
     [`DAILY REPORT — ${meta.dayLabel || meta.dateKey} — ${meta.troupeName || 'All Teams'}`],
     [],
-    ['#', 'NAME', 'ATTENDANCE'],
-    ...sortedMembers.map((m, i) => [
-      i + 1,
-      m.displayname || '-',
-      attendanceDetails[m.id] === 'half' ? 'HALF DAY' : 'FULL DAY'
-    ])
+    ['#', 'NAME', 'CHECK IN', 'CHECK OUT', 'DURATION'],
+    ...sortedMembers.map((m, i) => {
+      const memberCheckIn = (checkIns || []).find(c => c.member_id === m.id)
+      const checkInStr = memberCheckIn ? formatTimeOnly(memberCheckIn.check_in_at) : '-'
+      const checkOutStr = memberCheckIn ? (memberCheckIn.check_out_at ? formatTimeOnly(memberCheckIn.check_out_at) : 'ACTIVE') : '-'
+      const durationStr = memberCheckIn ? calcCheckInDuration(memberCheckIn.check_in_at, memberCheckIn.check_out_at) : '-'
+
+      return [
+        i + 1,
+        m.displayname || '-',
+        checkInStr,
+        checkOutStr,
+        durationStr
+      ]
+    })
   ]
   const wsRoster = XLSX.utils.aoa_to_sheet(rosterData)
-  wsRoster['!cols'] = [{ wch: 5 }, { wch: 35 }, { wch: 18 }]
+  wsRoster['!cols'] = [{ wch: 5 }, { wch: 35 }, { wch: 18 }, { wch: 18 }, { wch: 18 }]
   XLSX.utils.book_append_sheet(wb, wsRoster, 'Roster')
 
   // Sheet 2: Itinerary
@@ -549,4 +585,91 @@ export const exportFinanceExcel = (transactions, periodStats, meta) => {
 
   const fileName = `Finance_${(meta.periodLabel || 'AllTime').replace(/\s/g, '_')}.xlsx`
   XLSX.writeFile(wb, fileName)
+}
+
+export const exportSalaryReportPDF = async (salaries, rateMode, dateRange, settings) => {
+  const doc = new jsPDF({ orientation: 'portrait' })
+  
+  // Load and add Chinese font
+  const fontBase64 = await loadChineseFont()
+  if (fontBase64) {
+    doc.addFileToVFS('NotoSansSC.ttf', fontBase64)
+    doc.addFont('NotoSansSC.ttf', 'NotoSansSC', 'normal')
+    doc.addFont('NotoSansSC.ttf', 'NotoSansSC', 'bold') // fallback mapping
+  }
+  const defaultFont = fontBase64 ? 'NotoSansSC' : 'helvetica'
+
+  const title = `SALARY REPORT (${rateMode.toUpperCase()} BASIS)`
+  const logoUrl = settings?.clublogo || null
+  const logoImg = logoUrl ? await preloadImage(logoUrl) : null
+  const trackedPages = new Set()
+
+  // Watermark
+  drawWatermarkAndFooter(doc, logoImg, trackedPages)
+
+  // Header
+  const startY = await addClubHeader(doc, settings, title)
+
+  // Period / Subtitle
+  doc.setFont(defaultFont, 'normal')
+  doc.setFontSize(9)
+  doc.text(`Period: ${dateRange.startDate} to ${dateRange.endDate}`, 15, startY)
+
+  // Summary Metrics Section
+  let totalPayout = 0
+  let totalHours = 0
+  let totalDays = 0
+  let totalBonus = 0
+  let totalDeduction = 0
+  salaries.forEach(s => {
+    totalPayout += s.totalPay
+    totalHours += s.hoursWorked
+    totalDays += s.daysWorked
+    totalBonus += s.bonus
+    totalDeduction += s.deduction
+  })
+
+  doc.setFont(defaultFont, 'bold')
+  doc.text(`SUMMARY:`, 15, startY + 8)
+  doc.setFont(defaultFont, 'normal')
+  doc.text(`Total Payout: RM ${totalPayout.toFixed(2)}  |  Total Hours: ${totalHours.toFixed(1)} hrs  |  Total Days Worked: ${totalDays} sessions`, 15, startY + 13)
+
+  // Table rows
+  const tableRows = salaries.map((s, idx) => [
+    idx + 1,
+    s.member.displayname || s.member.displayName || '-',
+    (s.member.role || 'member').toUpperCase(),
+    s.daysWorked,
+    s.hoursWorked.toFixed(1),
+    `RM ${s.rate}`,
+    `RM ${s.bonus}`,
+    `RM ${s.deduction}`,
+    `RM ${s.totalPay.toFixed(2)}`
+  ])
+
+  autoTable(doc, {
+    startY: startY + 18,
+    theme: 'grid',
+    styles: { font: defaultFont, fontSize: 8, cellPadding: 3, textColor: [0, 0, 0], lineColor: [180, 180, 180], lineWidth: 0.1 },
+    headStyles: { font: defaultFont, fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
+    head: [['#', 'NAME', 'ROLE', 'DAYS', 'HOURS', 'RATE', 'BONUS', 'DEDUCT', 'NET PAY']],
+    body: tableRows.length > 0 ? tableRows : [['', 'No personnel found', '', '', '', '', '', '', '']],
+    foot: [['', '', 'TOTAL', '', '', '', `RM ${totalBonus.toFixed(2)}`, `RM ${totalDeduction.toFixed(2)}`, `RM ${totalPayout.toFixed(2)}`]],
+    footStyles: { font: defaultFont, fillColor: [245, 245, 245], fontStyle: 'bold', halign: 'center' },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 10 },
+      2: { halign: 'center' },
+      3: { halign: 'center' },
+      4: { halign: 'center' },
+      5: { halign: 'right' },
+      6: { halign: 'right' },
+      7: { halign: 'right' },
+      8: { halign: 'right', fontStyle: 'bold' }
+    },
+    didDrawPage: () => {
+      drawWatermarkAndFooter(doc, logoImg, trackedPages)
+    }
+  })
+
+  doc.save(`SalaryReport_${dateRange.startDate}_to_${dateRange.endDate}.pdf`)
 }

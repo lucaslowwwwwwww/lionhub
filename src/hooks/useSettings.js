@@ -156,6 +156,8 @@ export function useSettings() {
         if (newValues.theme !== undefined) orgUpdates.theme = newValues.theme
         if (newValues.cai_qing_types !== undefined) orgUpdates.cai_qing_types = newValues.cai_qing_types
         if (newValues.extra_characters !== undefined) orgUpdates.extra_characters = newValues.extra_characters
+        if (newValues.clubregistrationno !== undefined) orgUpdates.registration_no = newValues.clubregistrationno
+        if (newValues.clubaddress !== undefined) orgUpdates.address = newValues.clubaddress
 
         // Financial info updates
         const finKeys = ['receiptpreparedby', 'signatoryphone', 'bankname', 'banktype', 'banknumber']

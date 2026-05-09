@@ -173,7 +173,7 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
   doc.text("PHONE :", 120, phoneLabelY)
   doc.line(120, phoneLabelY + 1, 135, phoneLabelY + 1)
   doc.setFont(defaultFont, "normal")
-  const sigPhone = settings?.signatoryphone || "60136660979"
+  const sigPhone = settings?.signatoryphone || (clubPhone ? clubPhone.split('/')[0].trim() : "")
   doc.text(sigPhone.replace(/\s/g, ''), 140, phoneLabelY)
 
   // ---------------------------------------------------------
