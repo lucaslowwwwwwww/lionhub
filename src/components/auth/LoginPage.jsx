@@ -120,7 +120,7 @@ export default function LoginPage() {
           <div className="relative text-center p-12">
              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-crimson-600/5 rounded-full blur-[80px]" />
              <div className="relative w-52 h-52 rounded-full bg-surface-900 border-2 border-surface-800 flex items-center justify-center mx-auto mb-10 shadow-inner overflow-hidden">
-                <img src="/lionhub_logo.jpeg" alt="Lionhub" className="w-full h-full object-cover" />
+                <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" />
              </div>
              <h2 className="text-2xl font-black text-white tracking-tight uppercase leading-tight mb-1">
                 LIONHUB
@@ -140,7 +140,7 @@ export default function LoginPage() {
           {/* Static Mobile Branding */}
           <div className="md:hidden pt-12 pb-2 text-center flex flex-col items-center z-20">
              <div className="w-40 h-40 rounded-full bg-surface-950 border-2 border-surface-800 flex items-center justify-center mb-4 shadow-glow overflow-hidden">
-                <img src="/lionhub_logo.jpeg" alt="Lionhub" className="w-full h-full object-cover" />
+                <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" />
              </div>
              <h2 className="text-3xl font-black text-white tracking-tight uppercase">LIONHUB</h2>
              <p className="text-xs font-bold text-crimson-500 uppercase tracking-widest mt-2">

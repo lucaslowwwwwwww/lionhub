@@ -10,7 +10,7 @@ export default function SplashScreen({ isExiting }) {
       
       {/* Background Watermark */}
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] dark:opacity-[0.02] pointer-events-none overflow-hidden select-none">
-        <img src="/lionhub_logo.jpeg" alt="" className="w-[150%] sm:w-[100%] max-w-none grayscale" />
+        <img src="/lionhub_logo.png" alt="" className="w-[150%] sm:w-[100%] max-w-none grayscale" />
       </div>
 
       <div className="relative flex flex-col items-center gap-8">
@@ -22,7 +22,7 @@ export default function SplashScreen({ isExiting }) {
           
           {/* Lionhub Logo */}
           <div className="absolute inset-0.5 rounded-full overflow-hidden bg-surface-900 flex items-center justify-center border border-surface-700/50 shadow-2xl animate-logo-pulse">
-            <img src="/lionhub_logo.jpeg" alt="Lionhub" className="w-full h-full object-cover" />
+            <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" />
           </div>
         </div>
 

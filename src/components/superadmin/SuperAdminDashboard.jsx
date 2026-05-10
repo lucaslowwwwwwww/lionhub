@@ -249,7 +249,7 @@ export default function SuperAdminDashboard() {
       {/* Platform Watermark */}
       <div className="fixed inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none z-0 select-none overflow-hidden">
         <img 
-          src="/lionhub_logo.jpeg" 
+          src="/lionhub_logo.png" 
           alt="Lion Hub" 
           className="w-[150%] sm:w-[100%] max-w-none h-auto object-contain grayscale"
         />
@@ -259,7 +259,7 @@ export default function SuperAdminDashboard() {
       <header className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur-xl border-b border-surface-800 px-4 sm:px-10 py-3 sm:py-4 flex items-center justify-between">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border border-surface-700/50 shadow-lg shadow-black/20 shrink-0">
-            <img src="/lionhub_logo.jpeg" alt="Lionhub" className="w-full h-full object-cover" />
+            <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="text-sm sm:text-lg font-black text-surface-50 tracking-tight uppercase leading-tight">Lionhub</h1>
