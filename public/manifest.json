@@ -9,13 +9,13 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/lionhub_logo.png",
+      "src": "/lionhub_logo.png?v=3",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/lionhub_logo.png",
+      "src": "/lionhub_logo.png?v=3",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
