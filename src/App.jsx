@@ -29,11 +29,14 @@ const SalaryCalculator = lazy(() => import('./components/salary/SalaryCalculator
  * LoginGuard — redirects already-authenticated users away from /login.
  */
 function LoginGuard() {
-  const { user, loading } = useAuth()
+  const { user, userProfile, loading } = useAuth()
 
   if (loading) return null
 
-  return user ? <Navigate to="/dashboard" replace /> : <LoginPage />
+  const userRole = userProfile?.role || 'member'
+  const defaultPath = userRole === 'member' ? '/assignment' : '/dashboard'
+
+  return user ? <Navigate to={defaultPath} replace /> : <LoginPage />
 }
 
 /**
@@ -132,8 +135,11 @@ function ConnectionOverlay() {
 
 function AppContent() {
   const { settings } = useSettings()
-  const { user, loading: authLoading } = useAuth()
+  const { user, userProfile, loading: authLoading } = useAuth()
   const orgCtx = useContext(OrgContext)
+  
+  const userRole = userProfile?.role || 'member'
+  const isAdmin = ['master', 'admin'].includes(userRole)
   const [showSplash, setShowSplash] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
   const [initialSplashDone, setInitialSplashDone] = useState(false)
@@ -222,22 +228,34 @@ function AppContent() {
                   </div>
                 }>
                   <Routes>
-                    <Route path="/dashboard/main" element={<DashboardPage />} />
-                    <Route path="/dashboard/status" element={<DashboardPage />} />
+                    {isAdmin && (
+                      <>
+                        <Route path="/dashboard/main" element={<DashboardPage />} />
+                        <Route path="/dashboard/status" element={<DashboardPage />} />
+                      </>
+                    )}
+                    
                     <Route path="/assignment" element={<DashboardPage />} />
-                    <Route path="/dashboard" element={<Navigate to="/dashboard/main" replace />} />
+                    
+                    <Route path="/dashboard" element={<Navigate to={isAdmin ? "/dashboard/main" : "/assignment"} replace />} />
                     <Route path="/dashboard/daily" element={<Navigate to="/assignment" replace />} />
-                    <Route path="/itinerary" element={<ItineraryPage />} />
-                    <Route path="/customers" element={<CustomersPage />} />
-                    <Route path="/finance" element={<FinancePage />} />
-                    <Route path="/inventory" element={<InventoryPage />} />
-                    <Route path="/billing" element={<BillingPage />} />
+
+                    {isAdmin && (
+                      <>
+                        <Route path="/itinerary" element={<ItineraryPage />} />
+                        <Route path="/customers" element={<CustomersPage />} />
+                        <Route path="/finance" element={<FinancePage />} />
+                        <Route path="/inventory" element={<InventoryPage />} />
+                        <Route path="/billing" element={<BillingPage />} />
+                        <Route path="/settings/team" element={<TeamPage />} />
+                        <Route path="/salary" element={<SalaryCalculator />} />
+                      </>
+                    )}
+
                     <Route path="/settings/general" element={<GeneralSettings />} />
-                    <Route path="/settings/team" element={<TeamPage />} />
                     <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
-                    <Route path="/salary" element={<SalaryCalculator />} />
                     <Route path="/about" element={<AboutPage />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="*" element={<Navigate to={isAdmin ? "/dashboard" : "/assignment"} replace />} />
                   </Routes>
                 </Suspense>
               </AppShell>

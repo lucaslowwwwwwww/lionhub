@@ -109,12 +109,17 @@ export function useItinerary(troupeId, date) {
 
     // 3. Subscribe to stops changes
     const subscribeToStops = (itinId) => {
+      if (!itinId) return
       if (stopsChannel) supabase.removeChannel(stopsChannel)
       const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
       stopsChannel = supabase
         .channel(`stops-${orgId}-${itinId}-${safeId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'stops', filter: `org_id=eq.${orgId}` }, 
         (payload) => {
+          const row = payload.new || payload.old
+          // Ensure changes belong only to the specific itinerary window we're viewing
+          if (row?.itinerary_id !== itinId) return
+
           if (payload.eventType === 'INSERT') {
             setStops(prev => {
               if (prev.some(s => s.id === payload.new.id)) return prev
@@ -142,7 +147,13 @@ export function useItinerary(troupeId, date) {
           const row = payload.new || payload.old
           if (row?.troupeid !== troupeId || row?.date !== date) return
 
-          if (payload.eventType === 'UPDATE') {
+          if (payload.eventType === 'INSERT') {
+            setItinerary(payload.new)
+            setAttendance(payload.new.attendance || [])
+            setAttendanceDetails(payload.new.attendancedetails || {})
+            // Dynamically establish stops listener now that the itinerary is created by another user
+            subscribeToStops(payload.new.id)
+          } else if (payload.eventType === 'UPDATE') {
             setItinerary(payload.new)
             setAttendance(payload.new.attendance || [])
             setAttendanceDetails(payload.new.attendancedetails || {})
