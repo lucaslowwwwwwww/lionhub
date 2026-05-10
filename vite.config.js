@@ -11,7 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'inline',
-      includeAssets: ['lionhub_logo.png', 'apple-icon-v4.png', 'NotoSansSC.ttf'],
+      includeAssets: ['favicon-32x32.png', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'lionhub_logo.png', 'NotoSansSC.ttf'],
       manifest: {
         name: 'Lionhub',
         short_name: 'Lionhub',
@@ -23,13 +23,13 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: '/lionhub_logo.png?v=4',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/lionhub_logo.png?v=4',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
