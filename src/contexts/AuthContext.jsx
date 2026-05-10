@@ -77,12 +77,6 @@ export function AuthProvider({ children }) {
       }
 
       if (isMaster) {
-        if (isSuperAdmin) {
-          localStorage.setItem('ldms_is_super_admin', 'true')
-        } else {
-          localStorage.removeItem('ldms_is_super_admin')
-        }
-        
         setUserProfile({
           ...(profileData || {}),
           uid: authUser.id,
@@ -97,18 +91,15 @@ export function AuthProvider({ children }) {
         if (profileData.status === 'deleted') {
           console.warn('User blocked:', authUser.email)
           sessionStorage.setItem('login_error', 'Access Denied.')
-          localStorage.removeItem('ldms_is_super_admin')
           await supabase.auth.signOut()
           setUser(null)
           setUserProfile(null)
         } else {
-          localStorage.removeItem('ldms_is_super_admin')
           setUserProfile({ uid: authUser.id, ...profileData })
         }
       } else {
         console.warn('No profile found for user:', authUser.email)
         sessionStorage.setItem('login_error', 'No profile found.')
-        localStorage.removeItem('ldms_is_super_admin')
         await supabase.auth.signOut()
         setUser(null)
         setUserProfile(null)
@@ -257,7 +248,6 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = async () => {
-    localStorage.removeItem('ldms_is_super_admin')
     await supabase.auth.signOut()
     setUser(null)
     setUserProfile(null)
@@ -290,7 +280,6 @@ export function AuthProvider({ children }) {
         .eq('id', uid)
       
       // 2. Sign out (cannot delete Supabase Auth user client-side)
-      localStorage.removeItem('ldms_is_super_admin')
       await supabase.auth.signOut()
       
       setUser(null)

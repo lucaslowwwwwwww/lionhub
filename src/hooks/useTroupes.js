@@ -6,7 +6,8 @@ import { useOrg } from '../contexts/OrgContext'
 
 export function useTroupes() {
   const { logAction } = useAudit()
-  const CACHE_KEY = 'liondance_cache_troupes'
+  const { orgId } = useOrg()
+  const CACHE_KEY = `liondance_cache_troupes_${orgId || 'none'}`
   const CACHE_EXPIRY = 10 * 60 * 1000 // 10 minutes
 
   const [troupes, setTroupes] = useState(() => {
@@ -21,7 +22,7 @@ export function useTroupes() {
   })
   const [loading, setLoading] = useState(!troupes.length)
   const [timeoutError, setTimeoutError] = useState(false)
-  const { orgId } = useOrg()
+
 
   const fetchTroupes = useCallback(async () => {
     if (!orgId) return;
@@ -111,18 +112,21 @@ export function useTroupes() {
         .from('users')
         .update({ troupeid: null })
         .eq('troupeid', id)
+        .eq('org_id', orgId)
 
       // 2. Unlink customers from this troupe
       await supabase
         .from('customers')
         .update({ troupeid: null })
         .eq('troupeid', id)
+        .eq('org_id', orgId)
 
       // 3. Delete itineraries and their stops (cascade manually)
       const { data: itins } = await supabase
         .from('itineraries')
         .select('id')
         .eq('troupeid', id)
+        .eq('org_id', orgId)
 
       if (itins && itins.length > 0) {
         const itinIds = itins.map(i => i.id)
@@ -137,6 +141,7 @@ export function useTroupes() {
         .from('troupes')
         .delete()
         .eq('id', id)
+        .eq('org_id', orgId)
 
       if (error) throw error
       await logAction('DELETE_TROUPE', { id })

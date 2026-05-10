@@ -116,8 +116,14 @@ export function useItinerary(troupeId, date) {
         .channel(`stops-${orgId}-${itinId}-${safeId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'stops', filter: `org_id=eq.${orgId}` }, 
         (payload) => {
-          const row = payload.new || payload.old
-          // Ensure changes belong only to the specific itinerary window we're viewing
+          if (payload.eventType === 'DELETE') {
+             // For DELETE, we don't need to check itinerary_id. If it's in our local array, just remove it!
+             setStops(prev => prev.filter(s => s.id !== payload.old.id))
+             return
+          }
+
+          const row = payload.new
+          // Ensure INSERT/UPDATE changes belong only to the specific itinerary window we're viewing
           if (row?.itinerary_id !== itinId) return
 
           if (payload.eventType === 'INSERT') {
@@ -127,8 +133,6 @@ export function useItinerary(troupeId, date) {
             })
           } else if (payload.eventType === 'UPDATE') {
             setStops(prev => prev.map(s => s.id === payload.new.id ? payload.new : s))
-          } else if (payload.eventType === 'DELETE') {
-            setStops(prev => prev.filter(s => s.id !== payload.old.id))
           }
         })
         .subscribe()
@@ -353,9 +357,12 @@ export function useItinerary(troupeId, date) {
       
       if (itinError) throw itinError
 
-      // 3. Optimistic Local Update
+      // 3. Local Update (with duplicate guard against Realtime)
       if (newStop) {
-        setStops(prev => [...prev, newStop].sort((a, b) => (a.order || 0) - (b.order || 0)))
+        setStops(prev => {
+          if (prev.some(s => s.id === newStop.id)) return prev;
+          return [...prev, newStop].sort((a, b) => (a.order || 0) - (b.order || 0));
+        })
       }
       setItinerary(prev => prev ? ({ ...prev, totalstops: (prev.totalstops || 0) + 1 }) : null)
       
@@ -639,7 +646,9 @@ export function useItinerary(troupeId, date) {
 }
 
 export function useAllPerformanceDates(troupeId) {
-  const CACHE_KEY = 'liondance_cache_perf_dates'
+  const { orgId } = useOrg()
+  const CACHE_KEY = `liondance_cache_perf_dates_${orgId || 'none'}`
+  const CACHE_EXPIRY = 5 * 60 * 1000 // 5 minutes
   const [allItineraries, setAllItineraries] = useState(() => {
     try {
       const cached = localStorage.getItem(CACHE_KEY)
@@ -652,7 +661,7 @@ export function useAllPerformanceDates(troupeId) {
   })
   const [loading, setLoading] = useState(!allItineraries.length)
   const [error, setError] = useState(null)
-  const { orgId } = useOrg()
+
 
   const fetchItineraries = useCallback(async () => {
     if (!orgId) return;

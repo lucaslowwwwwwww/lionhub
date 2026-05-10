@@ -10,22 +10,63 @@ export function useCheckIn(dateKey) {
   const [dailyCheckIns, setDailyCheckIns] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch current user's active check-in (where check_out_at is NULL)
+  /**
+   * Fetch current user's active check-in (check_out_at IS NULL).
+   * ISSUE-1 FIX: If the active check-in is from a PREVIOUS day,
+   * auto-close it (set check_out_at to end-of-that-day) so the user
+   * isn't permanently locked out.
+   */
   const fetchActiveCheckIn = useCallback(async () => {
     const memberId = userProfile?.id || userProfile?.uid
     if (!memberId || !orgId) return
     try {
+      // Use .select() instead of .maybeSingle() to handle potential duplicates gracefully
       const { data, error } = await supabase
         .from('check_ins')
         .select('*')
         .eq('org_id', orgId)
         .eq('member_id', memberId)
         .is('check_out_at', null)
-        .maybeSingle()
+        .order('check_in_at', { ascending: false })
 
-      if (!error) {
-        setActiveCheckIn(data)
+      if (error) {
+        console.error('Error fetching active check-in:', error)
+        return
       }
+
+      if (!data || data.length === 0) {
+        setActiveCheckIn(null)
+        return
+      }
+
+      const today = new Date().toISOString().split('T')[0]
+
+      // Auto-close any check-ins from before today
+      const stale = data.filter(ci => {
+        const ciDate = new Date(ci.check_in_at).toISOString().split('T')[0]
+        return ciDate < today
+      })
+
+      if (stale.length > 0) {
+        for (const ci of stale) {
+          // Close at end-of-day for the day they checked in
+          const closeTime = new Date(ci.check_in_at).toISOString().split('T')[0] + 'T23:59:59.000Z'
+          await supabase
+            .from('check_ins')
+            .update({
+              check_out_at: closeTime,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', ci.id)
+        }
+      }
+
+      // Find today's active check-in (if any)
+      const todayCheckIn = data.find(ci => {
+        const ciDate = new Date(ci.check_in_at).toISOString().split('T')[0]
+        return ciDate >= today
+      })
+      setActiveCheckIn(todayCheckIn || null)
     } catch (err) {
       console.error('Error fetching active check-in:', err)
     }
@@ -63,6 +104,20 @@ export function useCheckIn(dateKey) {
       console.warn('Missing check-in parameters:', { memberId, orgId, dateKey })
       return
     }
+
+    // ISSUE-3 FIX: Block check-in on non-today dates
+    const todayIso = new Date().toISOString().split('T')[0]
+    // Resolve current dateKey to an actual ISO date for comparison
+    // dateKey is either ISO format '2026-05-10' or CNY format 'day1_2026'
+    // For CNY keys, the component passes them as-is, but the underlying
+    // calendar date is what matters. We compare the check_in_at (which is always now)
+    // against the selected date. Since checking in always records now(), 
+    // just ensure the user is on today's page.
+    if (dateKey !== todayIso && !dateKey.startsWith('day')) {
+      alert('You can only check in for today\'s date.')
+      return
+    }
+
     if (activeCheckIn) {
       alert('Already checked in to another team.')
       return
@@ -81,6 +136,12 @@ export function useCheckIn(dateKey) {
         .single()
 
       if (error) {
+        // ISSUE-2: Handle unique constraint violation gracefully
+        if (error.code === '23505') {
+          alert('You already have an active check-in. Please check out first.')
+          fetchActiveCheckIn()
+          return
+        }
         console.error('Check-in insertion error:', error)
         alert('Check-in failed: ' + error.message)
         return

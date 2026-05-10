@@ -10,6 +10,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { supabase } from '../../supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCheckIn } from '../../hooks/useCheckIn'
+import { useOrg } from '../../contexts/OrgContext'
 
 function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel" }) {
   if (!isOpen) return null
@@ -79,6 +80,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
   const { settings } = useSettings()
   const { members, loading: loadingM } = useMembers()
   const { troupes, loading: loadingT } = useTroupes()
+  const { orgId } = useOrg()
   const overrides = settings?.cnyOverrides || {}
 
   const [activeTroupeId, setActiveTroupeId] = useState(null)
@@ -108,14 +110,27 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
   const { userProfile } = useAuth()
   const { activeCheckIn, dailyCheckIns, checkIn, checkOut, loading: loadingC } = useCheckIn(dateKey)
 
+  // ISSUE-5: Scope timesheet to active troupe tab
   const filteredCheckIns = useMemo(() => {
-    if (isAdmin) return dailyCheckIns
-    const currentMemberId = userProfile?.id || userProfile?.uid
-    return dailyCheckIns.filter(log => log.member_id === currentMemberId)
-  }, [dailyCheckIns, isAdmin, userProfile])
+    let filtered = dailyCheckIns
+    // Non-admins only see their own
+    if (!isAdmin) {
+      const currentMemberId = userProfile?.id || userProfile?.uid
+      filtered = filtered.filter(log => log.member_id === currentMemberId)
+    }
+    // When a troupe tab is selected, scope timesheet to that troupe
+    if (activeTroupeId) {
+      filtered = filtered.filter(log => log.troupe_id === activeTroupeId)
+    }
+    return filtered
+  }, [dailyCheckIns, isAdmin, userProfile, activeTroupeId])
 
   const localIsoDate = currentActualDate.toISOString().split('T')[0]
   const currentDayInfo = getDayInfo(currentActualDate, overrides)
+
+  // ISSUE-3: Determine if selected date is today (for check-in gating)
+  const todayIso = new Date().toISOString().split('T')[0]
+  const isToday = localIsoDate === todayIso
 
   const { dateTroupes = {}, allItineraries = [], loading: loadingDates, refresh: refreshDates } = useAllPerformanceDates()
   const { transactions } = useFinance('all')
@@ -204,6 +219,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
           completedstops: 0,
           skippedstops: 0,
           totalrevenue: 0,
+          org_id: orgId,
           createdat: new Date().toISOString()
         })
       setActiveTroupeId(tId)
@@ -344,6 +360,12 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
               <button onClick={checkOut} className="w-full sm:w-auto px-6 py-3 rounded-xl bg-crimson-600 hover:bg-crimson-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-crimson-600/20 transition-all">
                 Check Out
               </button>
+            </div>
+          ) : !isToday ? (
+            <div className="py-4 text-center bg-surface-950/30 rounded-2xl border border-dashed border-surface-800">
+              <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
+                Check-in is only available for today's date.
+              </p>
             </div>
           ) : (
             <div className="space-y-2">

@@ -60,7 +60,12 @@ export function useFinance(troupeId) {
         if (payload.eventType === 'INSERT') {
           const newRow = payload.new
           if (troupeId && troupeId !== 'all' && newRow.troupeid !== troupeId) return
-          setTransactions(prev => [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100))
+          
+          setTransactions(prev => {
+            // Prevent duplicates from optimistic updates
+            if (prev.some(t => t.id === newRow.id)) return prev;
+            return [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100)
+          })
         } else if (payload.eventType === 'UPDATE') {
           setTransactions(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
         } else if (payload.eventType === 'DELETE') {
@@ -101,17 +106,29 @@ export function useFinance(troupeId) {
     
     if (tid === 'all' || tid === '') tid = null
 
+    const newRecord = {
+      id: generatedId,
+      ...sanitizeObject(data),
+      troupeid: tid,
+      org_id: orgId || data.org_id || null,
+      createdat: now
+    }
+
+    // Optimistic UI Update
+    setTransactions(prev => {
+      if (prev.some(t => t.id === generatedId)) return prev;
+      return [newRecord, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100)
+    })
+
     const { error } = await supabase
       .from('finance')
-      .insert({
-        id: generatedId,
-        ...sanitizeObject(data),
-        troupeid: tid,
-        org_id: orgId || data.org_id || null,
-        createdat: now
-      })
+      .insert(newRecord)
 
-    if (error) throw error
+    if (error) {
+      // Revert if error
+      setTransactions(prev => prev.filter(t => t.id !== generatedId))
+      throw error
+    }
     await logAction('ADD_FINANCE_RECORD', { type: data.type, amount: data.amount, date: data.date })
   }
 
@@ -123,26 +140,42 @@ export function useFinance(troupeId) {
     
     if (tid === 'all' || tid === '') tid = null
 
+    const updatedFields = {
+      ...sanitizeObject(data),
+      troupeid: tid,
+      updatedat: new Date().toISOString()
+    }
+
+    // Optimistic UI Update
+    setTransactions(prev => prev.map(t => t.id === id ? { ...t, ...updatedFields } : t))
+
     const { error } = await supabase
       .from('finance')
-      .update({
-        ...sanitizeObject(data),
-        troupeid: tid,
-        updatedat: new Date().toISOString()
-      })
+      .update(updatedFields)
       .eq('id', id)
 
-    if (error) throw error
+    if (error) {
+      // Refresh to revert to DB state on error
+      fetchTransactions()
+      throw error
+    }
     await logAction('UPDATE_FINANCE_RECORD', { id, ...data })
   }
 
   const deleteTransaction = async (id) => {
+    // Optimistic UI Update
+    setTransactions(prev => prev.filter(t => t.id !== id))
+
     const { error } = await supabase
       .from('finance')
       .delete()
       .eq('id', id)
 
-    if (error) throw error
+    if (error) {
+       // Refresh to revert to DB state on error
+       fetchTransactions()
+       throw error
+    }
     await logAction('DELETE_FINANCE_RECORD', { id })
   }
 

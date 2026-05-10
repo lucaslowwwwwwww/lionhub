@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 import { getActualCnyDate } from '../utils/constants'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
@@ -23,6 +23,7 @@ export function useDashboardStats() {
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const { orgId } = useOrg()
+  const hasDataRef = useRef(false)
 
   useEffect(() => {
     if (!orgId) return;
@@ -187,8 +188,7 @@ export function useDashboardStats() {
     // Initial fetch all data with safety timeout
     const fetchAll = async () => {
       // Only show loading if we don't have any stats yet
-      const hasData = stats.totalStops > 0 || Object.keys(stats.monthlyData).length > 0
-      if (!hasData) {
+      if (!hasDataRef.current) {
         setLoading(true)
       }
       setTimeoutError(false)
@@ -216,6 +216,7 @@ export function useDashboardStats() {
       } finally {
         clearTimeout(timeoutId)
         setLoading(false)
+        hasDataRef.current = true
       }
     }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
@@ -11,12 +11,13 @@ export function useMembers() {
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
   const { orgId } = useOrg()
+  const hasFetchedRef = useRef(false)
 
   const fetchMembers = useCallback(async (limit = 1000, offset = 0) => {
     if (!orgId) return
 
-    // Only show full loading if we don't have cached data
-    if (members.length === 0) {
+    // Only show full loading on first fetch
+    if (!hasFetchedRef.current) {
       setLoading(true)
     }
     setTimeoutError(false)
@@ -44,8 +45,9 @@ export function useMembers() {
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)
+      hasFetchedRef.current = true
     }
-  }, [members.length, orgId])
+  }, [orgId])
 
   useEffect(() => {
     fetchMembers()
