@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 
 const CATEGORIES = [
   'Performances',
@@ -22,16 +22,65 @@ const SPONSOR_CATEGORIES = [
   'Other'
 ]
 
-export function AddTransactionModal({ isOpen, onClose, onSave, initialData = null, troupes = [], dateTroupes = {} }) {
+export function AddTransactionModal({ isOpen, onClose, onSave, initialData = null, troupes = [], dateTroupes = {}, transactions = [] }) {
   const now = new Date()
   const localDateStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0]
 
-  const [formData, setFormData] = useState(() => {
+  const [isCustomCategory, setIsCustomCategory] = useState(() => {
     if (initialData) {
+      const targetType = initialData.type || 'expense'
+      const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+      const initialCategory = initialData.category || ''
+      return initialCategory !== '' && !activeCats.includes(initialCategory)
+    }
+    return false
+  })
+
+  const [customCategoryText, setCustomCategoryText] = useState(() => {
+    if (initialData) {
+      const targetType = initialData.type || 'expense'
+      const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+      const initialCategory = initialData.category || ''
+      const isCustom = initialCategory !== '' && !activeCats.includes(initialCategory)
+      return isCustom ? initialCategory : ''
+    }
+    return ''
+  })
+
+  const [deletedCategories, setDeletedCategories] = useState(() => {
+    try {
+      const stored = localStorage.getItem('deleted_finance_categories')
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const [formData, setFormData] = useState(() => {
+    const targetType = initialData?.type || 'expense'
+    const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+    
+    if (initialData) {
+      const initialCategory = initialData.category || ''
+      const isCustom = initialCategory !== '' && !activeCats.includes(initialCategory)
+      
       return {
-        type: initialData.type || 'expense',
+        type: targetType,
         amount: initialData.amount || '',
-        category: initialData.category || CATEGORIES[0],
+        category: isCustom ? 'CUSTOM' : (initialCategory || activeCats[0]),
         date: initialData.date || localDateStr,
         paymentmethod: initialData.paymentmethod || initialData.paymentMethod || 'Cash',
         description: initialData.description || '',
@@ -50,17 +99,28 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
   })
 
   useEffect(() => {
+    const targetType = initialData?.type || 'expense'
+    const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+    
     if (initialData) {
+      const initialCategory = initialData.category || ''
+      const isCustom = initialCategory !== '' && !activeCats.includes(initialCategory)
+      
+      setIsCustomCategory(isCustom)
+      setCustomCategoryText(isCustom ? initialCategory : '')
+      
       setFormData({
-        type: initialData.type || 'expense',
+        type: targetType,
         amount: initialData.amount || '',
-        category: initialData.category || CATEGORIES[0],
+        category: isCustom ? 'CUSTOM' : (initialCategory || activeCats[0]),
         date: initialData.date || localDateStr,
         paymentmethod: initialData.paymentmethod || initialData.paymentMethod || 'Cash',
         description: initialData.description || '',
         troupeid: initialData.troupeid || initialData.troupeId || ''
       })
     } else {
+      setIsCustomCategory(false)
+      setCustomCategoryText('')
       setFormData({
         type: 'expense',
         amount: '',
@@ -78,23 +138,78 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
 
   if (!isOpen) return null
 
-  const activeCategories = formData.type === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+  const activeCategories = useMemo(() => {
+    const baseCategories = formData.type === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+    
+    // Gather categories used in historical transactions matching the current type
+    const historicalCats = (transactions || [])
+      .filter(t => t.type === formData.type && t.category && t.category !== 'CUSTOM')
+      .map(t => t.category)
+      
+    // Extract unique custom categories (that aren't already in base presets)
+    const uniqueCustomHistorical = Array.from(new Set(historicalCats))
+      .filter(cat => !baseCategories.includes(cat))
+      // Filter out items explicitly deleted by the user
+      .filter(cat => !deletedCategories.includes(cat))
+      .sort((a, b) => a.localeCompare(b))
+
+    return [...baseCategories, ...uniqueCustomHistorical]
+  }, [transactions, formData.type, deletedCategories])
 
   const handleTypeChange = (newType) => {
     const newCategories = newType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+    setIsCustomCategory(false)
+    setCustomCategoryText('')
     setFormData({ 
       ...formData, 
       type: newType,
-      category: newCategories[0], // Reset to default for the new type
+      category: newCategories[0], 
       troupeid: newType === 'sponsorship' ? '' : formData.troupeid
     })
   }
 
+  const handleCategorySelection = (selected) => {
+    if (selected === 'CUSTOM') {
+      setIsCustomCategory(true)
+      setFormData({ ...formData, category: 'CUSTOM' })
+    } else {
+      setIsCustomCategory(false)
+      setCustomCategoryText('')
+      setFormData({ ...formData, category: selected })
+    }
+  }
+
+  const handleDeleteCategory = (e, categoryToDelete) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (window.confirm(`Remove "${categoryToDelete}" from your selectable category list?`)) {
+      const updated = [...deletedCategories, categoryToDelete]
+      setDeletedCategories(updated)
+      localStorage.setItem('deleted_finance_categories', JSON.stringify(updated))
+      
+      // Fallback selection if current category is deleted
+      if (formData.category === categoryToDelete) {
+        const baseCategories = formData.type === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
+        setFormData(prev => ({ ...prev, category: baseCategories[0] }))
+      }
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    const finalCategory = isCustomCategory ? customCategoryText.trim() : formData.category
+    
+    if (!finalCategory || finalCategory === 'CUSTOM') {
+      alert('Please enter or select a category.')
+      return
+    }
+
     try {
       await onSave({
         ...formData,
+        category: finalCategory,
         amount: Number(formData.amount)
       })
       onClose()
@@ -191,24 +306,91 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5 min-w-0">
+            <div className="space-y-1.5 min-w-0 relative" ref={dropdownRef}>
               <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Category</label>
-              <div className="overflow-hidden rounded-xl border border-surface-800">
-                <input
-                  type="text"
-                  list="finance-categories"
-                  required
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="block w-full max-w-full h-[46px] bg-surface-950 px-4 text-sm font-bold text-surface-100 focus:outline-none focus:border-crimson-600 transition-all shadow-inner border-none leading-[46px]"
-                  placeholder="Select or type..."
-                />
-                <datalist id="finance-categories">
-                  {activeCategories.map(cat => (
-                    <option key={cat} value={cat} />
-                  ))}
-                </datalist>
-              </div>
+              
+              {/* Dropdown Trigger Button */}
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex justify-between items-center w-full h-[46px] bg-surface-950 px-4 rounded-xl border border-surface-800 text-sm font-bold text-surface-100 hover:border-surface-700 transition-all shadow-inner cursor-pointer"
+              >
+                <span className="truncate">
+                  {formData.category === 'CUSTOM' ? '+ Custom Category...' : formData.category}
+                </span>
+                <svg className={`w-4 h-4 text-surface-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown Popover */}
+              {isDropdownOpen && (
+                <div className="absolute left-0 right-0 z-[110] mt-1 overflow-hidden rounded-xl border border-surface-800 bg-surface-900 shadow-2xl shadow-black/50 animate-in fade-in slide-in-from-top-1 duration-150 flex flex-col max-h-60">
+                  <div className="overflow-y-auto flex-1 py-1 scrollbar-thin scrollbar-thumb-surface-800">
+                    {activeCategories.map(cat => {
+                      const isBase = (formData.type === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES).includes(cat)
+                      return (
+                        <div
+                          key={cat}
+                          onClick={() => {
+                            handleCategorySelection(cat)
+                            setIsDropdownOpen(false)
+                          }}
+                          className={`group flex justify-between items-center px-4 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
+                            formData.category === cat 
+                              ? 'bg-crimson-600/20 text-crimson-400' 
+                              : 'text-surface-300 hover:bg-surface-800 hover:text-surface-100'
+                          }`}
+                        >
+                          <span className="truncate">{cat}</span>
+                          
+                          {/* Delete Cross Button (only for custom items) */}
+                          {!isBase && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteCategory(e, cat)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-crimson-950 hover:text-crimson-500 transition-all text-surface-500 ml-2 flex-shrink-0"
+                              title="Delete from category list"
+                            >
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                    
+                    {/* Anchored '+ Custom Category...' Option */}
+                    <div
+                      onClick={() => {
+                        handleCategorySelection('CUSTOM')
+                        setIsDropdownOpen(false)
+                      }}
+                      className={`flex items-center px-4 py-3 text-xs font-black tracking-wider border-t border-surface-800/60 transition-colors cursor-pointer ${
+                        formData.category === 'CUSTOM'
+                          ? 'bg-crimson-600/20 text-crimson-400'
+                          : 'text-crimson-500 hover:bg-crimson-950/30 hover:text-crimson-400'
+                      }`}
+                    >
+                      + Custom Category...
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isCustomCategory && (
+                <div className="animate-in slide-in-from-top-1 fade-in duration-200 overflow-hidden rounded-xl border border-surface-800 bg-surface-950 mt-1.5">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter custom category name..."
+                    value={customCategoryText}
+                    onChange={(e) => setCustomCategoryText(e.target.value)}
+                    className="block w-full max-w-full h-[40px] bg-surface-950 px-4 text-xs font-bold text-surface-100 placeholder:text-surface-700 focus:outline-none focus:border-crimson-600 transition-all shadow-inner border-none"
+                  />
+                </div>
+              )}
             </div>
             <div className="space-y-1.5 min-w-0">
               <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Method</label>
@@ -253,17 +435,24 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
           {showTroupeSelector && (
             <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
               <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Attribute to Team</label>
-              <div className="overflow-hidden rounded-xl border border-surface-800">
+              <div className="relative overflow-hidden rounded-xl border border-surface-800 bg-surface-950">
                 <select
                   value={formData.troupeid}
                   onChange={(e) => setFormData({ ...formData, troupeid: e.target.value })}
-                  className="block w-full h-[46px] bg-surface-950 px-4 text-sm font-bold text-surface-100 focus:outline-none focus:border-crimson-600 appearance-none transition-all shadow-inner border-none"
+                  className="block w-full h-[46px] bg-surface-950 pl-4 pr-10 text-sm font-bold text-surface-100 focus:outline-none focus:border-crimson-600 appearance-none transition-all shadow-inner border-none cursor-pointer"
                 >
-                  <option value="">General / All Teams</option>
+                  <option value="" className="bg-surface-900 text-surface-100">General / All Teams</option>
                   {availableTroupes.map(troupe => (
-                    <option key={troupe.id} value={troupe.id}>{troupe.name}</option>
+                    <option key={troupe.id} value={troupe.id} className="bg-surface-900 text-surface-100">
+                      {troupe.name}
+                    </option>
                   ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none">
+                  <svg className="w-4 h-4 text-surface-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
           )}

@@ -692,6 +692,7 @@ export default function FinancePage() {
           initialData={editingTransaction}
           troupes={troupes}
           dateTroupes={dateTroupes}
+          transactions={transactions}
         />
       )}
     </div>
