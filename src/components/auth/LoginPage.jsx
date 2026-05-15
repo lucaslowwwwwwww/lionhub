@@ -151,12 +151,12 @@ export default function LoginPage() {
           {/* Forms Wrapper (Remaining Space) */}
           <div className="flex-1 relative min-h-[420px] md:min-h-0">
             {/* REGISTER FORM */}
-            <div className={`absolute inset-y-0 left-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
+            <div className={`absolute inset-y-0 left-0 w-full md:w-1/2 flex flex-col justify-start md:justify-center p-6 pt-2 pb-12 md:p-16 overflow-y-auto transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
               isRegistering 
                 ? 'opacity-100 translate-x-0 z-10' 
                 : 'opacity-0 -translate-x-0 md:-translate-x-8 pointer-events-none z-0'
             }`}>
-            <div className="w-full max-w-sm mx-auto">
+            <div className="w-full max-w-sm mx-auto shrink-0">
               <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
                 <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Initialize Account</h1>
                 <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Setup Your Password & Access</p>
@@ -215,8 +215,8 @@ export default function LoginPage() {
 
             {/* LOGIN & RECOVERY FORMS */}
             {isForgotPassword ? (
-              <div className="absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 animate-fade-in z-10">
-                <div className="w-full max-w-sm mx-auto">
+              <div className="absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-start md:justify-center p-6 pt-2 pb-12 md:p-16 overflow-y-auto animate-fade-in z-10">
+                <div className="w-full max-w-sm mx-auto shrink-0">
                   <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
                     <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Recover Access</h1>
                     <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Request Password Reset Link</p>
@@ -280,12 +280,12 @@ export default function LoginPage() {
                 </div>
               </div>
             ) : (
-              <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-center p-8 pb-12 md:p-16 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
+              <div className={`absolute inset-y-0 right-0 w-full md:w-1/2 flex flex-col justify-start md:justify-center p-6 pt-2 pb-12 md:p-16 overflow-y-auto transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
                 !isRegistering 
                   ? 'opacity-100 translate-x-0 z-10' 
                   : 'opacity-0 translate-x-0 md:translate-x-8 pointer-events-none z-0'
               }`}>
-                <div className="w-full max-w-sm mx-auto">
+                <div className="w-full max-w-sm mx-auto shrink-0">
                   <header className="mb-8 md:mb-10 text-center md:text-left pt-2 md:pt-0">
                     <h1 className="text-3xl font-black text-white uppercase tracking-tight mb-1">Console Access</h1>
                     <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Authorized Personnel Only</p>
