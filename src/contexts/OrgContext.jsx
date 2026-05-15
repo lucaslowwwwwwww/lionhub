@@ -33,7 +33,7 @@ export function OrgProvider({ children }) {
         .from('organizations')
         .select('*')
         .eq('id', orgId)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('Failed to fetch organization:', error)

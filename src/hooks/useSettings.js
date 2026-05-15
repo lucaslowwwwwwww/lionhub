@@ -61,9 +61,9 @@ export function useSettings() {
         .from('settings')
         .select('*')
         .eq('id', SETTINGS_DOC_ID)
-        .single()
+        .maybeSingle()
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         console.error('Failed to fetch settings:', fetchError)
         setError(fetchError)
       } else if (data) {
