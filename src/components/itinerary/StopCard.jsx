@@ -270,10 +270,10 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
               <span className="text-sm text-surface-200 font-bold font-numeric tracking-tight">{stop.phone}</span>
               <div className="flex flex-col items-end">
                 <p className="text-lg font-black text-gold-400 font-numeric leading-none tracking-tighter">
-                  {isCompleted && stop.actualamount !== undefined && stop.actualamount !== Number(stop.amount) ? (
+                  {isCompleted && stop.actualamount !== undefined && stop.actualamount !== null && stop.actualamount !== '' && Number(stop.actualamount) !== Number(stop.amount) ? (
                     <span className="text-green-400">RM{stop.actualamount}</span>
                   ) : (
-                    `RM${stop.actualamount || stop.amount}`
+                    `RM${(isCompleted && stop.actualamount !== undefined && stop.actualamount !== null && stop.actualamount !== '') ? stop.actualamount : stop.amount}`
                   )}
                 </p>
                 {isCompleted && stop.paymentmethod && (

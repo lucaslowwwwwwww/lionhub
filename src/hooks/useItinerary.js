@@ -665,20 +665,11 @@ export function useAllPerformanceDates(troupeId) {
 
   const fetchItineraries = useCallback(async () => {
     if (!orgId) return;
-    const startRange = new Date()
-    startRange.setMonth(startRange.getMonth() - 2)
-    const endRange = new Date()
-    endRange.setMonth(endRange.getMonth() + 2)
-
-    const startStr = startRange.toISOString().split('T')[0]
-    const endStr = endRange.toISOString().split('T')[0]
 
     const { data, error: fetchError } = await supabase
       .from('itineraries')
       .select(TABLES.ITINERARIES)
       .eq('org_id', orgId)
-      .gte('date', startStr)
-      .lte('date', endStr)
 
     if (fetchError) {
       console.error('Itinerary query error:', fetchError)
