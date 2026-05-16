@@ -6,15 +6,9 @@
  */
 export default function SplashScreen({ isExiting }) {
   return (
-    <div className={`fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-surface-950 transition-opacity duration-700 ${isExiting ? 'animate-splash-out' : 'animate-splash-in'}`}>
+    <div className={`fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-surface-950 transition-opacity duration-300 ${isExiting ? 'animate-splash-out' : 'animate-splash-in'}`}>
       
-      {/* Background Watermark */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] dark:opacity-[0.02] pointer-events-none overflow-hidden select-none">
-        <picture className="w-[150%] sm:w-[100%] max-w-none">
-          <source srcSet="/lionhub_logo.webp" type="image/webp" />
-          <img src="/lionhub_logo.png" alt="" className="w-full max-w-none grayscale" loading="eager" />
-        </picture>
-      </div>
+
 
       <div className="relative flex flex-col items-center gap-8">
         
@@ -23,12 +17,18 @@ export default function SplashScreen({ isExiting }) {
           {/* Minimal Loading Ring */}
           <div className="absolute inset-0 rounded-full border-2 border-surface-800 border-t-crimson-500 animate-ring-rotate" />
           
-          {/* Lionhub Logo */}
+          {/* Lionhub Logo Optimized */}
           <div className="absolute inset-0.5 rounded-full overflow-hidden bg-surface-900 flex items-center justify-center border border-surface-700/50 shadow-2xl animate-logo-pulse">
-            <picture>
-              <source srcSet="/lionhub_logo.webp" type="image/webp" />
-              <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" loading="eager" fetchPriority="high" />
-            </picture>
+            <img 
+              src="/lionhub_logo.webp" 
+              alt="Lionhub" 
+              width="224" 
+              height="224" 
+              className="w-full h-full object-cover" 
+              loading="eager" 
+              fetchpriority="high"
+              decoding="async"
+            />
           </div>
         </div>
 

@@ -53,11 +53,12 @@
   --color-surface-950: #09090b;
 
   /* Fonts */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   /* Shadows */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover:
+    0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
 /* ──────────────────────────────────────────────
@@ -69,16 +70,18 @@
   --color-surface-900: #ffffff; /* Card background */
   --color-surface-800: #e4e4e7; /* Borders */
   --color-surface-700: #d4d4d8; /* Hover states */
-  --color-surface-600: #3f3f46; 
-  --color-surface-500: #52525b; 
-  --color-surface-400: #71717a; 
+  --color-surface-600: #3f3f46;
+  --color-surface-500: #52525b;
+  --color-surface-400: #71717a;
   --color-surface-300: #27272a; /* Dark grey text */
   --color-surface-200: #000000; /* Pure Black Text */
   --color-surface-100: #000000; /* Pure Black Text */
-  --color-surface-50:  #000000; /* Pure Black Text */
+  --color-surface-50: #000000; /* Pure Black Text */
 
-  --shadow-card: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-  --shadow-card-hover: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --shadow-card:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-card-hover:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 /* ──────────────────────────────────────────────
@@ -109,22 +112,14 @@
     position: relative;
   }
 
-  /* Force input[type="time"] and input[type="date"] to behave and match others */
-  input[type="time"],
+  /* Remove buggy flex/appearance overrides for time inputs to prevent mobile grid overflow */
   input[type="date"] {
-    appearance: none;
-    -webkit-appearance: none;
-    display: inline-flex;
+    position: relative;
+    display: flex;
     align-items: center;
     min-width: 0;
   }
 
-  input[type="time"]::-webkit-datetime-edit,
-  input[type="time"]::-webkit-datetime-edit-fields-wrapper,
-  input[type="time"]::-webkit-datetime-edit-text,
-  input[type="time"]::-webkit-datetime-edit-hour-field,
-  input[type="time"]::-webkit-datetime-edit-minute-field,
-  input[type="time"]::-webkit-datetime-edit-ampm-field,
   input[type="date"]::-webkit-datetime-edit,
   input[type="date"]::-webkit-datetime-edit-fields-wrapper,
   input[type="date"]::-webkit-inner-spin-button,
@@ -162,32 +157,57 @@
    ────────────────────────────────────────────── */
 
 @keyframes splash-fade-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes splash-fade-out {
-  from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(1.05); }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes logo-pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.8; }
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
 }
 
 @keyframes ring-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-splash-in {
-  animation: splash-fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: splash-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-splash-out {
-  animation: splash-fade-out 0.6s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  animation: splash-fade-out 0.3s cubic-bezier(0.7, 0, 0.84, 0) forwards;
 }
 
 .animate-logo-pulse {
@@ -199,8 +219,12 @@
 }
 
 @keyframes slide-down {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .animate-slide-down {

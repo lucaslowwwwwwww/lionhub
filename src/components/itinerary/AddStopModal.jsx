@@ -359,29 +359,33 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Scheduled Time</label>
-              <input 
-                required
-                type="time" 
-                value={convertTo24h(formData.scheduledtime)}
-                onChange={handleTimeChange}
-                className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-12 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all box-border"
-              />
+              <div className="w-full bg-surface-950 border border-surface-800 rounded-lg h-12 !h-[50px] overflow-hidden flex items-center focus-within:border-crimson-500 focus-within:ring-1 focus-within:ring-crimson-500 transition-all box-border">
+                <input 
+                  required
+                  type="time" 
+                  value={convertTo24h(formData.scheduledtime)}
+                  onChange={handleTimeChange}
+                  className="w-full bg-transparent border-none px-4 h-full text-surface-100 focus:outline-none focus:ring-0 appearance-none"
+                />
+              </div>
             </div>
             <div>
                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Est. Duration (Mins)</label>
-               <input 
-                 required
-                 type="number" 
-                 min="5"
-                 step="5"
-                 value={formData.duration}
-                 onChange={(e) => setFormData({...formData, duration: e.target.value ? Number(e.target.value) : ''})}
-                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-12 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all box-border"
-                 placeholder="30"
-               />
+               <div className="w-full bg-surface-950 border border-surface-800 rounded-lg h-12 !h-[50px] overflow-hidden flex items-center focus-within:border-crimson-500 focus-within:ring-1 focus-within:ring-crimson-500 transition-all box-border">
+                 <input 
+                   required
+                   type="number" 
+                   min="5"
+                   step="5"
+                   value={formData.duration}
+                   onChange={(e) => setFormData({...formData, duration: e.target.value ? Number(e.target.value) : ''})}
+                   className="w-full bg-transparent border-none px-4 h-full text-surface-100 focus:outline-none focus:ring-0 appearance-none"
+                   placeholder="30"
+                 />
+               </div>
             </div>
           </div>
 

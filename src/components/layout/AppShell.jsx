@@ -31,7 +31,7 @@ export default function AppShell({ children }) {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileNav />
+      <MobileNav setIsMobileMenuOpen={setIsMobileMenuOpen} />
     </div>
   )
 }

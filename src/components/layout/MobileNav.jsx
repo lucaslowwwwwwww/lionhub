@@ -6,13 +6,19 @@ const NAV_ITEMS = [
     name: 'Home', 
     path: '/dashboard', 
     icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>, 
-    roles: ['master', 'admin'] 
+    roles: ['master', 'admin', 'logistics'] 
   },
   { 
     name: 'Daily', 
     path: '/assignment', 
     icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>, 
-    roles: ['member'] 
+    roles: ['member', 'logistics'] 
+  },
+  { 
+    name: 'Inventory', 
+    path: '/inventory', 
+    icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" /></svg>, 
+    roles: ['logistics'] 
   },
   { 
     name: 'Route', 
@@ -36,11 +42,11 @@ const NAV_ITEMS = [
     name: 'About', 
     path: '/about', 
     icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, 
-    roles: ['member'] 
+    roles: ['member', 'logistics'] 
   }
 ]
 
-export default function MobileNav() {
+export default function MobileNav({ setIsMobileMenuOpen }) {
   const { pathname } = useLocation()
   const { userProfile } = useAuth()
   const userRole = userProfile?.role || 'member'
@@ -69,7 +75,24 @@ export default function MobileNav() {
             </Link>
           )
         })}
+        
+        {/* Static Menu Item to trigger Sidebar */}
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open Mobile Menu"
+          className="flex flex-col items-center justify-center w-16 h-full transition-colors text-surface-400 hover:text-surface-200"
+        >
+          <span className="text-xl mb-1 transition-transform grayscale opacity-70 group-hover:scale-110">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+          </span>
+          <span className="text-[10px] font-medium tracking-wide opacity-70">
+            Menu
+          </span>
+        </button>
       </div>
     </nav>
   )
 }
+

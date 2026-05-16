@@ -101,7 +101,7 @@ export default function TeamSelectionModal({
         <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-950/50">
           <div>
             <h3 className="text-xl font-black text-surface-100 uppercase tracking-tight">Assemble Roster</h3>
-            <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest mt-0.5">{Object.keys(tempSelected).length} members ready</p>
+            <p className="text-[10px] text-surface-400 font-black uppercase tracking-widest mt-0.5">{Object.keys(tempSelected).length} members ready</p>
           </div>
           <button onClick={onClose} className="p-2 text-surface-400 hover:text-white">✕</button>
         </div>
@@ -125,7 +125,7 @@ export default function TeamSelectionModal({
         {/* List */}
         <div className="flex-1 overflow-y-auto p-2 bg-surface-950/10">
           {isLoading ? (
-            <div className="text-center py-10 text-surface-500">Loading...</div>
+            <div className="text-center py-10 text-surface-400">Loading...</div>
           ) : (
             <div className="space-y-1">
               {/* Admins */}
@@ -143,9 +143,9 @@ export default function TeamSelectionModal({
                       <div className="flex-1 text-left">
                         <div className="flex justify-between items-center">
                           <p className={`font-black text-sm ${isSelected ? (m.role === 'master' ? 'text-purple-400' : 'text-gold-400') : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
-                          {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-500 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
+                          {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-400 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
                         </div>
-                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • {m.role === 'master' ? 'Master' : 'Admin'}</p>
+                        <p className="text-[9px] text-surface-400 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • {m.role === 'master' ? 'Master' : 'Admin'}</p>
                       </div>
                     </button>
                     )
@@ -156,7 +156,7 @@ export default function TeamSelectionModal({
               {/* Personnel */}
               {regular.length > 0 && (
                 <>
-                  <p className="px-3 pt-6 pb-2 text-[9px] font-black text-surface-500 uppercase tracking-widest">Personnel ({regular.length})</p>
+                  <p className="px-3 pt-6 pb-2 text-[9px] font-black text-surface-400 uppercase tracking-widest">Personnel ({regular.length})</p>
                   {regular.map(m => {
                     const isSelected = Object.keys(tempSelected).includes(m.id)
 
@@ -168,9 +168,9 @@ export default function TeamSelectionModal({
                       <div className="flex-1 text-left">
                         <div className="flex justify-between items-center">
                           <p className={`font-black text-sm ${isSelected ? 'text-crimson-400' : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
-                          {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-500 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
+                          {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-400 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
                         </div>
-                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • {m.role === 'logistics' ? 'Logistics' : 'Member'}</p>
+                        <p className="text-[9px] text-surface-400 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • {m.role === 'logistics' ? 'Logistics' : 'Member'}</p>
                       </div>
                     </button>
                     )

@@ -46,9 +46,9 @@ function ActivateTeamModal({ isOpen, onClose, troupes, activeTroupes, onActivate
           <button onClick={onClose} className="text-surface-400 hover:text-surface-100 transition-colors p-2 hover:bg-surface-800 rounded-full">✕</button>
         </div>
         <div className="p-6 space-y-3">
-          <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest mb-2 px-1">Select a troupe to activate for today</p>
+          <p className="text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 px-1">Select a troupe to activate for today</p>
           {availableTroupes.length === 0 ? (
-            <div className="py-8 text-center text-surface-500 font-bold bg-surface-950/50 rounded-2xl border-2 border-dashed border-surface-800">
+            <div className="py-8 text-center text-surface-400 font-bold bg-surface-950/50 rounded-2xl border-2 border-dashed border-surface-800">
               All troupes are already active.
             </div>
           ) : (
@@ -339,7 +339,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
         <div className="bg-surface-900 border border-surface-800 rounded-3xl p-5 shadow-lg space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest">Timesheet Check-In</p>
+              <p className="text-[9px] font-black text-surface-400 uppercase tracking-widest">Timesheet Check-In</p>
               <h4 className="text-sm font-black text-surface-100 uppercase mt-0.5">Assigned Daily Support</h4>
             </div>
             {activeCheckIn && (
@@ -357,7 +357,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                 <p className="text-sm font-black text-surface-100 uppercase mt-1">
                   {troupes.find(t => t.id === activeCheckIn.troupe_id)?.name || 'Deploying Team'}
                 </p>
-                <p className="text-[10px] text-surface-500 font-bold mt-1">
+                <p className="text-[10px] text-surface-400 font-bold mt-1">
                   Started at {new Date(activeCheckIn.check_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
@@ -367,7 +367,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
             </div>
           ) : !isToday ? (
             <div className="py-4 text-center bg-surface-950/30 rounded-2xl border border-dashed border-surface-800">
-              <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
+              <p className="text-xs text-surface-400 font-bold uppercase tracking-widest">
                 Check-in is only available for today's date.
               </p>
             </div>
@@ -386,7 +386,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                     )
                   })
                 ) : (
-                  <p className="text-xs text-surface-500 font-bold col-span-2 py-2">
+                  <p className="text-xs text-surface-400 font-bold col-span-2 py-2">
                     You are not assigned to any team rosters on this date. Please ask an Admin to assemble your roster first.
                   </p>
                 )}
@@ -400,15 +400,15 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
         {/* Operations Grid */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-surface-900/60 border border-surface-800/50 p-3 rounded-2xl text-center shadow-sm">
-            <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Assigned</p>
+            <p className="text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1">Assigned</p>
             <p className="text-lg font-black text-surface-100 tracking-tighter"><CountUp end={dailyAggregates.totalStops} /></p>
           </div>
           <div className="bg-surface-900/60 border border-surface-800/50 p-3 rounded-2xl text-center shadow-sm">
-            <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Completed</p>
+            <p className="text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1">Completed</p>
             <p className="text-lg font-black text-green-400 tracking-tighter"><CountUp end={dailyAggregates.completedStops} /></p>
           </div>
           <div className="bg-surface-900/60 border border-surface-800/50 p-3 rounded-2xl text-center shadow-sm">
-            <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Pending</p>
+            <p className="text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1">Pending</p>
             <p className="text-lg font-black text-gold-500 tracking-tighter"><CountUp end={Math.max(0, dailyAggregates.totalStops - dailyAggregates.completedStops)} /></p>
           </div>
         </div>
@@ -419,7 +419,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
             
             <div className="relative z-10 space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.3em]">Daily Financials</p>
+                <p className="text-[10px] font-black text-surface-400 uppercase tracking-[0.3em]">Daily Financials</p>
                 <div className="px-2 py-0.5 bg-surface-800/50 rounded-full border border-surface-700/50">
                   <p className="text-[8px] font-black text-gold-500/80 uppercase tracking-widest">Live Snapshot</p>
                 </div>
@@ -436,7 +436,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                 </div>
                 {dailyAggregates.generalExpenses > 0 && (
                   <div className="flex justify-between items-baseline px-2 border-l-2 border-surface-800">
-                    <span className="text-[10px] font-bold text-surface-500 uppercase tracking-wider italic">↳ General Costs (All Teams)</span>
+                    <span className="text-[10px] font-bold text-surface-400 uppercase tracking-wider italic">↳ General Costs (All Teams)</span>
                     <span className="text-xs font-bold text-surface-400 font-numeric">- RM <CountUp end={dailyAggregates.generalExpenses} decimals={2} /></span>
                   </div>
                 )}
@@ -462,7 +462,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                 <button 
                   key={tId} 
                   onClick={() => setActiveTroupeId(tId)} 
-                  className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTroupeId === tId ? 'bg-surface-800 text-brand-400 border border-brand-500/20' : 'text-surface-500 hover:text-surface-300'}`}
+                  className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTroupeId === tId ? 'bg-surface-800 text-brand-400 border border-brand-500/20' : 'text-surface-400 hover:text-surface-300'}`}
                 >
                   {tName}
                 </button>
@@ -478,7 +478,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
            </div>
            <h4 className="text-surface-100 font-black uppercase tracking-tight text-xl">No Operations Active</h4>
-           <p className="text-surface-500 text-sm font-bold mt-2 uppercase tracking-widest max-w-sm mx-auto">
+           <p className="text-surface-400 text-sm font-bold mt-2 uppercase tracking-widest max-w-sm mx-auto">
              {readOnly ? "No teams have been deployed for this date yet." : `Unlock the power of your troupes by deploying them for ${currentDayInfo.label}.`}
            </p>
            {isAdmin && !readOnly && <button onClick={() => setIsActivateModalOpen(true)} className="mt-8 px-8 py-3.5 rounded-2xl bg-brand-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-brand-500 shadow-xl transition-all">Start Deployment</button>}
@@ -491,22 +491,22 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
             {readOnly && (
               <>
                 <div className="bg-surface-900/40 border border-surface-800/50 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-sm">
-                  <p className="text-[8px] sm:text-[10px] font-black text-surface-500 uppercase tracking-widest mb-0.5">Route progress</p>
-                  <p className="text-base sm:text-3xl font-black text-surface-100 tracking-tight"><CountUp end={stops.length} /> <span className="text-[8px] sm:text-xs text-surface-500">(<CountUp end={completedStops} />)</span></p>
+                  <p className="text-[8px] sm:text-[10px] font-black text-surface-400 uppercase tracking-widest mb-0.5">Route progress</p>
+                  <p className="text-base sm:text-3xl font-black text-surface-100 tracking-tight"><CountUp end={stops.length} /> <span className="text-[8px] sm:text-xs text-surface-400">(<CountUp end={completedStops} />)</span></p>
                 </div>
                 <div className="bg-surface-900/40 border border-surface-800/50 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-sm">
-                  <p className="text-[8px] sm:text-[10px] font-black text-surface-500 uppercase tracking-widest mb-0.5">Commercial Flow</p>
+                  <p className="text-[8px] sm:text-[10px] font-black text-surface-400 uppercase tracking-widest mb-0.5">Commercial Flow</p>
                   <p className="text-base sm:text-3xl font-black text-gold-500 font-numeric tracking-tight">RM <CountUp end={totalRevenue} /></p>
                 </div>
                 <div className="bg-surface-900/40 border border-surface-800/50 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-sm">
-                  <p className="text-[8px] sm:text-[10px] font-black text-surface-500 uppercase tracking-widest mb-0.5">Team Expenses</p>
+                  <p className="text-[8px] sm:text-[10px] font-black text-surface-400 uppercase tracking-widest mb-0.5">Team Expenses</p>
                   <p className="text-base sm:text-3xl font-black text-crimson-500 font-numeric tracking-tight">RM <CountUp end={teamExpenses} /></p>
                 </div>
               </>
             )}
 
             <div className={`bg-surface-900/40 border border-surface-800/50 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-sm border-brand-500/10 ${!readOnly ? 'col-span-2 md:col-span-4' : ''}`}>
-              <p className="text-[8px] sm:text-[10px] font-black text-surface-500 uppercase tracking-widest mb-0.5">Force Strength</p>
+              <p className="text-[8px] sm:text-[10px] font-black text-surface-400 uppercase tracking-widest mb-0.5">Force Strength</p>
               <p className="text-base sm:text-3xl font-black text-brand-500 tracking-tight"><CountUp end={attendance.length} /></p>
             </div>
           </div>
@@ -519,13 +519,13 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-surface-100 uppercase tracking-tight">{getTroupeName(activeTroupeId)} Personnel</h3>
-                  <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest mt-0.5"><CountUp end={participatingMembers.length} /> active for tactical deployment</p>
+                  <p className="text-[10px] text-surface-400 font-black uppercase tracking-widest mt-0.5"><CountUp end={participatingMembers.length} /> active for tactical deployment</p>
                 </div>
               </div>
               {isAdmin && !readOnly && (
                 <div className="flex gap-2">
                   {itinerary && (
-                    <button onClick={() => setIsDeleteModalOpen(true)} className="p-3 rounded-2xl bg-surface-950 border border-surface-800 text-surface-500 hover:text-crimson-500 hover:border-crimson-500/50 transition-all shadow-sm" title="Delete Deployment">
+                    <button onClick={() => setIsDeleteModalOpen(true)} className="p-3 rounded-2xl bg-surface-950 border border-surface-800 text-surface-400 hover:text-crimson-500 hover:border-crimson-500/50 transition-all shadow-sm" title="Delete Deployment">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   )}
@@ -619,12 +619,12 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                           {mRecord.sessions.map((sess, sIdx) => (
                             <div key={sIdx} className="flex items-center gap-1">
                               <div className="px-2 py-1 bg-surface-950 border border-surface-800 rounded-lg text-[9px] font-bold text-surface-400">
-                                <span className="text-surface-500">{sess.team}:</span> {sess.checkIn} - {sess.checkOut} ({sess.hrs.toFixed(1)}h)
+                                <span className="text-surface-400">{sess.team}:</span> {sess.checkIn} - {sess.checkOut} ({sess.hrs.toFixed(1)}h)
                               </div>
                               {isAdmin && !readOnly && (
                                 <button 
                                   onClick={() => setEditingCheckIn(filteredCheckIns.find(c => c.id === sess.id))}
-                                  className="p-1 text-surface-500 hover:text-brand-400 hover:bg-surface-800 rounded-md transition-all"
+                                  className="p-1 text-surface-400 hover:text-brand-400 hover:bg-surface-800 rounded-md transition-all"
                                 >
                                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                 </button>
@@ -635,7 +635,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                       </div>
 
                       <div className="text-right">
-                        <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest">Total Worked</p>
+                        <p className="text-[10px] font-black text-surface-400 uppercase tracking-widest">Total Worked</p>
                         <p className="text-lg font-black text-brand-400 tracking-tighter mt-0.5">
                           {mRecord.totalHrs.toFixed(1)} hrs
                         </p>
@@ -644,7 +644,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-surface-950/20 rounded-2xl border border-dashed border-surface-800 text-xs font-bold text-surface-500 uppercase tracking-widest">
+                <div className="text-center py-8 bg-surface-950/20 rounded-2xl border border-dashed border-surface-800 text-xs font-bold text-surface-400 uppercase tracking-widest">
                   No check-ins registered for today.
                 </div>
               )}

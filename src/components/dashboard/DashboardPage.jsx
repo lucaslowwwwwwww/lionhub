@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useDashboardStats } from '../../hooks/useDashboardStats'
-import MasterDashboard from './MasterDashboard'
-import DailyDashboard from './DailyDashboard'
 import { getChineseZodiac } from '../../utils/constants'
 import { useSettings } from '../../hooks/useSettings'
+
+const MasterDashboard = lazy(() => import('./MasterDashboard'))
+const DailyDashboard = lazy(() => import('./DailyDashboard'))
 
 export default function DashboardPage() {
   const { userProfile } = useAuth()
@@ -67,13 +68,13 @@ export default function DashboardPage() {
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             </span>
             <div className="flex flex-col">
-              <span className="text-[8px] sm:text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] leading-none mb-0.5 sm:mb-1">{zodiac.year}</span>
+              <span className="text-[8px] sm:text-[10px] font-black text-surface-400 uppercase tracking-[0.2em] leading-none mb-0.5 sm:mb-1">{zodiac.year}</span>
               <span className="text-[10px] sm:text-xs font-bold text-surface-200 uppercase tracking-tight leading-none">Year of the {zodiac.name}</span>
             </div>
           </div>
 
           <div className="flex flex-col items-center lg:items-end gap-1">
-            <span className="hidden sm:block text-[10px] font-black text-surface-500 uppercase tracking-[0.3em]">Status</span>
+            <span className="hidden sm:block text-[10px] font-black text-surface-400 uppercase tracking-[0.3em]">Status</span>
             <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-surface-950/50 rounded-full border border-surface-800 shadow-inner">
                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                <span className="text-[8px] sm:text-[10px] font-bold text-surface-200 uppercase tracking-widest">Live Sync</span>
@@ -84,17 +85,24 @@ export default function DashboardPage() {
 
       {/* Conditional Dashboard Render */}
       <div className="transition-all duration-500 min-h-[60vh]">
-        {activeView === 'main' ? (
-          <MasterDashboard 
-            stats={stats} 
-            loading={loading} 
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
-            availableYears={availableYears}
-          />
-        ) : (
-          <DailyDashboard troupeId={troupeId} isAdmin={isAdmin} readOnly={activeView === 'status'} />
-        )}
+        <Suspense fallback={
+          <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
+            <div className="w-10 h-10 border-4 border-surface-800 border-t-brand-500 rounded-full animate-spin" />
+            <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Syncing Engine...</p>
+          </div>
+        }>
+          {activeView === 'main' ? (
+            <MasterDashboard 
+              stats={stats} 
+              loading={loading} 
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+              availableYears={availableYears}
+            />
+          ) : (
+            <DailyDashboard troupeId={troupeId} isAdmin={isAdmin} readOnly={activeView === 'status'} />
+          )}
+        </Suspense>
       </div>
 
       {/* Global Data Status Footer */}

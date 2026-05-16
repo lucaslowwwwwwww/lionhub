@@ -40,7 +40,7 @@ export default defineConfig({
         enabled: true
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,ttf}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,ttf,webp}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -49,10 +49,32 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365
               },
               cacheableResponse: {
                 statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 Days
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/uyqcyqnuvsyynpthvlid\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'supabase-storage-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 Days
               }
             }
           }
@@ -60,11 +82,26 @@ export default defineConfig({
       }
     })
   ],
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   build: {
     chunkSizeWarningLimit: 2000,
-    // Strip ALL console statements and debugger from production builds
-    esbuild: {
-      drop: ['console', 'debugger'],
-    },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('recharts')) return 'vendor-recharts';
+            if (id.includes('jspdf') || id.includes('jspdf-autotable')) return 'vendor-pdf';
+            if (id.includes('xlsx')) return 'vendor-xlsx';
+            if (id.includes('dompurify')) return 'vendor-security';
+            if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('@hello-pangea')) return 'vendor-dnd';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor-react';
+            return 'vendor-base';
+          }
+        }
+      }
+    }
   }
 })

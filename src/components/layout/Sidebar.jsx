@@ -146,13 +146,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
             </div>
             {!isCollapsed && (
               <div className="min-w-0 animate-fade-in">
-                <h1 className="text-sm font-bold text-surface-50 tracking-tight truncate max-w-[140px]">{displayName}</h1>
+                <span className="text-sm font-bold text-surface-50 tracking-tight truncate max-w-[140px] block">{displayName}</span>
               </div>
             )}
           </div>
 
           <button 
             onClick={() => window.innerWidth < 768 ? setIsMobileMenuOpen(false) : setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             className={`flex items-center justify-center rounded-lg border border-surface-800 bg-surface-900/50 text-surface-400 hover:text-surface-100 transition-all shadow-sm ${
               isCollapsed ? 'md:absolute md:-right-3 md:top-14 md:w-6 md:h-6 md:bg-surface-900' : 'w-7 h-7'
             }`}
@@ -282,7 +283,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
               <p className="text-[10px] text-surface-500 uppercase tracking-widest truncate">{userProfile?.is_super_admin ? 'Super Admin' : userRole}</p>
             </div>
             {!isCollapsed && (
-              <button onClick={logout} className="p-1.5 text-surface-500 hover:text-crimson-400 rounded-lg transition-colors animate-fade-in shrink-0">
+              <button 
+                onClick={logout} 
+                aria-label="Logout"
+                className="p-1.5 text-surface-400 hover:text-crimson-400 rounded-lg transition-colors animate-fade-in shrink-0"
+              >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>

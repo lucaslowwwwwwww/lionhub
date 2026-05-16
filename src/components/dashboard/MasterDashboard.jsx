@@ -52,7 +52,7 @@ function CustomTooltip({ active, payload, label }) {
 
           return (
             <p key={i} className="text-[10px] uppercase font-black tracking-widest flex justify-between gap-4">
-              <span className="text-surface-500">{labelText}:</span>
+              <span className="text-surface-400">{labelText}:</span>
               <span className={colorClass}>
                 {isFinancial ? `RM ${entry.value.toLocaleString()}` : entry.value}
               </span>
@@ -69,7 +69,7 @@ function EmptyChartState({ label }) {
     <div className="flex items-center justify-center h-full text-center bg-surface-950/20 rounded-[2rem] border-2 border-dashed border-surface-800/50 p-8">
       <div className="flex flex-col items-center space-y-3">
          <svg className="w-12 h-12 text-surface-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-         <p className="text-sm text-surface-500 font-bold leading-relaxed max-w-[200px] mx-auto uppercase tracking-widest">
+         <p className="text-sm text-surface-400 font-bold leading-relaxed max-w-[200px] mx-auto uppercase tracking-widest">
            {label}
          </p>
       </div>
@@ -95,12 +95,10 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
     checkMobile()
     window.addEventListener('resize', checkMobile)
     
-    // Stabilize layout before rendering charts (increased delay for production stability)
+    // Stabilize layout before rendering charts (reduced delay for better LCP)
     const timer = setTimeout(() => {
       setCanRender(true)
-      // Force a resize event to ensure Recharts recalculates dimensions
-      window.dispatchEvent(new Event('resize'))
-    }, 1000)
+    }, 300)
     
     return () => {
       window.removeEventListener('resize', checkMobile)
@@ -110,10 +108,13 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
 
   const handleScroll = (e, setter) => {
     if (!isMobile) return
-    const scrollLeft = e.target.scrollLeft
-    const width = e.target.offsetWidth
-    const index = Math.round(scrollLeft / width)
-    setter(index)
+    const target = e.target
+    requestAnimationFrame(() => {
+      const scrollLeft = target.scrollLeft
+      const width = target.offsetWidth
+      const index = Math.round(scrollLeft / width)
+      setter(index)
+    })
   }
 
   const CarouselIndicators = ({ count, activeIndex, color = 'gold' }) => (
@@ -165,7 +166,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                    </div>
                  </div>
                  <div className="space-y-0.5 sm:space-y-1">
-                   <p className="text-[10px] sm:text-xs font-black text-surface-500 uppercase tracking-widest">{kpi.label}</p>
+                   <p className="text-[10px] sm:text-xs font-black text-surface-400 uppercase tracking-widest">{kpi.label}</p>
                    <p className="text-xl sm:text-3xl font-black text-surface-100 font-numeric tracking-tight">
                      {['totalRevenue', 'totalExpenses', 'netProfit'].includes(kpi.key) ? (
                        <CountUp end={stats[kpi.key]} prefix="RM " />
@@ -186,15 +187,15 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
         <div className="xl:col-span-12 bg-surface-900/40 border border-surface-800/50 rounded-3xl p-5 sm:p-8 shadow-sm backdrop-blur-md">
            <div className="flex items-center justify-between gap-4 mb-4 sm:mb-8">
               <div className="space-y-0.5">
-                <h3 className="text-sm sm:text-xl font-black text-surface-100 uppercase tracking-tight">Mission Progress</h3>
-                <p className="hidden sm:block text-sm text-surface-500 font-bold">Consolidated completion rate across all troupes</p>
+                <h2 className="text-sm sm:text-xl font-black text-surface-100 uppercase tracking-tight">Mission Progress</h2>
+                <p className="hidden sm:block text-sm text-surface-400 font-bold">Consolidated completion rate across all troupes</p>
               </div>
               <div className="flex items-center gap-3 sm:gap-4">
                  <div className="text-right">
                     <p className="text-2xl sm:text-4xl font-black text-surface-100 font-numeric tracking-tighter">
                       <CountUp end={completionRate} suffix="%" />
                     </p>
-                    <p className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-widest">Efficiency</p>
+                    <p className="text-[8px] sm:text-[10px] text-surface-400 font-black uppercase tracking-widest">Efficiency</p>
                  </div>
                  <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full border-2 sm:border-4 border-surface-800 flex items-center justify-center p-0.5 sm:p-1">
                     <div 
@@ -214,15 +215,15 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
 
            <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-8">
               <div className="p-2 sm:p-4 rounded-xl sm:rounded-2xl bg-surface-950/30 border border-surface-800/50 text-center">
-                 <p className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-widest mb-0.5">DONE</p>
+                 <p className="text-[8px] sm:text-[10px] text-surface-400 font-black uppercase tracking-widest mb-0.5">DONE</p>
                  <p className="text-sm sm:text-xl font-black text-green-400"><CountUp end={stats.completedStops} /></p>
               </div>
               <div className="p-2 sm:p-4 rounded-xl sm:rounded-2xl bg-surface-950/30 border border-surface-800/50 text-center">
-                 <p className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-widest mb-0.5">ACTIVE</p>
+                 <p className="text-[8px] sm:text-[10px] text-surface-400 font-black uppercase tracking-widest mb-0.5">ACTIVE</p>
                  <p className="text-sm sm:text-xl font-black text-gold-400"><CountUp end={stats.pendingStops} /></p>
               </div>
               <div className="p-2 sm:p-4 rounded-xl sm:rounded-2xl bg-surface-950/30 border border-surface-800/50 text-center">
-                 <p className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-widest mb-0.5">SKIPPED</p>
+                 <p className="text-[8px] sm:text-[10px] text-surface-400 font-black uppercase tracking-widest mb-0.5">SKIPPED</p>
                  <p className="text-sm sm:text-xl font-black text-crimson-400"><CountUp end={stats.skippedStops} /></p>
               </div>
            </div>
@@ -236,8 +237,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-lg font-black text-surface-100 uppercase tracking-tight">Time-Series Analysis</h3>
-                  <label htmlFor="strategic-period-selector" className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-[0.2em] cursor-pointer">Select Period</label>
+                  <h2 className="text-sm sm:text-lg font-black text-surface-100 uppercase tracking-tight">Time-Series Analysis</h2>
+                  <label htmlFor="strategic-period-selector" className="text-[8px] sm:text-[10px] text-surface-400 font-black uppercase tracking-[0.2em] cursor-pointer">Select Period</label>
                 </div>
               </div>
 
@@ -248,7 +249,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                   className={`flex-1 sm:flex-none px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
                     viewMode === 'monthly' 
                       ? 'bg-surface-800 text-gold-400 shadow-lg' 
-                      : 'text-surface-500 hover:text-surface-300'
+                      : 'text-surface-400 hover:text-surface-300'
                   }`}
                 >
                   Monthly
@@ -258,7 +259,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                   className={`flex-1 sm:flex-none px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
                     viewMode === 'yearly' 
                       ? 'bg-surface-800 text-gold-400 shadow-lg' 
-                      : 'text-surface-500 hover:text-surface-300'
+                      : 'text-surface-400 hover:text-surface-300'
                   }`}
                 >
                   Yearly
@@ -282,7 +283,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     </option>
                   ))}
                 </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-surface-500 group-hover:text-gold-400 transition-colors text-[8px] sm:text-[10px]">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-surface-400 group-hover:text-gold-400 transition-colors text-[8px] sm:text-[10px]">
                    ▼
                 </div>
              </div>
@@ -303,8 +304,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Financial Performance</h3>
-                    <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
+                    <h2 className="text-lg font-black text-surface-100 uppercase tracking-tight">Financial Performance</h2>
+                    <p className="text-xs text-surface-400 font-bold uppercase tracking-widest">
                       {viewMode === 'monthly' ? `Monthly Revenue Stream (${selectedYear})` : 'Yearly Revenue Stream'}
                     </p>
                   </div>
@@ -376,8 +377,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Engagement Metrics</h3>
-                    <p className="text-xs text-surface-500 font-bold uppercase tracking-widest">
+                    <h2 className="text-lg font-black text-surface-100 uppercase tracking-tight">Engagement Metrics</h2>
+                    <p className="text-xs text-surface-400 font-bold uppercase tracking-widest">
                       {viewMode === 'monthly' ? `Monthly Stops & Completion (${selectedYear})` : 'Yearly Stops & Completion'}
                     </p>
                   </div>
@@ -465,8 +466,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Income Streams</h3>
-                      <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Revenue by Source Category</p>
+                      <h2 className="text-lg font-black text-surface-100 uppercase tracking-tight">Income Streams</h2>
+                      <p className="text-[10px] text-surface-400 font-black uppercase tracking-widest">Revenue by Source Category</p>
                     </div>
                   </div>
                   <div className="h-64 sm:h-[350px] w-full relative">
@@ -514,7 +515,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                         </ResponsiveContainer>
                         {/* Centered Dynamic Info */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
-                          <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
+                          <p className="text-[10px] font-black text-surface-400 uppercase tracking-[0.2em] mb-1">
                             {hoveredIncome ? hoveredIncome.name : 'Total'}
                           </p>
                           <p className={`font-black tabular-nums transition-all ${hoveredIncome ? 'text-2xl text-surface-100' : 'text-xl text-gold-500'}`}>
@@ -537,8 +538,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-surface-100 uppercase tracking-tight">Cost Distribution</h3>
-                      <p className="text-[10px] text-surface-500 font-black uppercase tracking-widest">Expenses by Operational Group</p>
+                      <h2 className="text-lg font-black text-surface-100 uppercase tracking-tight">Cost Distribution</h2>
+                      <p className="text-[10px] text-surface-400 font-black uppercase tracking-widest">Expenses by Operational Group</p>
                     </div>
                   </div>
                   <div className="h-64 sm:h-[350px] w-full relative">
@@ -586,7 +587,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                         </ResponsiveContainer>
                         {/* Centered Dynamic Info */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
-                          <p className="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
+                          <p className="text-[10px] font-black text-surface-400 uppercase tracking-[0.2em] mb-1">
                             {hoveredExpense ? hoveredExpense.name : 'Spent'}
                           </p>
                           <p className={`font-black tabular-nums transition-all ${hoveredExpense ? 'text-2xl text-surface-100' : 'text-xl text-crimson-500'}`}>

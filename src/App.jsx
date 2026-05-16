@@ -11,9 +11,7 @@ import { useState, useEffect, useContext, useRef, lazy, Suspense } from 'react'
 import { OrgContext } from './contexts/OrgContext'
 import './index.css'
 
-import DashboardPage from './components/dashboard/DashboardPage'
-
-// Lazy Load Pages for Code Splitting
+const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'))
 const ItineraryPage = lazy(() => import('./components/itinerary').then(m => ({ default: m.ItineraryPage })))
 const TeamPage = lazy(() => import('./components/team/TeamPage'))
 const GeneralSettings = lazy(() => import('./components/settings/GeneralSettings'))
@@ -141,6 +139,7 @@ function AppContent() {
   const userRole = userProfile?.role || 'member'
   const isAdmin = ['master', 'admin'].includes(userRole)
   const hasInventoryAccess = isAdmin || userRole === 'logistics'
+
   const [showSplash, setShowSplash] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
   const [initialSplashDone, setInitialSplashDone] = useState(false)
@@ -159,8 +158,8 @@ function AppContent() {
   useEffect(() => {
     if (!showSplash) return
 
-    const minTime = 500
-    const maxTime = 2000
+    const minTime = 50
+    const maxTime = 500 // Aggressive mobile optimization
     const startTime = Date.now()
 
     const checkLoading = setInterval(() => {
@@ -172,7 +171,7 @@ function AppContent() {
         setTimeout(() => {
           setShowSplash(false)
           setInitialSplashDone(true)
-        }, 700)
+        }, 300)
       }
     }, 100)
 
@@ -276,6 +275,13 @@ function AppContent() {
 function WatermarkOverlay() {
   const orgCtx = useContext(OrgContext)
   const { settings } = useSettings()
+  const [shouldRender, setShouldRender] = useState(false)
+
+  // Performance Optimization: Delay watermark rendering to clear initial LCP
+  useEffect(() => {
+    const timer = setTimeout(() => setShouldRender(true), 2500)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Disable watermark completely for pure Super Admin sessions
   if (orgCtx?.isSuperAdmin && !orgCtx?.impersonatedOrgId) {
@@ -285,15 +291,13 @@ function WatermarkOverlay() {
   // Prefer org logo, then settings if not impersonating
   const logoSrc = orgCtx?.logoUrl || (!orgCtx?.orgId ? settings?.clublogo : null)
   
-  if (!logoSrc) return null;
+  if (!logoSrc || !shouldRender) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.08] pointer-events-none z-0 overflow-hidden select-none">
-      <img 
-        src={logoSrc} 
-        alt="Watermark" 
-        className="w-[90vw] md:w-[80vw] max-w-[1000px] h-auto object-contain"
-        loading="lazy"
+    <div className="fixed inset-0 flex items-center justify-center opacity-[0.12] dark:opacity-[0.08] pointer-events-none z-0 overflow-hidden select-none animate-in fade-in duration-1000">
+      <div 
+        className="w-[90vw] md:w-[80vw] max-w-[1000px] h-[90vh] bg-center bg-no-repeat bg-contain"
+        style={{ backgroundImage: `url(${logoSrc})` }}
       />
     </div>
   )
