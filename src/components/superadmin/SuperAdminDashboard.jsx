@@ -260,7 +260,7 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Super Admin Topbar */}
-      <header className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur-xl border-b border-surface-800 px-4 sm:px-10 py-3 sm:py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur-xl border-b border-surface-800 px-4 sm:px-10 pb-3 sm:pb-4 pt-[calc(0.75rem+env(safe-area-inset-top))] sm:pt-4 flex items-center justify-between">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border border-surface-700/50 shadow-lg shadow-black/20 shrink-0">
             <picture>
