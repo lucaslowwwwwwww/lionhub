@@ -313,6 +313,8 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
         <div className="flex items-center gap-2 w-full sm:w-auto min-w-0">
           <div className="flex-1 sm:flex-none min-w-0">
             <input 
+              id="daily-date-picker"
+              name="selected_date"
               type="date" 
               value={localIsoDate} 
               onChange={(e) => {

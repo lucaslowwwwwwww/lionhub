@@ -237,7 +237,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-lg font-black text-surface-100 uppercase tracking-tight">Time-Series Analysis</h3>
-                  <p className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-[0.2em]">Select Period</p>
+                  <label htmlFor="strategic-period-selector" className="text-[8px] sm:text-[10px] text-surface-500 font-black uppercase tracking-[0.2em] cursor-pointer">Select Period</label>
                 </div>
               </div>
 
@@ -270,6 +270,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
            {viewMode === 'monthly' && (
              <div className="relative group w-full md:w-auto min-w-[150px] sm:min-w-[180px]">
                 <select 
+                  id="strategic-period-selector"
+                  name="selected_year"
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
                   className="w-full appearance-none bg-surface-950/50 border border-surface-800 text-surface-100 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] pl-4 sm:pl-6 pr-8 sm:pr-10 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl cursor-pointer hover:border-crimson-600/50 focus:outline-none focus:ring-2 focus:ring-crimson-600/20 transition-all duration-300 shadow-inner"
