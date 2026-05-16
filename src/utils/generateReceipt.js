@@ -343,7 +343,7 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
         return true
       }
     } catch (err) {
-      if (err.name !== 'AbortError') console.error("Error sharing via navigator:", err)
+      if (err.name !== 'AbortError') console.error("An error occurred")
     }
   }
 

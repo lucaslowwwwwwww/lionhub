@@ -121,7 +121,7 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
 
       setRecruitedUser({ displayName, email, role })
     } catch (err) {
-      console.error('Error in handleSubmit:', err)
+      console.error("An error occurred")
       setError(err.message || 'Failed to create account. Please try again.')
     } finally {
       setSaving(false)
@@ -195,6 +195,7 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
                 <select value={role} onChange={e => setRole(e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none">
                   <option value="member">Member (Personnel)</option>
+                  <option value="logistics">Logistics (Inventory Ops)</option>
                   <option value="admin">Admin (Full Access)</option>
                 </select>
               </div>
@@ -280,7 +281,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
       
       onClose()
     } catch (err) {
-      console.error('Error in EditMemberModal:', err)
+      console.error("An error occurred")
       setError(err.message || 'Failed to update member. Please try again.')
     } finally {
       setSaving(false)
@@ -332,6 +333,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
                 <select value={role} onChange={e => setRole(e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none font-bold">
                   <option value="member">Member</option>
+                  <option value="logistics">Logistics</option>
                   <option value="admin">Admin</option>
                   {isMaster && <option value="master">Master</option>}
                 </select>
@@ -703,7 +705,7 @@ export default function TeamPage() {
                           </td>
                           <td className="px-5 py-4">
                             <div className={`flex flex-col ${isOnline(m.lastactive) ? 'text-green-400' : 'text-surface-500'}`}>
-                              <span className="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit bg-surface-800 border border-surface-700/50">
+                              <span className={`text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest w-fit border ${m.role === 'logistics' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-surface-800 border-surface-700/50'}`}>
                                 {m.role || 'member'}
                               </span>
                               {!isOnline(m.lastactive) && m.lastactive && (
@@ -817,9 +819,16 @@ export default function TeamPage() {
                               </div>
                               <div>
                                 <p className="text-surface-100 font-bold">{m.displayname || 'Unknown'}</p>
-                                <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-surface-800 text-surface-400 border border-surface-700/50">
-                                  {m.phone || 'No Phone'}
-                                </span>
+                                <div className="flex gap-1.5 mt-1">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-surface-800 text-surface-400 border border-surface-700/50">
+                                    {m.phone || 'No Phone'}
+                                  </span>
+                                  {m.role === 'logistics' && (
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                      Logistics
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                            </div>
                            <div className="text-right">

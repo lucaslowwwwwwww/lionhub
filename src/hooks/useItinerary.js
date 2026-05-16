@@ -35,12 +35,12 @@ export function useItinerary(troupeId, date) {
         .order('order', { ascending: true })
 
       if (error) {
-        console.error('Error fetching stops:', error)
+        console.error("An error occurred")
       } else {
         setStops(data || [])
       }
     } catch (err) {
-      console.error('Unexpected stops error:', err)
+      console.error("An error occurred")
     } finally {
       setLoading(false)
     }
@@ -64,7 +64,7 @@ export function useItinerary(troupeId, date) {
         .maybeSingle()
 
       if (error) {
-        console.error('Error fetching itinerary:', error)
+        console.error("An error occurred")
         setLoading(false)
         return
       }
@@ -84,7 +84,7 @@ export function useItinerary(troupeId, date) {
         setLoading(false)
       }
     } catch (err) {
-      console.error('Unexpected itinerary error:', err)
+      console.error("An error occurred")
       setLoading(false)
     } finally {
       clearTimeout(timeoutId)
@@ -240,7 +240,7 @@ export function useItinerary(troupeId, date) {
     if (newStatus !== 'completed' && oldStatus === 'completed') {
       try {
         await supabase.from('finance').delete().eq('sourcestopid', stopId)
-      } catch (err) { console.error('Finance cleanup failed:', err) }
+      } catch (err) { console.error("An error occurred") }
     }
 
     // 💰 Deterministic Finance Recording
@@ -280,7 +280,7 @@ export function useItinerary(troupeId, date) {
 
       if (error) throw error
     } catch (err) {
-      console.error('Error updating stop:', err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -311,7 +311,7 @@ export function useItinerary(troupeId, date) {
       if (error) throw error
       return docId
     } catch (err) {
-      console.error('Error creating itinerary:', err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -369,7 +369,7 @@ export function useItinerary(troupeId, date) {
       showToast('Stop added successfully', 'success')
       logAction('ADD_STOP', { stopId: newStop?.id, itinId: activeItinId })
     } catch (err) {
-      console.error('Error adding stop:', err)
+      console.error("An error occurred")
       showToast('Failed to add stop', 'error')
       throw err
     }
@@ -415,7 +415,7 @@ export function useItinerary(troupeId, date) {
 
       logAction('DELETE_STOP', { stopId, itinId: itinerary.id })
     } catch (err) {
-      console.error('Error deleting stop:', err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -456,7 +456,7 @@ export function useItinerary(troupeId, date) {
 
       if (error) throw error
     } catch (err) {
-      console.error('Error reordering stops:', err)
+      console.error("An error occurred")
       // Optionally re-fetch to restore correct order if DB update failed
       fetchStops(itinerary.id)
       throw err
@@ -483,7 +483,7 @@ export function useItinerary(troupeId, date) {
 
       if (error) throw error
     } catch (err) {
-      console.error('Error updating attendance:', err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -506,7 +506,7 @@ export function useItinerary(troupeId, date) {
 
       logAction('DELETE_FULL_ITINERARY', { itinId: itinerary.id, date: itinerary.date, troupeName: itinerary.troupename })
     } catch (err) {
-      console.error('Error deleting full itinerary:', err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -627,7 +627,7 @@ export function useItinerary(troupeId, date) {
             })
             .eq('id', financeId)
         } catch (err) {
-          console.error('Failed to update associated finance record troupe:', err)
+          console.error("An error occurred")
         }
       }
 
@@ -636,7 +636,7 @@ export function useItinerary(troupeId, date) {
       showToast('Stop transferred successfully', 'success')
       logAction('TRANSFER_STOP', { stopId, fromItinId: itinerary?.id, toItinId: targetItinId })
     } catch (err) {
-      console.error('Failed to transfer stop:', err)
+      console.error("An error occurred")
       showToast('Failed to transfer stop', 'error')
       throw err
     }
@@ -672,7 +672,7 @@ export function useAllPerformanceDates(troupeId) {
       .eq('org_id', orgId)
 
     if (fetchError) {
-      console.error('Itinerary query error:', fetchError)
+      console.error("An error occurred")
       setError(fetchError.message)
       setLoading(false)
       return

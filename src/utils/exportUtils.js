@@ -154,7 +154,7 @@ export const loadChineseFont = async () => {
     chineseFontBase64 = window.btoa(binary)
     return chineseFontBase64
   } catch (error) {
-    console.error('Failed to load Chinese font:', error)
+    console.error("An error occurred")
     return null
   }
 }

@@ -170,7 +170,7 @@ export default function TeamSelectionModal({
                           <p className={`font-black text-sm ${isSelected ? 'text-crimson-400' : 'text-surface-100'}`}>{m.displayname || m.displayName}</p>
                           {(busyMemberIds || []).includes(m.id) && <span className="text-[8px] font-black text-surface-500 uppercase bg-surface-800 px-1.5 py-0.5 rounded">Busy</span>}
                         </div>
-                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • Member</p>
+                        <p className="text-[9px] text-surface-500 font-bold uppercase">{trpList.find(t => t.id === m.troupeid)?.name || 'Unassigned'} • {m.role === 'logistics' ? 'Logistics' : 'Member'}</p>
                       </div>
                     </button>
                     )

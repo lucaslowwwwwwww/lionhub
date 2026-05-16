@@ -140,6 +140,7 @@ function AppContent() {
   
   const userRole = userProfile?.role || 'member'
   const isAdmin = ['master', 'admin'].includes(userRole)
+  const hasInventoryAccess = isAdmin || userRole === 'logistics'
   const [showSplash, setShowSplash] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
   const [initialSplashDone, setInitialSplashDone] = useState(false)
@@ -158,8 +159,8 @@ function AppContent() {
   useEffect(() => {
     if (!showSplash) return
 
-    const minTime = 1200
-    const maxTime = 3500
+    const minTime = 500
+    const maxTime = 2000
     const startTime = Date.now()
 
     const checkLoading = setInterval(() => {
@@ -245,12 +246,16 @@ function AppContent() {
                         <Route path="/itinerary" element={<ItineraryPage />} />
                         <Route path="/customers" element={<CustomersPage />} />
                         <Route path="/finance" element={<FinancePage />} />
-                        <Route path="/inventory" element={<InventoryPage />} />
                         <Route path="/billing" element={<BillingPage />} />
                         <Route path="/settings/team" element={<TeamPage />} />
                         <Route path="/salary" element={<SalaryCalculator />} />
                       </>
                     )}
+
+                    {hasInventoryAccess && (
+                      <Route path="/inventory" element={<InventoryPage />} />
+                    )}
+
 
                     <Route path="/settings/general" element={<GeneralSettings />} />
                     <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
@@ -288,6 +293,7 @@ function WatermarkOverlay() {
         src={logoSrc} 
         alt="Watermark" 
         className="w-[90vw] md:w-[80vw] max-w-[1000px] h-auto object-contain"
+        loading="lazy"
       />
     </div>
   )

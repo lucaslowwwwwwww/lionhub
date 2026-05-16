@@ -11,6 +11,7 @@ import { supabase } from '../../supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCheckIn } from '../../hooks/useCheckIn'
 import { useOrg } from '../../contexts/OrgContext'
+import CheckInEditModal from './CheckInEditModal'
 
 function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel" }) {
   if (!isOpen) return null
@@ -87,6 +88,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
   const [isActivateModalOpen, setIsActivateModalOpen] = useState(false)
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [editingCheckIn, setEditingCheckIn] = useState(null)
 
   const dateRange = useMemo(() => {
     return Array.from({ length: 15 }, (_, i) => {
@@ -108,7 +110,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     : selectedDay
 
   const { userProfile } = useAuth()
-  const { activeCheckIn, dailyCheckIns, checkIn, checkOut, loading: loadingC } = useCheckIn(dateKey)
+  const { activeCheckIn, dailyCheckIns, checkIn, checkOut, updateCheckIn, deleteCheckIn, loading: loadingC } = useCheckIn(dateKey)
 
   // ISSUE-5: Scope timesheet to active troupe tab
   const filteredCheckIns = useMemo(() => {
@@ -224,7 +226,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
         })
       setActiveTroupeId(tId)
     } catch (err) {
-      console.error("Error activating troupe:", err)
+      console.error("An error occurred")
     }
   }
 
@@ -613,8 +615,18 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
                         
                         <div className="flex flex-wrap gap-2 mt-2">
                           {mRecord.sessions.map((sess, sIdx) => (
-                            <div key={sIdx} className="px-2 py-1 bg-surface-950 border border-surface-800 rounded-lg text-[9px] font-bold text-surface-400">
-                              <span className="text-surface-500">{sess.team}:</span> {sess.checkIn} - {sess.checkOut} ({sess.hrs.toFixed(1)}h)
+                            <div key={sIdx} className="flex items-center gap-1">
+                              <div className="px-2 py-1 bg-surface-950 border border-surface-800 rounded-lg text-[9px] font-bold text-surface-400">
+                                <span className="text-surface-500">{sess.team}:</span> {sess.checkIn} - {sess.checkOut} ({sess.hrs.toFixed(1)}h)
+                              </div>
+                              {isAdmin && !readOnly && (
+                                <button 
+                                  onClick={() => setEditingCheckIn(filteredCheckIns.find(c => c.id === sess.id))}
+                                  className="p-1 text-surface-500 hover:text-brand-400 hover:bg-surface-800 rounded-md transition-all"
+                                >
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -661,6 +673,13 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
         onConfirm={handleDeleteDeployment}
         title="Delete Deployment"
         message={`This will remove the deployment for ${getTroupeName(activeTroupeId)}, including all stops and assignments for today.`}
+      />
+      <CheckInEditModal 
+        isOpen={!!editingCheckIn} 
+        onClose={() => setEditingCheckIn(null)} 
+        checkInRecord={editingCheckIn}
+        onSave={updateCheckIn}
+        onDelete={deleteCheckIn}
       />
     </div>
   )

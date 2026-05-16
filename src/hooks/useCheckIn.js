@@ -30,7 +30,7 @@ export function useCheckIn(dateKey) {
         .order('check_in_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching active check-in:', error)
+        console.error("An error occurred")
         return
       }
 
@@ -68,7 +68,7 @@ export function useCheckIn(dateKey) {
       })
       setActiveCheckIn(todayCheckIn || null)
     } catch (err) {
-      console.error('Error fetching active check-in:', err)
+      console.error("An error occurred")
     }
   }, [userProfile?.id, userProfile?.uid, orgId])
 
@@ -92,7 +92,7 @@ export function useCheckIn(dateKey) {
         setDailyCheckIns(data || [])
       }
     } catch (err) {
-      console.error('Error fetching daily check-ins:', err)
+      console.error("An error occurred")
     } finally {
       setLoading(false)
     }
@@ -142,7 +142,7 @@ export function useCheckIn(dateKey) {
           fetchActiveCheckIn()
           return
         }
-        console.error('Check-in insertion error:', error)
+        console.error("An error occurred")
         alert('Check-in failed: ' + error.message)
         return
       }
@@ -150,7 +150,7 @@ export function useCheckIn(dateKey) {
       fetchDailyCheckIns()
       return data
     } catch (err) {
-      console.error('Unexpected check-in error:', err)
+      console.error("An error occurred")
       alert('Error checking in: ' + err.message)
     }
   }
@@ -168,15 +168,54 @@ export function useCheckIn(dateKey) {
         .eq('id', activeCheckIn.id)
 
       if (error) {
-        console.error('Check-out update error:', error)
+        console.error("An error occurred")
         alert('Check-out failed: ' + error.message)
         return
       }
       setActiveCheckIn(null)
       fetchDailyCheckIns()
     } catch (err) {
-      console.error('Unexpected check-out error:', err)
+      console.error("An error occurred")
       alert('Error checking out: ' + err.message)
+    }
+  }
+
+  const updateCheckIn = async (id, updates) => {
+    try {
+      const { error } = await supabase
+        .from('check_ins')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+
+      if (error) throw error
+      fetchDailyCheckIns()
+      fetchActiveCheckIn()
+      return { success: true }
+    } catch (err) {
+      console.error("An error occurred")
+      alert('Update failed: ' + err.message)
+      return { success: false, error: err }
+    }
+  }
+
+  const deleteCheckIn = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('check_ins')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      fetchDailyCheckIns()
+      fetchActiveCheckIn()
+      return { success: true }
+    } catch (err) {
+      console.error("An error occurred")
+      alert('Deletion failed: ' + err.message)
+      return { success: false, error: err }
     }
   }
 
@@ -207,6 +246,8 @@ export function useCheckIn(dateKey) {
     loading, 
     checkIn, 
     checkOut, 
+    updateCheckIn,
+    deleteCheckIn,
     refresh: fetchDailyCheckIns 
   }
 }

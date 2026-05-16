@@ -5,7 +5,8 @@ const CATEGORIES = [
   'Equipment',
   'Uniforms',
   'Transportation',
-  'Food & Beverages',
+  'Food',
+  'Beverages',
   'Membership Fees',
   'Competition Fees',
   'Repairs',
@@ -214,7 +215,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
       })
       onClose()
     } catch (err) {
-      console.error('Failed to save transaction:', err)
+      console.error("An error occurred")
       alert('Error: ' + (err.message || 'Failed to save transaction'))
     }
   }

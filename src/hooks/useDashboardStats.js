@@ -212,7 +212,7 @@ export function useDashboardStats() {
           totalMembers: memberRes.count || 0
         }))
       } catch (err) {
-        console.error("Unexpected dashboard stats error:", err)
+        console.error("An error occurred")
       } finally {
         clearTimeout(timeoutId)
         setLoading(false)

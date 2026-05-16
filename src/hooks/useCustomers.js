@@ -48,7 +48,7 @@ export function useCustomers(options = {}) {
         .range(from, to)
 
       if (fetchError) {
-        console.error('Error fetching global customer list:', fetchError)
+        console.error("An error occurred")
         setError(fetchError)
       } else {
         setCustomers(data || [])
@@ -56,7 +56,7 @@ export function useCustomers(options = {}) {
         setError(null)
       }
     } catch (err) {
-      console.error('Unexpected customers error:', err)
+      console.error("An error occurred")
       setError(err)
     } finally {
       clearTimeout(timeoutId)

@@ -50,7 +50,7 @@ export default function SuperAdminDashboard() {
         setOrgs(orgsRes.data || [])
         setTotalUsers(usersRes.count || 0)
       } catch (err) {
-        console.error('Failed to fetch data:', err)
+        console.error("An error occurred")
       } finally {
         setLoading(false)
       }
@@ -78,7 +78,7 @@ export default function SuperAdminDashboard() {
       setOrgs(prev => prev.map(o => o.id === orgId ? { ...o, status: newStatus } : o))
       logAction('SUPER_ADMIN_TOGGLE_ORG_STATUS', { targetOrgId: orgId, newStatus })
     } catch (err) {
-      console.error('Failed to update org status:', err)
+      console.error("An error occurred")
       alert('Failed to update organization status.')
     }
   }
@@ -129,7 +129,7 @@ export default function SuperAdminDashboard() {
       })
       logAction('SUPER_ADMIN_CREATE_ORG', { newOrgId: data.id, orgName: data.name_en, masterEmail: data.master_email })
     } catch (err) {
-      console.error('Failed to register org:', err)
+      console.error("An error occurred")
       alert('Registration failed.')
     } finally {
       setRegistering(false)
@@ -154,7 +154,7 @@ export default function SuperAdminDashboard() {
       setOrgToDelete(null)
       setDeleteConfirmName('')
     } catch (err) {
-      console.error('Failed to delete org:', err)
+      console.error("An error occurred")
       alert('Deletion failed. Ensure you have proper permissions.')
     } finally {
       setDeleting(false)
@@ -220,7 +220,7 @@ export default function SuperAdminDashboard() {
       setShowRenewModal(false)
       setOrgToRenew(null)
     } catch (err) {
-      console.error('Failed to renew subscription:', err)
+      console.error("An error occurred")
       alert('Renewal failed.')
     } finally {
       setRenewing(false)
@@ -248,18 +248,25 @@ export default function SuperAdminDashboard() {
     <div className="min-h-screen bg-surface-950 flex flex-col relative overflow-hidden">
       {/* Platform Watermark */}
       <div className="fixed inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none z-0 select-none overflow-hidden">
-        <img 
-          src="/lionhub_logo.png" 
-          alt="Lion Hub" 
-          className="w-[150%] sm:w-[100%] max-w-none h-auto object-contain grayscale"
-        />
+        <picture>
+          <source srcSet="/lionhub_logo.webp" type="image/webp" />
+          <img 
+            src="/lionhub_logo.png" 
+            alt="Lion Hub" 
+            className="w-[150%] sm:w-[100%] max-w-none h-auto object-contain grayscale"
+            loading="lazy"
+          />
+        </picture>
       </div>
 
       {/* Super Admin Topbar */}
       <header className="sticky top-0 z-50 bg-surface-900/90 backdrop-blur-xl border-b border-surface-800 px-4 sm:px-10 py-3 sm:py-4 flex items-center justify-between">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border border-surface-700/50 shadow-lg shadow-black/20 shrink-0">
-            <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" />
+            <picture>
+              <source srcSet="/lionhub_logo.webp" type="image/webp" />
+              <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" loading="lazy" />
+            </picture>
           </div>
           <div>
             <h1 className="text-sm sm:text-lg font-black text-surface-50 tracking-tight uppercase leading-tight">Lionhub</h1>

@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
         .single()
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Failed to fetch user profile:', error)
+        console.error("An error occurred")
       }
 
       // Use database-driven flags instead of hardcoded email
@@ -106,7 +106,7 @@ export function AuthProvider({ children }) {
       }
       setConnectionError(false)
     } catch (err) {
-      console.error("Unexpected error in fetchProfile:", err)
+      console.error("An error occurred")
       if (shouldShowLoading) {
         setConnectionError(true)
       }
@@ -285,7 +285,7 @@ export function AuthProvider({ children }) {
       setUser(null)
       setUserProfile(null)
     } catch (err) {
-      console.error("Failed to delete account:", err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -301,7 +301,7 @@ export function AuthProvider({ children }) {
       if (error) throw error
       // Local state is updated via the realtime subscription
     } catch (err) {
-      console.error('Failed to update profile:', err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -357,7 +357,7 @@ function RecoveryModal({ onClose }) {
       if (updateError) throw updateError
       setSuccess(true)
     } catch (err) {
-      console.error('Password reset error:', err)
+      console.error("An error occurred")
       setError(err.message || 'Failed to update password.')
     } finally {
       setLoading(false)
@@ -400,7 +400,10 @@ function RecoveryModal({ onClose }) {
           <form onSubmit={handleReset} className="p-8 space-y-6">
             <header className="text-center">
               <div className="w-12 h-12 rounded-full bg-surface-950 border border-surface-800 flex items-center justify-center mx-auto mb-4 overflow-hidden shadow-inner">
-                <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" />
+                <picture>
+                  <source srcSet="/lionhub_logo.webp" type="image/webp" />
+                  <img src="/lionhub_logo.png" alt="Lionhub" className="w-full h-full object-cover" loading="lazy" />
+                </picture>
               </div>
               <h2 className="text-2xl font-black text-white uppercase tracking-tight">Reset Password</h2>
               <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest mt-1">Set Your Secure Credentials</p>

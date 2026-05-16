@@ -35,13 +35,13 @@ export function useMembers() {
         .range(offset, offset + limit - 1)
 
       if (error) {
-        console.error('Error fetching members:', error)
+        console.error("An error occurred")
       } else {
         setMembers(data || [])
         return { data: data || [], count: count || 0 }
       }
     } catch (err) {
-      console.error('Unexpected members error:', err)
+      console.error("An error occurred")
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)

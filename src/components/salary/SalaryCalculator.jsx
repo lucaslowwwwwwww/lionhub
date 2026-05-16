@@ -54,7 +54,7 @@ export default function SalaryCalculator() {
         setCheckIns(data || [])
       }
     } catch (err) {
-      console.error('Error fetching check-ins for salary calculation:', err)
+      console.error("An error occurred")
     } finally {
       setLoadingC(false)
     }
@@ -281,7 +281,7 @@ export default function SalaryCalculator() {
         })
       }
     } catch (err) {
-      console.error('Error updating log field:', err)
+      console.error("An error occurred")
     } finally {
       setModalActionLoading(false)
     }
@@ -310,7 +310,7 @@ export default function SalaryCalculator() {
         })
       }
     } catch (err) {
-      console.error('Error updating log time:', err)
+      console.error("An error occurred")
     } finally {
       setModalActionLoading(false)
     }
@@ -336,7 +336,7 @@ export default function SalaryCalculator() {
         })
       }
     } catch (err) {
-      console.error('Error deleting log:', err)
+      console.error("An error occurred")
     } finally {
       setModalActionLoading(false)
     }
@@ -373,7 +373,7 @@ export default function SalaryCalculator() {
         setNewLogCheckOut('18:00')
       }
     } catch (err) {
-      console.error('Error adding manual log:', err)
+      console.error("An error occurred")
     } finally {
       setModalActionLoading(false)
     }

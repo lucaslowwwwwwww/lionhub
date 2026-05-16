@@ -36,12 +36,12 @@ export function OrgProvider({ children }) {
         .maybeSingle()
 
       if (error) {
-        console.error('Failed to fetch organization:', error)
+        console.error("An error occurred")
       } else if (data) {
         setOrg(data)
       }
     } catch (err) {
-      console.error('Unexpected org fetch error:', err)
+      console.error("An error occurred")
     } finally {
       setLoading(false)
     }
@@ -104,7 +104,7 @@ export function OrgProvider({ children }) {
 
       if (error) throw error
     } catch (err) {
-      console.error('Failed to update organization:', err)
+      console.error("An error occurred")
       throw err
     }
   }, [effectiveOrgId])

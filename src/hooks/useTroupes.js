@@ -39,7 +39,7 @@ export function useTroupes() {
         .order('name')
 
       if (error) {
-        console.error('Error fetching troupes:', error)
+        console.error("An error occurred")
       } else {
         setTroupes(data || [])
         // Update Cache
@@ -48,7 +48,7 @@ export function useTroupes() {
         } catch (e) { console.warn("Troupe cache write failed:", e) }
       }
     } catch (err) {
-      console.error("Unexpected troupes error:", err)
+      console.error("An error occurred")
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)
@@ -146,7 +146,7 @@ export function useTroupes() {
       if (error) throw error
       await logAction('DELETE_TROUPE', { id })
     } catch (err) {
-      console.error('Failed to delete troupe:', err)
+      console.error("An error occurred")
       throw err
     }
   }

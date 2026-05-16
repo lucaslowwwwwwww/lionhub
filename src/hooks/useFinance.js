@@ -34,12 +34,12 @@ export function useFinance(troupeId) {
       const { data, error } = await query
 
       if (error) {
-        console.error("Error fetching finance records:", error)
+        console.error("An error occurred")
       } else {
         setTransactions(data || [])
       }
     } catch (err) {
-      console.error("Unexpected finance error:", err)
+      console.error("An error occurred")
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)

@@ -25,7 +25,7 @@ export function usePresence() {
           .eq('id', userProfile.uid)
         sessionStorage.setItem('last_presence_update', Date.now().toString())
       } catch (err) {
-        console.error('Failed to update presence:', err)
+        console.error("An error occurred")
       }
     }
 

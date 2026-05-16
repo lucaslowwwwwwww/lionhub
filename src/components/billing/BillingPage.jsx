@@ -45,7 +45,7 @@ export default function BillingPage() {
         if (error) throw error
         setItineraryStops(data || [])
       } catch (err) {
-        console.error("Failed to fetch itinerary stops:", err)
+        console.error("An error occurred")
       } finally {
         setLoadingStops(false)
       }

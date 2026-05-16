@@ -64,14 +64,14 @@ export function useSettings() {
         .maybeSingle()
 
       if (fetchError) {
-        console.error('Failed to fetch settings:', fetchError)
+        console.error("An error occurred")
         setError(fetchError)
       } else if (data) {
         setLegacySettings(prev => ({ ...prev, ...data }))
         setError(null)
       }
     } catch (err) {
-      console.error("Unexpected settings error:", err)
+      console.error("An error occurred")
       setError(err)
     } finally {
       clearTimeout(timeoutId)
@@ -190,7 +190,7 @@ export function useSettings() {
       if (upsertError) throw upsertError
       logAction('UPDATE_SETTINGS', { updatedFields: Object.keys(newValues) })
     } catch (err) {
-      console.error('Failed to update settings:', err)
+      console.error("An error occurred")
       throw err
     }
   }

@@ -126,7 +126,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
       await onSave(cleanedData)
       onClose()
     } catch (err) {
-      console.error('Failed to save customer:', err)
+      console.error("An error occurred")
       setError('Failed to save to database. Missing permissions or Troupe isn\'t assigned.')
     } finally {
       setSaving(false)

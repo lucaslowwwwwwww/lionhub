@@ -35,14 +35,14 @@ export function useInventory() {
         .order('name', { ascending: true })
 
       if (fetchError) {
-        console.error("Inventory error:", fetchError)
+        console.error("An error occurred")
         setError(fetchError)
       } else {
         setItems(data || [])
         setError(null)
       }
     } catch (err) {
-      console.error("Unexpected inventory error:", err)
+      console.error("An error occurred")
       setError(err)
     } finally {
       clearTimeout(timeoutId)
@@ -102,12 +102,12 @@ export function useInventory() {
       })
 
       if (error) {
-        console.error("Supabase RPC error:", error)
+        console.error("An error occurred")
         setItems(previousItems)
         throw error
       }
     } catch (err) {
-      console.error("Failed to update inventory:", err)
+      console.error("An error occurred")
       setItems(previousItems)
       throw err
     }
@@ -131,7 +131,7 @@ export function useInventory() {
 
       if (error) throw error
     } catch (err) {
-      console.error("Failed to update inventory item:", err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -157,7 +157,7 @@ export function useInventory() {
 
       if (error) throw error
     } catch (err) {
-      console.error("Failed to add inventory item:", err)
+      console.error("An error occurred")
       throw err
     }
   }
@@ -175,7 +175,7 @@ export function useInventory() {
 
       if (error) throw error
     } catch (err) {
-      console.error("Failed to delete inventory item:", err)
+      console.error("An error occurred")
       throw err
     }
   }
