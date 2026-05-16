@@ -40,7 +40,12 @@ function LoginGuard() {
   const defaultPath = userRole === 'member' ? '/assignment' : '/dashboard'
 
   return user ? <Navigate to={defaultPath} replace /> : (
-    <Suspense fallback={<SplashScreen isExiting={false} />}>
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen bg-surface-950 gap-4">
+        <div className="w-12 h-12 border-4 border-surface-800 border-t-crimson-600 rounded-full animate-spin" />
+        <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Establishing Session...</p>
+      </div>
+    }>
       <LoginPage />
     </Suspense>
   )
@@ -229,7 +234,12 @@ function AppContent() {
         <Route path="/*" element={
           <ProtectedRoute>
             <SessionGuard>
-              <Suspense fallback={<SplashScreen isExiting={false} />}>
+              <Suspense fallback={
+                <div className="flex flex-col items-center justify-center min-h-screen bg-surface-950 gap-4">
+                  <div className="w-12 h-12 border-4 border-surface-800 border-t-crimson-600 rounded-full animate-spin" />
+                  <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Loading Interface...</p>
+                </div>
+              }>
                 <AppShell>
                   <Suspense fallback={
                     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
