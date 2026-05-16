@@ -290,7 +290,7 @@ function WatermarkOverlay() {
 
   // Performance Optimization: Delay watermark rendering to clear initial LCP
   useEffect(() => {
-    const timer = setTimeout(() => setShouldRender(true), 2500)
+    const timer = setTimeout(() => setShouldRender(true), 500)
     return () => clearTimeout(timer)
   }, [])
 
