@@ -156,8 +156,10 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
 
           {/* Name */}
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Company Name</label>
+            <label htmlFor="customer-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Company Name</label>
             <input 
+              id="customer-name"
+              name="name"
               required
               type="text" 
               value={formData.name}
@@ -170,7 +172,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
           {/* Addresses */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide">Addresses</label>
+              <span className="block text-xs font-semibold text-surface-400 uppercase tracking-wide">Addresses</span>
               <button 
                 type="button"
                 onClick={() => handleAddField('addresses')}
@@ -217,6 +219,9 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
                   )}
                 </div>
                 <textarea 
+                  id={`customer-address-${idx}`}
+                  name={`address_${idx}`}
+                  aria-label={`Full Address for ${addr.type}`}
                   required
                   rows={2}
                   value={addr.value}
@@ -226,6 +231,9 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
                 />
                 <div className="relative">
                   <input 
+                    id={`customer-maplink-${idx}`}
+                    name={`maplink_${idx}`}
+                    aria-label="Google Maps or Waze link"
                     type="text"
                     value={addr.mapLink || ''}
                     onChange={(e) => handleAddressMapLinkChange(idx, e.target.value)}
@@ -243,7 +251,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
           {/* Phones */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide">Phone Numbers</label>
+              <span className="block text-xs font-semibold text-surface-400 uppercase tracking-wide">Phone Numbers</span>
               <button 
                 type="button"
                 onClick={() => handleAddField('phones')}
@@ -256,6 +264,9 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
               {formData.phones.map((p, idx) => (
                 <div key={idx} className="relative">
                   <input 
+                    id={`customer-phone-${idx}`}
+                    name={`phone_${idx}`}
+                    aria-label={`Phone ${idx + 1}`}
                     required
                     type="text" 
                     value={p}
@@ -279,8 +290,10 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email (Optional)</label>
+            <label htmlFor="customer-email" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email (Optional)</label>
             <input 
+              id="customer-email"
+              name="email"
               type="text" 
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -291,8 +304,10 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Notes / Preferences (Optional)</label>
+            <label htmlFor="customer-notes" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Notes / Preferences (Optional)</label>
             <textarea 
+              id="customer-notes"
+              name="notes"
               rows={2}
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}

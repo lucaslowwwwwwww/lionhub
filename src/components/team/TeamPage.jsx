@@ -178,21 +178,21 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
               </div>
             )}
             <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
-              <input required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
+              <label htmlFor="add-member-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
+              <input id="add-member-name" name="displayname" required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                 placeholder="e.g. Ah Huat" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
-                <input required type="text" value={phone} onChange={e => setPhone(e.target.value)}
+                <label htmlFor="add-member-phone" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
+                <input id="add-member-phone" name="phone" required type="text" value={phone} onChange={e => setPhone(e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                   placeholder="+60 12-345 6789" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Role</label>
-                <select value={role} onChange={e => setRole(e.target.value)}
+                <label htmlFor="add-member-role" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Role</label>
+                <select id="add-member-role" name="role" value={role} onChange={e => setRole(e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none">
                   <option value="member">Member (Personnel)</option>
                   <option value="logistics">Logistics (Inventory Ops)</option>
@@ -202,8 +202,8 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
-              <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
+              <label htmlFor="add-member-email" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
+              <input id="add-member-email" name="email" required type="email" value={email} onChange={e => setEmail(e.target.value)}
                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                 placeholder="member@example.com" />
             </div>
@@ -314,23 +314,23 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
-            <input required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
+            <label htmlFor="edit-member-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
+            <input id="edit-member-name" name="displayname" required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
               placeholder="e.g. Ah Huat" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
-              <input required type="text" value={phone} onChange={e => setPhone(e.target.value)}
+              <label htmlFor="edit-member-phone" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
+              <input id="edit-member-phone" name="phone" required type="text" value={phone} onChange={e => setPhone(e.target.value)}
                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                 placeholder="+60 12-345 6789" />
             </div>
             {isMaster && (
               <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Role</label>
-                <select value={role} onChange={e => setRole(e.target.value)}
+                <label htmlFor="edit-member-role" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Role</label>
+                <select id="edit-member-role" name="role" value={role} onChange={e => setRole(e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 transition-all appearance-none font-bold">
                   <option value="member">Member</option>
                   <option value="logistics">Logistics</option>
@@ -344,8 +344,8 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
           {(role === 'admin' || role === 'master') && !member.uid && (
             <div className="animate-fade-in border-t border-surface-800 pt-4 space-y-1">
               <div>
-                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
-                <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
+                <label htmlFor="edit-member-email" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
+                <input id="edit-member-email" name="email" required type="email" value={email} onChange={e => setEmail(e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                   placeholder="admin@example.com" />
               </div>

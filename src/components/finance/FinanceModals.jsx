@@ -279,9 +279,11 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 min-w-0">
-              <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Amount (RM)</label>
+              <label htmlFor="finance-amount" className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Amount (RM)</label>
               <div className="overflow-hidden rounded-xl border border-surface-800">
                 <input
+                  id="finance-amount"
+                  name="amount"
                   type="number"
                   step="0.01"
                   required
@@ -293,9 +295,11 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
               </div>
             </div>
             <div className="space-y-1.5 min-w-0">
-              <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Date</label>
+              <label htmlFor="finance-date" className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Date</label>
               <div className="overflow-hidden rounded-xl border border-surface-800">
                 <input
+                  id="finance-date"
+                  name="date"
                   type="date"
                   required
                   value={formData.date}
@@ -308,10 +312,11 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 min-w-0 relative" ref={dropdownRef}>
-              <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Category</label>
+              <label htmlFor="finance-category-btn" className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Category</label>
               
               {/* Dropdown Trigger Button */}
               <button
+                id="finance-category-btn"
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex justify-between items-center w-full h-[46px] bg-surface-950 px-4 rounded-xl border border-surface-800 text-sm font-bold text-surface-100 hover:border-surface-700 transition-all shadow-inner cursor-pointer"
@@ -383,6 +388,8 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
               {isCustomCategory && (
                 <div className="animate-in slide-in-from-top-1 fade-in duration-200 overflow-hidden rounded-xl border border-surface-800 bg-surface-950 mt-1.5">
                   <input
+                    id="finance-custom-category"
+                    name="custom_category"
                     type="text"
                     required
                     placeholder="Enter custom category name..."
@@ -394,7 +401,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
               )}
             </div>
             <div className="space-y-1.5 min-w-0">
-              <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Method</label>
+              <span className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1 mb-1.5 block">Method</span>
               <div className="flex bg-surface-950/50 p-1 rounded-xl border border-surface-800 h-[46px] box-border">
                 <button
                   type="button"
@@ -423,8 +430,10 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Description (Optional)</label>
+            <label htmlFor="finance-description" className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Description (Optional)</label>
             <textarea
+              id="finance-description"
+              name="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full bg-surface-950 border border-surface-800 rounded-xl px-4 py-3 text-sm font-bold text-surface-100 placeholder:text-surface-700 focus:outline-none focus:border-crimson-600 transition-all shadow-inner min-h-[80px]"
@@ -435,9 +444,11 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
           {/* Conditional Troupe Selector */}
           {showTroupeSelector && (
             <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-              <label className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Attribute to Team</label>
+              <label htmlFor="finance-troupe" className="text-[10px] font-black text-surface-500 uppercase tracking-widest pl-1">Attribute to Team</label>
               <div className="relative overflow-hidden rounded-xl border border-surface-800 bg-surface-950">
                 <select
+                  id="finance-troupe"
+                  name="troupeid"
                   value={formData.troupeid}
                   onChange={(e) => setFormData({ ...formData, troupeid: e.target.value })}
                   className="block w-full h-[46px] bg-surface-950 pl-4 pr-10 text-sm font-bold text-surface-100 focus:outline-none focus:border-crimson-600 appearance-none transition-all shadow-inner border-none cursor-pointer"
