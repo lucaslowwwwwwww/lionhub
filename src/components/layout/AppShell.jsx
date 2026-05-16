@@ -20,7 +20,7 @@ export default function AppShell({ children }) {
       />
 
       {/* Main Content Viewport */}
-      <div className={`flex-1 flex flex-col w-full min-w-0 transition-all duration-300 ${isCollapsed ? 'md:ml-[80px]' : 'md:ml-[240px]'}`}>
+      <div className={`flex-1 flex flex-col w-full min-w-0 transition-[margin] duration-300 ease-in-out will-change-[margin] ${isCollapsed ? 'md:ml-[80px]' : 'md:ml-[240px]'}`}>
         <TopBar setIsMobileMenuOpen={setIsMobileMenuOpen} />
         
         {/* pb-24 handles spacing for the mobile bottom nav so content isn't hidden behind it */}

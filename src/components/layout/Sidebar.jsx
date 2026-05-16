@@ -130,14 +130,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
       )}
 
       <aside 
-        className={`fixed inset-y-0 left-0 bg-surface-950 border-r border-surface-800 flex flex-col z-[60] md:z-30 transition-all duration-300 font-sans shadow-2xl ${
+        className={`fixed inset-y-0 left-0 bg-surface-950 border-r border-surface-800 flex flex-col z-[60] md:z-[45] transition-[width,transform] duration-300 ease-in-out font-sans shadow-2xl will-change-[width,transform] ${
           isCollapsed ? 'md:w-[80px]' : 'md:w-[240px]'
         } ${
           isMobileMenuOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* ── Brand Section ── */}
-        <div className={`pt-[calc(2.75rem+env(safe-area-inset-top))] pb-6 px-4 flex items-center shrink-0 transition-all ${isCollapsed ? 'md:justify-center' : 'justify-between'}`}>
+        <div className={`pt-[calc(2.75rem+env(safe-area-inset-top))] pb-6 px-4 flex items-center shrink-0 transition-[padding,justify-content] duration-300 ease-in-out ${isCollapsed ? 'md:justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-surface-800 bg-surface-900 shadow-sm">
               {logoUrl ? (
@@ -147,7 +147,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
               )}
             </div>
             {!isCollapsed && (
-              <div className="min-w-0 animate-fade-in">
+              <div className="min-w-0 animate-fade-in transition-opacity duration-300">
                 <span className="text-sm font-bold text-surface-50 tracking-tight truncate max-w-[140px] block">{displayName}</span>
               </div>
             )}
@@ -160,7 +160,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
             }}
             aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             className={`flex items-center justify-center rounded-lg border border-surface-800 bg-surface-900/50 text-surface-400 hover:text-surface-100 transition-all shadow-sm ${
-              isCollapsed ? 'md:absolute md:-right-3 md:top-14 md:w-6 md:h-6 md:bg-surface-900' : 'w-7 h-7'
+              isCollapsed ? 'md:absolute md:-right-3 md:top-[calc(3.5rem+env(safe-area-inset-top))] md:w-6 md:h-6 md:bg-surface-900' : 'w-7 h-7'
             }`}
           >
             {window.innerWidth < 768 ? (
@@ -277,13 +277,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
 
         {/* ── Footer / Profile Settings ── */}
         <div className="p-3 border-t border-surface-800/50">
-          <div className="p-1 flex items-center gap-3 transition-all duration-300">
+          <div className="p-1 flex items-center gap-3 transition-[padding,gap] duration-300 ease-in-out">
             <div className="w-8 h-8 rounded-full bg-surface-800 border border-surface-700 flex flex-col items-center justify-center shrink-0 overflow-hidden">
               <svg className="w-4 h-4 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <div className={`flex-1 min-w-0 transition-all duration-300 ${isCollapsed ? 'md:w-0 md:opacity-0 md:overflow-hidden' : 'opacity-100'}`}>
+            <div className={`flex-1 min-w-0 transition-[width,opacity] duration-300 ease-in-out ${isCollapsed ? 'md:w-0 md:opacity-0 md:overflow-hidden' : 'opacity-100'}`}>
               <p className="text-xs font-semibold text-surface-200 truncate">{userProfile?.displayname || userProfile?.displayName || 'Admin User'}</p>
               <p className="text-[10px] text-surface-500 uppercase tracking-widest truncate">{userProfile?.is_super_admin ? 'Super Admin' : userRole}</p>
             </div>
