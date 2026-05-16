@@ -178,8 +178,10 @@ export default function LoginPage() {
 
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Email Address</label>
+                    <label htmlFor="reg-email" className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Email Address</label>
                     <input
+                      id="reg-email"
+                      name="email"
                       type="email"
                       required
                       value={email}
@@ -189,8 +191,10 @@ export default function LoginPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Password</label>
+                    <label htmlFor="reg-password" className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Password</label>
                     <input
+                      id="reg-password"
+                      name="password"
                       type="password"
                       required
                       value={password}
@@ -262,8 +266,10 @@ export default function LoginPage() {
 
                       <div className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Email Address</label>
+                          <label htmlFor="recover-email" className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Email Address</label>
                           <input
+                            id="recover-email"
+                            name="email"
                             type="email"
                             required
                             value={email}
@@ -307,8 +313,10 @@ export default function LoginPage() {
 
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Login Email</label>
+                        <label htmlFor="login-email" className="text-[10px] font-black text-surface-400 uppercase tracking-widest ml-1">Login Email</label>
                         <input
+                          id="login-email"
+                          name="email"
                           type="email"
                           required
                           value={email}
@@ -319,12 +327,14 @@ export default function LoginPage() {
                       </div>
                       <div className="space-y-1.5">
                         <div className="flex justify-between items-center px-1">
-                          <label className="text-[10px] font-black text-surface-400 uppercase tracking-widest">Password</label>
+                          <label htmlFor="login-password" className="text-[10px] font-black text-surface-400 uppercase tracking-widest">Password</label>
                           <button type="button" onClick={() => { setIsForgotPassword(true); setError(''); }} className="text-[9px] font-black text-crimson-500 hover:text-crimson-400 uppercase tracking-widest">
                             Forgot?
                           </button>
                         </div>
                         <input
+                          id="login-password"
+                          name="password"
                           type="password"
                           required
                           value={password}
