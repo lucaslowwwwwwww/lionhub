@@ -26,7 +26,7 @@ export default function SplashScreen({ isExiting }) {
               height="224" 
               className="w-full h-full object-cover" 
               loading="eager" 
-              fetchpriority="high"
+              fetchPriority="high"
               decoding="async"
             />
           </div>
