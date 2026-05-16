@@ -286,13 +286,8 @@ function AppContent() {
 function WatermarkOverlay() {
   const orgCtx = useContext(OrgContext)
   const { settings } = useSettings()
-  const [shouldRender, setShouldRender] = useState(false)
-
-  // Performance Optimization: Delay watermark rendering to clear initial LCP
-  useEffect(() => {
-    const timer = setTimeout(() => setShouldRender(true), 500)
-    return () => clearTimeout(timer)
-  }, [])
+  // Direct rendering for immediate visual impact
+  const shouldRender = true
 
   // Disable watermark completely for pure Super Admin sessions
   if (orgCtx?.isSuperAdmin && !orgCtx?.impersonatedOrgId) {
