@@ -130,7 +130,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
       )}
 
       <aside 
-        className={`fixed inset-y-0 left-0 bg-surface-950 border-r border-surface-800 flex flex-col z-[60] md:z-[45] transition-[width,transform] duration-300 ease-in-out font-sans shadow-2xl will-change-[width,transform] ${
+        className={`fixed inset-y-0 left-0 bg-surface-950 border-r border-surface-800 flex flex-col z-[60] md:z-[45] transition-all duration-300 ease-in-out font-sans shadow-2xl will-change-transform ${
           isCollapsed ? 'md:w-[80px]' : 'md:w-[240px]'
         } ${
           isMobileMenuOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'
