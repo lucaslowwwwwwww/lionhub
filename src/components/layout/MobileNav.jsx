@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { Haptics } from '../../utils/haptics'
 
 const NAV_ITEMS = [
   { 
@@ -62,7 +63,8 @@ export default function MobileNav({ setIsMobileMenuOpen }) {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${
+              onClick={() => Haptics.light()}
+              className={`flex flex-col items-center justify-center w-16 h-full transition-colors no-callout ${
                 isActive ? 'text-crimson-400' : 'text-surface-400 hover:text-surface-200'
               }`}
             >
@@ -78,9 +80,12 @@ export default function MobileNav({ setIsMobileMenuOpen }) {
         
         {/* Static Menu Item to trigger Sidebar */}
         <button
-          onClick={() => setIsMobileMenuOpen(true)}
+          onClick={() => {
+            Haptics.medium()
+            setIsMobileMenuOpen(true)
+          }}
           aria-label="Open Mobile Menu"
-          className="flex flex-col items-center justify-center w-16 h-full transition-colors text-surface-400 hover:text-surface-200"
+          className="flex flex-col items-center justify-center w-16 h-full transition-colors text-surface-400 hover:text-surface-200 no-callout"
         >
           <span className="text-xl mb-1 transition-transform grayscale opacity-70 group-hover:scale-110">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

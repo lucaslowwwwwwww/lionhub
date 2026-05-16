@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useOrg } from '../../contexts/OrgContext'
+import { Haptics } from '../../utils/haptics'
 
 const NAV_GROUPS = [
   {
@@ -112,6 +113,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
   const displayName = nameCn || nameEn || 'Lionhub'
 
   const handleLinkClick = () => {
+    Haptics.light()
     if (window.innerWidth < 768) {
       setIsMobileMenuOpen(false)
     }
@@ -152,7 +154,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
           </div>
 
           <button 
-            onClick={() => window.innerWidth < 768 ? setIsMobileMenuOpen(false) : setIsCollapsed(!isCollapsed)}
+            onClick={() => {
+              Haptics.medium()
+              window.innerWidth < 768 ? setIsMobileMenuOpen(false) : setIsCollapsed(!isCollapsed)
+            }}
             aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             className={`flex items-center justify-center rounded-lg border border-surface-800 bg-surface-900/50 text-surface-400 hover:text-surface-100 transition-all shadow-sm ${
               isCollapsed ? 'md:absolute md:-right-3 md:top-14 md:w-6 md:h-6 md:bg-surface-900' : 'w-7 h-7'
@@ -199,7 +204,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
                       <Link
                         to={hasSubItems ? item.subItems[0].path : item.path}
                         onClick={hasSubItems ? undefined : handleLinkClick}
-                        className={`relative flex items-center justify-between mx-1 px-3 h-10 rounded-xl transition-all duration-200 group ${
+                        className={`relative flex items-center justify-between mx-1 px-3 h-10 rounded-xl transition-all duration-200 group no-callout ${
                           shouldHighlightParent 
                             ? 'bg-crimson-500/10 text-crimson-400 font-medium' 
                             : 'text-surface-400 hover:text-surface-200 hover:bg-surface-800/40'
@@ -234,7 +239,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
                                  key={subItem.path} 
                                  to={subItem.path} 
                                  onClick={handleLinkClick}
-                                 className={`block pl-4 pr-3 py-2 text-xs rounded-r-lg transition-colors relative ${
+                                 className={`block pl-4 pr-3 py-2 text-xs rounded-r-lg transition-colors relative no-callout ${
                                    isSubActive 
                                      ? 'text-surface-100 font-bold bg-surface-800/50' 
                                      : 'text-surface-400 hover:text-surface-200 hover:bg-surface-800/30'
