@@ -2,12 +2,17 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext'
 import { OrgProvider } from './contexts/OrgContext'
 import { ToastProvider } from './contexts/ToastContext'
-import { LoginPage, ProtectedRoute, SessionGuard } from './components/auth'
-import { AppShell, SplashScreen } from './components/layout'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import SessionGuard from './components/auth/SessionGuard'
+import SplashScreen from './components/layout/SplashScreen'
 import { useAuth } from './hooks/useAuth'
 import { useSettings } from './hooks/useSettings'
 import { useMembers } from './hooks/useMembers'
 import { useState, useEffect, useContext, useRef, lazy, Suspense } from 'react'
+
+const LoginPage = lazy(() => import('./components/auth/LoginPage'))
+const AppShell = lazy(() => import('./components/layout/AppShell'))
+
 import { OrgContext } from './contexts/OrgContext'
 import './index.css'
 
@@ -34,7 +39,11 @@ function LoginGuard() {
   const userRole = userProfile?.role || 'member'
   const defaultPath = userRole === 'member' ? '/assignment' : '/dashboard'
 
-  return user ? <Navigate to={defaultPath} replace /> : <LoginPage />
+  return user ? <Navigate to={defaultPath} replace /> : (
+    <Suspense fallback={<SplashScreen isExiting={false} />}>
+      <LoginPage />
+    </Suspense>
+  )
 }
 
 /**
@@ -220,49 +229,51 @@ function AppContent() {
         <Route path="/*" element={
           <ProtectedRoute>
             <SessionGuard>
-              <AppShell>
-                <Suspense fallback={
-                  <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                    <div className="w-12 h-12 border-4 border-surface-800 border-t-crimson-600 rounded-full animate-spin" />
-                    <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Initializing Module...</p>
-                  </div>
-                }>
-                  <Routes>
-                    {isAdmin && (
-                      <>
-                        <Route path="/dashboard/main" element={<DashboardPage />} />
-                        <Route path="/dashboard/status" element={<DashboardPage />} />
-                      </>
-                    )}
-                    
-                    <Route path="/assignment" element={<DashboardPage />} />
-                    
-                    <Route path="/dashboard" element={<Navigate to={isAdmin ? "/dashboard/main" : "/assignment"} replace />} />
-                    <Route path="/dashboard/daily" element={<Navigate to="/assignment" replace />} />
+              <Suspense fallback={<SplashScreen isExiting={false} />}>
+                <AppShell>
+                  <Suspense fallback={
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                      <div className="w-12 h-12 border-4 border-surface-800 border-t-crimson-600 rounded-full animate-spin" />
+                      <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest animate-pulse">Initializing Module...</p>
+                    </div>
+                  }>
+                    <Routes>
+                      {isAdmin && (
+                        <>
+                          <Route path="/dashboard/main" element={<DashboardPage />} />
+                          <Route path="/dashboard/status" element={<DashboardPage />} />
+                        </>
+                      )}
+                      
+                      <Route path="/assignment" element={<DashboardPage />} />
+                      
+                      <Route path="/dashboard" element={<Navigate to={isAdmin ? "/dashboard/main" : "/assignment"} replace />} />
+                      <Route path="/dashboard/daily" element={<Navigate to="/assignment" replace />} />
 
-                    {isAdmin && (
-                      <>
-                        <Route path="/itinerary" element={<ItineraryPage />} />
-                        <Route path="/customers" element={<CustomersPage />} />
-                        <Route path="/finance" element={<FinancePage />} />
-                        <Route path="/billing" element={<BillingPage />} />
-                        <Route path="/settings/team" element={<TeamPage />} />
-                        <Route path="/salary" element={<SalaryCalculator />} />
-                      </>
-                    )}
+                      {isAdmin && (
+                        <>
+                          <Route path="/itinerary" element={<ItineraryPage />} />
+                          <Route path="/customers" element={<CustomersPage />} />
+                          <Route path="/finance" element={<FinancePage />} />
+                          <Route path="/billing" element={<BillingPage />} />
+                          <Route path="/settings/team" element={<TeamPage />} />
+                          <Route path="/salary" element={<SalaryCalculator />} />
+                        </>
+                      )}
 
-                    {hasInventoryAccess && (
-                      <Route path="/inventory" element={<InventoryPage />} />
-                    )}
+                      {hasInventoryAccess && (
+                        <Route path="/inventory" element={<InventoryPage />} />
+                      )}
 
 
-                    <Route path="/settings/general" element={<GeneralSettings />} />
-                    <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="*" element={<Navigate to={isAdmin ? "/dashboard" : "/assignment"} replace />} />
-                  </Routes>
-                </Suspense>
-              </AppShell>
+                      <Route path="/settings/general" element={<GeneralSettings />} />
+                      <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
+                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="*" element={<Navigate to={isAdmin ? "/dashboard" : "/assignment"} replace />} />
+                    </Routes>
+                  </Suspense>
+                </AppShell>
+              </Suspense>
             </SessionGuard>
           </ProtectedRoute>
         } />

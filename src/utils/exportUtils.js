@@ -1,6 +1,4 @@
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+// Removed top-level heavy imports to reduce TBT. They are now dynamic inside functions.
 
 // ─────────────────────────────────────────────────────────────
 // SHARED HELPERS
@@ -267,6 +265,8 @@ const calcCheckInDuration = (inIso, outIso) => {
 }
 
 export const exportDayReportPDF = async (stops, members, attendanceDetails, settings, meta, checkIns = []) => {
+  const { default: jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ orientation: 'landscape' })
   
   // Load and add Chinese font
@@ -396,7 +396,8 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   doc.save(fileName)
 }
 
-export const exportDayReportExcel = (stops, members, attendanceDetails, meta, checkIns = []) => {
+export const exportDayReportExcel = async (stops, members, attendanceDetails, meta, checkIns = []) => {
+  const XLSX = await import('xlsx')
   const wb = XLSX.utils.book_new()
 
   const sortedMembers = [...members].sort((a, b) => (a.displayname || '').localeCompare(b.displayname || ''))
@@ -473,6 +474,8 @@ export const exportDayReportExcel = (stops, members, attendanceDetails, meta, ch
 // ─────────────────────────────────────────────────────────────
 
 export const exportFinancePDF = async (transactions, periodStats, settings, meta) => {
+  const { default: jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF()
   const title = `Finance Report — ${meta.periodLabel || 'All Time'}`
   const logoUrl = settings?.clublogo || null
@@ -539,7 +542,8 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
   doc.save(fileName)
 }
 
-export const exportFinanceExcel = (transactions, periodStats, meta) => {
+export const exportFinanceExcel = async (transactions, periodStats, meta) => {
+  const XLSX = await import('xlsx')
   const wb = XLSX.utils.book_new()
 
   // Sort ascending for running balance
@@ -588,6 +592,8 @@ export const exportFinanceExcel = (transactions, periodStats, meta) => {
 }
 
 export const exportSalaryReportPDF = async (salaries, rateMode, dateRange, settings) => {
+  const { default: jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ orientation: 'portrait' })
   
   // Load and add Chinese font

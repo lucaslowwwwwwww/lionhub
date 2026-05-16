@@ -2,12 +2,18 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import compression from 'vite-plugin-compression'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(), 
     tailwindcss(),
+    compression(),
+    compression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'inline',
@@ -82,11 +88,11 @@ export default defineConfig({
       }
     })
   ],
-  esbuild: {
-    drop: ['console', 'debugger'],
-  },
   build: {
-    chunkSizeWarningLimit: 2000,
+    target: 'esnext',
+    cssCodeSplit: true,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks(id) {
