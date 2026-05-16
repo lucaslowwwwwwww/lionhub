@@ -9,7 +9,7 @@ export default function TopBar({ setIsMobileMenuOpen }) {
   const displayName = nameCn || nameEn || 'Lionhub'
 
   return (
-    <header className={`fixed md:sticky top-0 left-0 right-0 md:left-auto md:right-auto z-50 md:z-30 bg-surface-950/80 backdrop-blur-xl border-b border-surface-800 transition-transform duration-300 ease-in-out ${
+    <header className={`fixed md:sticky top-0 left-0 right-0 md:left-auto md:right-auto z-50 md:z-30 bg-surface-950/80 backdrop-blur-xl border-b border-surface-800 transition-transform duration-300 ease-in-out pt-safe ${
       scrollDirection === 'down' ? '-translate-y-full md:translate-y-0' : 'translate-y-0'
     }`}>
       <div className="px-4 sm:px-6 h-16 flex items-center justify-between md:justify-end">

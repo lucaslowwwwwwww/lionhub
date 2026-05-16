@@ -137,7 +137,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
         }`}
       >
         {/* ── Brand Section ── */}
-        <div className={`pt-11 pb-6 px-4 flex items-center shrink-0 transition-all ${isCollapsed ? 'md:justify-center' : 'justify-between'}`}>
+        <div className={`pt-[calc(2.75rem+env(safe-area-inset-top))] pb-6 px-4 flex items-center shrink-0 transition-all ${isCollapsed ? 'md:justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-surface-800 bg-surface-900 shadow-sm">
               {logoUrl ? (

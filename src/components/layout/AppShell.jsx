@@ -25,7 +25,7 @@ export default function AppShell({ children }) {
         
         {/* pb-24 handles spacing for the mobile bottom nav so content isn't hidden behind it */}
         {/* pt-20 accounts for the fixed 64px (h-16) mobile header + original p-4 spacing */}
-        <main className="flex-1 px-4 pt-20 pb-24 md:px-8 md:pt-8 md:pb-8 max-w-7xl mx-auto w-full animate-fade-in">
+        <main className="flex-1 px-4 pt-[calc(5rem+env(safe-area-inset-top))] pb-24 md:px-8 md:pt-8 md:pb-8 max-w-7xl mx-auto w-full animate-fade-in">
           {children}
         </main>
       </div>
