@@ -75,7 +75,7 @@ const drawWatermarkAndFooter = (doc, logoImg, trackedPages = new Set()) => {
 }
 
 /** Adds the standard club header to a jsPDF document. Returns the Y position after the header. */
-const addClubHeader = async (doc, settings, reportTitle) => {
+const addClubHeader = async (doc, settings, reportTitle, defaultFont = 'helvetica') => {
   const clubNameEn = settings?.clubnameen || ''
   const clubNameCn = settings?.clubnamecn || ''
   const clubRegNo = settings?.clubregistrationno || ''
@@ -117,7 +117,7 @@ const addClubHeader = async (doc, settings, reportTitle) => {
 
   // Report title
   doc.setFontSize(11)
-  doc.setFont('helvetica', 'bold')
+  doc.setFont(defaultFont, 'bold')
   doc.text(reportTitle.toUpperCase(), centerX, divY + 7, { align: 'center' })
 
   return divY + 12
@@ -286,7 +286,7 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
   // Add Watermark & Footer to first page before header
   drawWatermarkAndFooter(doc, logoImg, trackedPages)
 
-  const startY = await addClubHeader(doc, settings, title)
+  const startY = await addClubHeader(doc, settings, title, defaultFont)
 
   // ── PAGE 1: ROSTER ──
   doc.setFontSize(9)
@@ -477,6 +477,16 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
   const { default: jsPDF } = await import('jspdf')
   const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF()
+
+  // Load and add Chinese font to prevent garbled content in reports
+  const fontBase64 = await loadChineseFont()
+  if (fontBase64) {
+    doc.addFileToVFS('NotoSansSC.ttf', fontBase64)
+    doc.addFont('NotoSansSC.ttf', 'NotoSansSC', 'normal')
+    doc.addFont('NotoSansSC.ttf', 'NotoSansSC', 'bold')
+  }
+  const defaultFont = fontBase64 ? 'NotoSansSC' : 'helvetica'
+
   const title = `Finance Report — ${meta.periodLabel || 'All Time'}`
   const logoUrl = settings?.clublogo || null
   const logoImg = logoUrl ? await preloadImage(logoUrl) : null
@@ -485,7 +495,7 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
   // First page watermark & footer
   drawWatermarkAndFooter(doc, logoImg, trackedPages)
 
-  const startY = await addClubHeader(doc, settings, title)
+  const startY = await addClubHeader(doc, settings, title, defaultFont)
 
   // Sort ascending for running balance
   const sorted = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -512,8 +522,8 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
   autoTable(doc, {
     startY: startY + 2,
     theme: 'grid',
-    styles: { fontSize: 7, cellPadding: 2, textColor: [0, 0, 0], lineColor: [180, 180, 180], lineWidth: 0.1 },
-    headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
+    styles: { font: defaultFont, fontSize: 7, cellPadding: 2, textColor: [0, 0, 0], lineColor: [180, 180, 180], lineWidth: 0.1 },
+    headStyles: { font: defaultFont, fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
     head: [['#', 'DATE', 'CATEGORY', 'DESCRIPTION', 'METHOD', 'DEBIT (RM)', 'CREDIT (RM)', 'BALANCE (RM)']],
     body: rows.length > 0 ? rows : [['', '', '', 'No transactions found', '', '', '', '']],
     foot: rows.length > 0 ? [
@@ -522,7 +532,7 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
       ['', '', '', '', '', 'EXPENSES', `- RM ${periodStats.totalExpenses.toFixed(2)}`, ''],
       ['', '', '', '', '', 'TOTAL BALANCE', `= RM ${periodStats.balance.toFixed(2)}`, '']
     ] : [],
-    footStyles: { fillColor: [245, 245, 245], fontStyle: 'bold', halign: 'right', fontSize: 7 },
+    footStyles: { font: defaultFont, fillColor: [245, 245, 245], fontStyle: 'bold', halign: 'right', fontSize: 7 },
     columnStyles: {
       0: { halign: 'center', cellWidth: 8 },
       1: { cellWidth: 22 },
@@ -614,7 +624,7 @@ export const exportSalaryReportPDF = async (salaries, rateMode, dateRange, setti
   drawWatermarkAndFooter(doc, logoImg, trackedPages)
 
   // Header
-  const startY = await addClubHeader(doc, settings, title)
+  const startY = await addClubHeader(doc, settings, title, defaultFont)
 
   // Period / Subtitle
   doc.setFont(defaultFont, 'normal')

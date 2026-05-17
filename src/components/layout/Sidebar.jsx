@@ -112,6 +112,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
 
   const displayName = nameCn || nameEn || 'Lionhub'
 
+  const handleLogout = () => {
+    if (impersonatedOrgId) {
+      alert("You are currently impersonating an organization. Please click the red 'Quit Impersonation' button at the bottom of the sidebar before logging out.")
+      return
+    }
+    logout()
+  }
+
   const handleLinkClick = () => {
     Haptics.light()
     if (window.innerWidth < 768) {
@@ -148,7 +156,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
             </div>
             {!isCollapsed && (
               <div className="min-w-0 animate-fade-in transition-opacity duration-300">
-                <span className="text-sm font-bold text-surface-50 tracking-tight truncate max-w-[140px] block">{displayName}</span>
+                <span className="text-sm font-bold text-surface-5 tracking-tight truncate max-w-[140px] block">{displayName}</span>
               </div>
             )}
           </div>
@@ -289,9 +297,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
             </div>
             {!isCollapsed && (
               <button 
-                onClick={logout} 
+                onClick={handleLogout} 
                 aria-label="Logout"
-                className="p-1.5 text-surface-400 hover:text-crimson-400 rounded-lg transition-colors animate-fade-in shrink-0"
+                title={impersonatedOrgId ? "Please quit impersonation first to log out" : "Logout"}
+                className={`p-1.5 rounded-lg transition-colors animate-fade-in shrink-0 ${
+                  impersonatedOrgId 
+                    ? 'text-surface-600 hover:text-crimson-400 cursor-not-allowed' 
+                    : 'text-surface-400 hover:text-crimson-400'
+                }`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
