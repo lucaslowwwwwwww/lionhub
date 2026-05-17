@@ -30,9 +30,9 @@ export function useAudit() {
       )
 
       await Promise.race([logPromise, timeoutPromise])
-    } catch {
+    } catch (err) {
       // We don't want to crash the main app if logging fails, but we should know
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
     }
   }
 

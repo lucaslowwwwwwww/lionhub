@@ -74,7 +74,7 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https:\/\/uyqcyqnuvsyynpthvlid\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
+            urlPattern: /^https:\/\/[a-z]+\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'supabase-storage-cache',
@@ -91,7 +91,7 @@ export default defineConfig({
   build: {
     target: 'esnext',
     cssCodeSplit: true,
-    sourcemap: true,
+    sourcemap: false,
     reportCompressedSize: false,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {

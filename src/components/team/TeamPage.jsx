@@ -103,8 +103,8 @@ function AddMemberModal({ isOpen, onClose, onAdd }) {
       })
 
       setRecruitedUser({ displayName, email, role })
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       setError('Failed to create account. Please try again.')
     } finally {
       setSaving(false)
@@ -262,7 +262,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
       
       onClose()
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       setError(err.message || 'Failed to update member. Please try again.')
     } finally {
       setSaving(false)

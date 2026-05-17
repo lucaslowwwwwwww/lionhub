@@ -35,12 +35,12 @@ export function OrgProvider({ children }) {
         .maybeSingle()
 
       if (error) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
       } else if (data) {
         setOrg(data)
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       setLoading(false)
     }
@@ -103,7 +103,7 @@ export function OrgProvider({ children }) {
 
       if (error) throw error
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       throw err
     }
   }, [effectiveOrgId])

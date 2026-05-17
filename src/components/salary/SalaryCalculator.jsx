@@ -53,8 +53,8 @@ export default function SalaryCalculator() {
       if (!error) {
         setCheckIns(data || [])
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       setLoadingC(false)
     }
@@ -279,8 +279,8 @@ export default function SalaryCalculator() {
           return { ...prev, logs: updatedLogs }
         })
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       setModalActionLoading(false)
     }
@@ -308,8 +308,8 @@ export default function SalaryCalculator() {
           return { ...prev, logs: updatedLogs }
         })
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       setModalActionLoading(false)
     }
@@ -334,8 +334,8 @@ export default function SalaryCalculator() {
           return { ...prev, logs: updatedLogs }
         })
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       setModalActionLoading(false)
     }
@@ -371,8 +371,8 @@ export default function SalaryCalculator() {
         setNewLogCheckIn('09:00')
         setNewLogCheckOut('18:00')
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       setModalActionLoading(false)
     }

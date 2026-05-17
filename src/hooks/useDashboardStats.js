@@ -211,8 +211,8 @@ export function useDashboardStats() {
 
           totalMembers: memberRes.count || 0
         }))
-      } catch {
-        console.error("An error occurred")
+      } catch (err) {
+        console.error("Operation failed:", err?.message || "unknown")
       } finally {
         clearTimeout(timeoutId)
         setLoading(false)

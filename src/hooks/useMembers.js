@@ -35,13 +35,13 @@ export function useMembers() {
         .range(offset, offset + limit - 1)
 
       if (error) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
       } else {
         setMembers(data || [])
         return { data: data || [], count: count || 0 }
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)

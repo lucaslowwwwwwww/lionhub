@@ -35,12 +35,12 @@ export function useItinerary(troupeId, date) {
         .order('order', { ascending: true })
 
       if (error) {
-        console.error("An error occurred")
+        console.error('fetchStops failed:', error.message)
       } else {
         setStops(data || [])
       }
-    } catch { 
-      console.error("An error occurred")
+    } catch (err) { 
+      console.error('fetchStops exception:', err.message)
     } finally {
       setLoading(false)
     }
@@ -64,7 +64,7 @@ export function useItinerary(troupeId, date) {
         .maybeSingle()
 
       if (error) {
-        console.error("An error occurred")
+        console.error('fetchItinerary failed:', error.message)
         setLoading(false)
         return
       }
@@ -83,8 +83,8 @@ export function useItinerary(troupeId, date) {
         setAttendanceDetails({})
         setLoading(false)
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error('fetchItinerary exception:', err.message)
       setLoading(false)
     } finally {
       clearTimeout(timeoutId)
@@ -175,98 +175,40 @@ export function useItinerary(troupeId, date) {
     }
   }, [troupeId, date, orgId, fetchItinerary])
 
-  // Helper to mark a stop as in-progress, completed, or skipped
+  // ──────────────────────────────────────────────────────────
+  // ATOMIC RPC: updateStopStatus
+  // Uses server-side functions for consistency under concurrency
+  // ──────────────────────────────────────────────────────────
   const updateStopStatus = async (stopId, newStatus, extraData = {}) => {
     const currentItin = itinRef.current
-    const currentStops = stopsRef.current
     if (!currentItin) return
-    
-    const stopData = currentStops.find(s => s.id === stopId)
-    const oldStatus = stopData?.status || 'pending'
 
-    if (oldStatus === newStatus && newStatus !== 'completed') return
+    try {
+      if (newStatus === 'completed') {
+        const { error } = await supabase.rpc('complete_stop', {
+          p_stop_id: stopId,
+          p_actual_amount: Number(extraData.actualamount) || 0,
+          p_payment_method: extraData.paymentmethod || 'Cash'
+        })
+        if (error) throw error
+      } else {
+        const { error } = await supabase.rpc('update_stop_status', {
+          p_stop_id: stopId,
+          p_new_status: newStatus
+        })
+        if (error) throw error
+      }
 
-    const now = new Date().toISOString()
-    const stopUpdates = { status: newStatus, updatedat: now }
-
-    // Status timestamps
-    if (newStatus === 'performing') stopUpdates.performancestartedat = now
-    else if (newStatus === 'completed') {
-      stopUpdates.completedat = now
-      if (extraData.actualamount !== undefined) stopUpdates.actualamount = Number(extraData.actualamount) || 0
-      if (extraData.paymentmethod) stopUpdates.paymentmethod = extraData.paymentmethod
-    }
-
-    // Update stop
-    const { error: stopError } = await supabase
-      .from('stops')
-      .update(stopUpdates)
-      .eq('id', stopId)
-
-    if (stopError) throw stopError
-
-    // ⭐ Counter Updates (sequential read-update since Supabase lacks client-side increment)
-    const itinUpdates = { updatedat: now }
-    let totalRevDelta = 0
-
-    if (oldStatus === 'completed' && newStatus !== 'completed') {
-      itinUpdates.completedstops = Math.max(0, (currentItin.completedstops || 0) - 1)
-      totalRevDelta = -(Number(stopData.actualamount) || 0)
-    } else if (oldStatus !== 'completed' && newStatus === 'completed') {
-      itinUpdates.completedstops = (currentItin.completedstops || 0) + 1
-      totalRevDelta = Number(extraData.actualamount) || 0
-    } else if (oldStatus === 'completed' && newStatus === 'completed') {
-      totalRevDelta = (Number(extraData.actualamount) || 0) - (Number(stopData.actualamount) || 0)
-    }
-
-    if (totalRevDelta !== 0) {
-      itinUpdates.totalrevenue = (currentItin.totalrevenue || 0) + totalRevDelta
-    }
-
-    if (oldStatus === 'skipped' && newStatus !== 'skipped') {
-      itinUpdates.skippedstops = Math.max(0, (currentItin.skippedstops || 0) - 1)
-    } else if (oldStatus !== 'skipped' && newStatus === 'skipped') {
-      itinUpdates.skippedstops = (currentItin.skippedstops || 0) + 1
-    }
-
-    const { error: itinError } = await supabase.from('itineraries').update(itinUpdates).eq('id', currentItin.id)
-    if (itinError) throw itinError
-
-    // Local Update (Optimistic/Sync)
-    setItinerary(prev => ({ ...prev, ...itinUpdates }))
-    setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...stopUpdates } : s))
-
-    // Sync Finance — delete if un-completing
-    if (newStatus !== 'completed' && oldStatus === 'completed') {
-      try {
-        await supabase.from('finance').delete().eq('sourcestopid', stopId)
-      } catch { console.error("An error occurred") }
-    }
-
-    // 💰 Deterministic Finance Recording
-    if (newStatus === 'completed' && (Number(extraData.actualamount) || 0) > 0) {
-      const amount = Number(extraData.actualamount) || 0
-      const customerName = stopData?.householdname || extraData.customerName || 'Standard Performance'
-      const recordDate = stopData?.scheduleddate || date
-      const financeId = `FIN_${recordDate}_${stopId}`
-
-      await supabase.from('finance').upsert({
-        id: financeId,
-        type: 'income',
-        amount: amount,
-        category: 'Performances',
-        date: recordDate,
-        description: `Performance: ${customerName} (${itinerary.troupename || 'Unknown'})`,
-        paymentmethod: extraData.paymentmethod || 'Cash',
-        troupeid: currentItin.troupeid,
-        org_id: currentItin.org_id || null,
-        sourcestopid: stopId,
-        createdat: now
-      })
+      // Refresh from DB to get accurate counters (realtime will also update)
+      await fetchItinerary()
+    } catch (err) {
+      console.error('updateStopStatus failed:', err.message)
+      showToast('Failed to update stop status', 'error')
+      throw err
     }
   }
 
-  // Update an existing stop's data
+  // Update an existing stop's data (non-status fields like address, time, etc.)
   const updateStop = async (stopId, updatedData) => {
     if (!itinerary) return
     try {
@@ -280,7 +222,7 @@ export function useItinerary(troupeId, date) {
 
       if (error) throw error
     } catch (err) {
-      console.error("An error occurred")
+      console.error('updateStop failed:', err.message)
       throw err
     }
   }
@@ -311,12 +253,14 @@ export function useItinerary(troupeId, date) {
       if (error) throw error
       return docId
     } catch (err) {
-      console.error("An error occurred")
+      console.error('createItinerary failed:', err.message)
       throw err
     }
   }
 
-  // Add a new stop to the current itinerary
+  // ──────────────────────────────────────────────────────────
+  // ATOMIC RPC: addStop
+  // ──────────────────────────────────────────────────────────
   const addStop = async (stopData, userId, providedItinId = null) => {
     const activeItinId = itinerary?.id || providedItinId
     if (!activeItinId) {
@@ -325,97 +269,52 @@ export function useItinerary(troupeId, date) {
     }
 
     try {
-      const now = new Date().toISOString()
-      const newOrder = stops.length
-
-      // 1. Insert stop and get the created record back immediately
-      const { data: newStop, error: stopError } = await supabase
-        .from('stops')
-        .insert({
+      const { data, error } = await supabase.rpc('add_stop', {
+        p_itinerary_id: activeItinId,
+        p_stop_data: {
           ...sanitizeObject(stopData),
-          itinerary_id: activeItinId,
-          org_id: orgId || stopData.org_id || null,
-          order: newOrder,
-          status: 'pending',
-          createdby: userId,
-          createdat: now,
-          updatedat: now
-        })
-        .select()
-        .single()
+          createdby: userId
+        }
+      })
 
-      if (stopError) throw stopError
+      if (error) throw error
 
-      // 2. Update itinerary counter
-      const { error: itinError } = await supabase
-        .from('itineraries')
-        .update({
-          totalstops: (itinerary?.totalstops || 0) + 1,
-          updatedat: now
-        })
-        .eq('id', activeItinId)
-      
-      if (itinError) throw itinError
+      // Refresh to get the new stop from DB (realtime will also sync)
+      await fetchItinerary()
 
-      // 3. Local Update (with duplicate guard against Realtime)
-      if (newStop) {
-        setStops(prev => {
-          if (prev.some(s => s.id === newStop.id)) return prev;
-          return [...prev, newStop].sort((a, b) => (a.order || 0) - (b.order || 0));
-        })
-      }
-      setItinerary(prev => prev ? ({ ...prev, totalstops: (prev.totalstops || 0) + 1 }) : null)
-      
       showToast('Stop added successfully', 'success')
-      logAction('ADD_STOP', { stopId: newStop?.id, itinId: activeItinId })
+      logAction('ADD_STOP', { stopId: data?.stop_id, itinId: activeItinId })
     } catch (err) {
-      console.error("An error occurred")
+      console.error('addStop failed:', err.message)
       showToast('Failed to add stop', 'error')
       throw err
     }
   }
 
-  // Delete a specific stop and its associated finance records
+  // ──────────────────────────────────────────────────────────
+  // ATOMIC RPC: deleteStop
+  // ──────────────────────────────────────────────────────────
   const deleteStop = async (stopId) => {
     if (!itinerary) return
+
+    // Optimistic removal
+    const prevStops = stopsRef.current
+    const prevItin = itinRef.current
+    setStops(prev => prev.filter(s => s.id !== stopId))
+
     try {
-      const stopData = stops.find(s => s.id === stopId)
-      const now = new Date().toISOString()
+      const { error } = await supabase.rpc('delete_stop', { p_stop_id: stopId })
+      if (error) throw error
 
-      // 1. Delete associated finance records
-      await supabase.from('finance').delete().eq('sourcestopid', stopId)
-
-      // 2. Delete the stop
-      const { error: stopError } = await supabase
-        .from('stops')
-        .delete()
-        .eq('id', stopId)
-
-      if (stopError) throw stopError
-
-      // 3. ⭐ Counter Updates
-      const itinUpdates = {
-        totalstops: Math.max(0, (itinerary.totalstops || 0) - 1),
-        updatedat: now
-      }
-
-      if (stopData?.status === 'completed') {
-        itinUpdates.completedstops = Math.max(0, (itinerary.completedstops || 0) - 1)
-        itinUpdates.totalrevenue = (itinerary.totalrevenue || 0) - (Number(stopData.actualamount) || 0)
-      } else if (stopData?.status === 'skipped') {
-        itinUpdates.skippedstops = Math.max(0, (itinerary.skippedstops || 0) - 1)
-      }
-
-      const { error: itinError } = await supabase.from('itineraries').update(itinUpdates).eq('id', itinerary.id)
-      if (itinError) throw itinError
-
-      // Local Update
-      setStops(prev => prev.filter(s => s.id !== stopId))
-      setItinerary(prev => prev ? ({ ...prev, ...itinUpdates }) : null)
-
+      // Refresh for accurate counters
+      await fetchItinerary()
       logAction('DELETE_STOP', { stopId, itinId: itinerary.id })
     } catch (err) {
-      console.error("An error occurred")
+      console.error('deleteStop failed:', err.message)
+      // Rollback optimistic update
+      setStops(prevStops)
+      setItinerary(prevItin)
+      showToast('Failed to delete stop', 'error')
       throw err
     }
   }
@@ -423,17 +322,16 @@ export function useItinerary(troupeId, date) {
   // Update stop sequential order
   const reorderStops = async (newStops) => {
     if (!itinerary) return
+
+    // Optimistic local update
+    const prevStops = stopsRef.current
     try {
       const now = new Date().toISOString()
       
-      // Local Update (Instant feedback)
-      // We need to merge the reordered active stops back into the full stops list
-      // which might include finished/skipped stops that weren't moved.
       setStops(prev => {
         const movedIds = new Set(newStops.map(s => s.id))
         const remaining = prev.filter(s => !movedIds.has(s.id))
         return [...newStops, ...remaining].sort((a, b) => {
-          // If both are in the newStops list, their index in newStops is their order
           const aIdx = newStops.findIndex(s => s.id === a.id)
           const bIdx = newStops.findIndex(s => s.id === b.id)
           if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx
@@ -456,9 +354,10 @@ export function useItinerary(troupeId, date) {
 
       if (error) throw error
     } catch (err) {
-      console.error("An error occurred")
-      // Optionally re-fetch to restore correct order if DB update failed
-      fetchStops(itinerary.id)
+      console.error('reorderStops failed:', err.message)
+      // Rollback optimistic update on failure
+      setStops(prevStops)
+      showToast('Failed to reorder stops', 'error')
       throw err
     }
   }
@@ -483,160 +382,53 @@ export function useItinerary(troupeId, date) {
 
       if (error) throw error
     } catch (err) {
-      console.error("An error occurred")
+      console.error('updateAttendance failed:', err.message)
       throw err
     }
   }
 
-  // Delete the entire itinerary document and all its stops (and associated finance)
+  // ──────────────────────────────────────────────────────────
+  // ATOMIC RPC: deleteFullItinerary
+  // ──────────────────────────────────────────────────────────
   const deleteFullItinerary = async () => {
     if (!itinerary) return
     try {
-      // 1. Delete all finance records linked to any stop in this itinerary
-      const stopIds = stops.map(s => s.id)
-      if (stopIds.length > 0) {
-        await supabase.from('finance').delete().in('sourcestopid', stopIds)
-      }
-
-      // 2. Delete all stops for this itinerary
-      await supabase.from('stops').delete().eq('itinerary_id', itinerary.id)
-
-      // 3. Delete the itinerary
-      await supabase.from('itineraries').delete().eq('id', itinerary.id)
+      const { error } = await supabase.rpc('delete_full_itinerary', {
+        p_itinerary_id: itinerary.id
+      })
+      if (error) throw error
 
       logAction('DELETE_FULL_ITINERARY', { itinId: itinerary.id, date: itinerary.date, troupeName: itinerary.troupename })
     } catch (err) {
-      console.error("An error occurred")
+      console.error('deleteFullItinerary failed:', err.message)
+      showToast('Failed to delete itinerary', 'error')
       throw err
     }
   }
 
-  // Transfer a stop to another team (troupe) on the same date
+  // ──────────────────────────────────────────────────────────
+  // ATOMIC RPC: transferStop
+  // ──────────────────────────────────────────────────────────
   const transferStop = async (stopId, targetTroupeId, targetTroupeName) => {
     try {
-      const stopData = stops.find(s => s.id === stopId)
-      if (!stopData) throw new Error('Stop not found')
       if (!date || !orgId) throw new Error('Missing date or organization context')
 
-      const now = new Date().toISOString()
-      const targetItinId = `${date}_${targetTroupeId}`
+      const { error } = await supabase.rpc('transfer_stop', {
+        p_stop_id: stopId,
+        p_target_troupe_id: targetTroupeId,
+        p_target_troupe_name: targetTroupeName || 'Unknown',
+        p_date: date
+      })
 
-      // 1. Ensure target itinerary exists
-      const { data: targetItin, error: targetFetchError } = await supabase
-        .from('itineraries')
-        .select('*')
-        .eq('id', targetItinId)
-        .maybeSingle()
+      if (error) throw error
 
-      if (targetFetchError) throw targetFetchError
+      // Refresh to update local state
+      await fetchItinerary()
 
-      if (!targetItin) {
-        // Create target itinerary if it doesn't exist
-        const { error: targetCreateError } = await supabase
-          .from('itineraries')
-          .insert({
-            id: targetItinId,
-            troupeid: targetTroupeId,
-            troupename: targetTroupeName || 'Unknown',
-            date,
-            status: 'published',
-            attendance: [],
-            attendancedetails: {},
-            totalstops: 0,
-            completedstops: 0,
-            skippedstops: 0,
-            totalrevenue: 0,
-            org_id: orgId,
-            createdat: now
-          })
-        if (targetCreateError) throw targetCreateError
-      }
-
-      // 2. Fetch target stops to determine the new order index
-      const { data: targetStops, error: targetStopsError } = await supabase
-        .from('stops')
-        .select('id')
-        .eq('itinerary_id', targetItinId)
-        .eq('org_id', orgId)
-
-      if (targetStopsError) throw targetStopsError
-      const targetOrder = targetStops ? targetStops.length : 0
-
-      // 3. Update the stop's itinerary_id and order
-      const { error: updateError } = await supabase
-        .from('stops')
-        .update({
-          itinerary_id: targetItinId,
-          order: targetOrder,
-          updatedat: now
-        })
-        .eq('id', stopId)
-
-      if (updateError) throw updateError
-
-      // 4. Update source itinerary counters (decrease by 1)
-      if (itinerary) {
-        const sourceUpdates = {
-          totalstops: Math.max(0, (itinerary.totalstops || 0) - 1),
-          updatedat: now
-        }
-        if (stopData.status === 'completed') {
-          sourceUpdates.completedstops = Math.max(0, (itinerary.completedstops || 0) - 1)
-          sourceUpdates.totalrevenue = (itinerary.totalrevenue || 0) - (Number(stopData.actualamount) || 0)
-        } else if (stopData.status === 'skipped') {
-          sourceUpdates.skippedstops = Math.max(0, (itinerary.skippedstops || 0) - 1)
-        }
-
-        const { error: sourceItinError } = await supabase
-          .from('itineraries')
-          .update(sourceUpdates)
-          .eq('id', itinerary.id)
-
-        if (sourceItinError) throw sourceItinError
-        setItinerary(prev => prev ? ({ ...prev, ...sourceUpdates }) : null)
-      }
-
-      // 5. Update destination itinerary counters (increase by 1)
-      const targetUpdates = {
-        totalstops: ((targetItin?.totalstops || 0) + 1),
-        updatedat: now
-      }
-      if (stopData.status === 'completed') {
-        targetUpdates.completedstops = ((targetItin?.completedstops || 0) + 1)
-        targetUpdates.totalrevenue = ((targetItin?.totalrevenue || 0) + (Number(stopData.actualamount) || 0))
-      } else if (stopData.status === 'skipped') {
-        targetUpdates.skippedstops = ((targetItin?.skippedstops || 0) + 1)
-      }
-
-      const { error: targetItinUpdateError } = await supabase
-        .from('itineraries')
-        .update(targetUpdates)
-        .eq('id', targetItinId)
-
-      if (targetItinUpdateError) throw targetItinUpdateError
-
-      // 6. Sync finance record troupe if completed
-      if (stopData.status === 'completed') {
-        try {
-          const financeId = `FIN_${stopData.scheduleddate || date}_${stopId}`
-          await supabase
-            .from('finance')
-            .update({
-              troupeid: targetTroupeId,
-              description: `Performance: ${stopData.householdname || 'Standard Performance'} (${targetTroupeName || 'Unknown'})`
-            })
-            .eq('id', financeId)
-        } catch {
-          console.error("An error occurred")
-        }
-      }
-
-      // 7. Optimistic Local Update
-      setStops(prev => prev.filter(s => s.id !== stopId))
       showToast('Stop transferred successfully', 'success')
-      logAction('TRANSFER_STOP', { stopId, fromItinId: itinerary?.id, toItinId: targetItinId })
+      logAction('TRANSFER_STOP', { stopId, fromItinId: itinerary?.id })
     } catch (err) {
-      console.error("An error occurred")
+      console.error('transferStop failed:', err.message)
       showToast('Failed to transfer stop', 'error')
       throw err
     }
@@ -672,7 +464,7 @@ export function useAllPerformanceDates() {
       .eq('org_id', orgId)
 
     if (fetchError) {
-      console.error("An error occurred")
+      console.error('fetchItineraries failed:', fetchError.message)
       setError(fetchError.message)
       setLoading(false)
       return

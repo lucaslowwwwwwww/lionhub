@@ -49,8 +49,8 @@ export default function SuperAdminDashboard() {
         if (orgsRes.error) throw orgsRes.error
         setOrgs(orgsRes.data || [])
         setTotalUsers(usersRes.count || 0)
-      } catch {
-        console.error("An error occurred")
+      } catch (err) {
+        console.error("Operation failed:", err?.message || "unknown")
       } finally {
         setLoading(false)
       }
@@ -76,8 +76,8 @@ export default function SuperAdminDashboard() {
       if (error) throw error
 
       setOrgs(prev => prev.map(o => o.id === orgId ? { ...o, status: newStatus } : o))
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Failed to update organization status.')
     }
   }
@@ -127,8 +127,8 @@ export default function SuperAdminDashboard() {
         subscription_duration: '1y'
       })
       logAction('SUPER_ADMIN_CREATE_ORG', { newOrgId: data.id, orgName: data.name_en, masterEmail: data.master_email })
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Registration failed.')
     } finally {
       setRegistering(false)
@@ -152,7 +152,7 @@ export default function SuperAdminDashboard() {
       setOrgToDelete(null)
       setDeleteConfirmName('')
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       alert(err?.message || 'Deletion failed. Ensure you have proper permissions.')
     } finally {
       setDeleting(false)
@@ -217,8 +217,8 @@ export default function SuperAdminDashboard() {
       logAction('SUPER_ADMIN_RENEW_SUBSCRIPTION', { orgId: data.id, newExpiry: expires_at, duration: renewDuration })
       setShowRenewModal(false)
       setOrgToRenew(null)
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Renewal failed.')
     } finally {
       setRenewing(false)

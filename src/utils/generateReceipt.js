@@ -343,7 +343,7 @@ export const generateAndShareReceipt = async (stop, settings, userProfile) => {
         return true
       }
     } catch (err) {
-      if (err.name !== 'AbortError') console.error("An error occurred")
+      if (err.name !== 'AbortError') console.error("Operation failed:", err?.message || "unknown")
     }
   }
 

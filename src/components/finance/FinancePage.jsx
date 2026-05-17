@@ -129,7 +129,7 @@ export default function FinancePage() {
       try {
         await deleteTransaction(id)
       } catch (err) {
-        console.error("An error occurred")
+        console.error("Operation failed:", err?.message || "unknown")
         alert("Failed to delete record: " + (err.message || "Unknown error"))
       }
     }

@@ -36,8 +36,8 @@ export default function BillingPage() {
 
         if (error) throw error
         setItineraryStops(data || [])
-      } catch {
-        console.error("An error occurred")
+      } catch (err) {
+        console.error("Operation failed:", err?.message || "unknown")
       } finally {
         setLoadingStops(false)
       }

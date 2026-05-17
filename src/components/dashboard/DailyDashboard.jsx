@@ -229,8 +229,8 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
           createdat: new Date().toISOString()
         })
       setActiveTroupeId(tId)
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     }
   }
 

@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
         .single()
 
       if (error && error.code !== 'PGRST116') {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
       }
 
       // Use database-driven flags instead of hardcoded email
@@ -104,8 +104,8 @@ export function AuthProvider({ children }) {
         setUserProfile(null)
       }
       setConnectionError(false)
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       if (shouldShowLoading) {
         setConnectionError(true)
       }
@@ -283,8 +283,8 @@ export function AuthProvider({ children }) {
       
       setUser(null)
       setUserProfile(null)
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Deletion failed")
     }
   }, [user, userProfile])
@@ -302,8 +302,8 @@ export function AuthProvider({ children }) {
 
       if (error) throw error
       // Local state is updated via the realtime subscription
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Update failed")
     }
   }, [user])
@@ -359,7 +359,7 @@ function RecoveryModal({ onClose }) {
       if (updateError) throw updateError
       setSuccess(true)
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       setError(err.message || 'Failed to update password.')
     } finally {
       setLoading(false)

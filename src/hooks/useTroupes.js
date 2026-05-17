@@ -39,7 +39,7 @@ export function useTroupes() {
         .order('name')
 
       if (error) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
       } else {
         setTroupes(data || [])
         // Update Cache
@@ -47,8 +47,8 @@ export function useTroupes() {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
         } catch (e) { console.warn("Troupe cache write failed:", e) }
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)
@@ -146,7 +146,7 @@ export function useTroupes() {
       if (error) throw error
       await logAction('DELETE_TROUPE', { id })
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       throw err
     }
   }

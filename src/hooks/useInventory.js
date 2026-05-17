@@ -35,14 +35,14 @@ export function useInventory() {
         .order('name', { ascending: true })
 
       if (fetchError) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
         setError(fetchError)
       } else {
         setItems(data || [])
         setError(null)
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       setError(null)
     } finally {
       clearTimeout(timeoutId)
@@ -102,12 +102,12 @@ export function useInventory() {
       })
 
       if (error) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
         setItems(previousItems)
         throw error
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       setItems(previousItems)
       throw new Error("Quantity update failed")
     }
@@ -130,8 +130,8 @@ export function useInventory() {
         .eq('id', itemId)
 
       if (error) throw error
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Update failed")
     }
   }
@@ -156,8 +156,8 @@ export function useInventory() {
         })
 
       if (error) throw error
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Insertion failed")
     }
   }
@@ -174,8 +174,8 @@ export function useInventory() {
         .eq('id', itemId)
 
       if (error) throw error
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Deletion failed")
     }
   }

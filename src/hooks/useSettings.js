@@ -64,14 +64,14 @@ export function useSettings() {
         .maybeSingle()
 
       if (fetchError) {
-        console.error("An error occurred")
+        console.error('fetchSettings failed:', fetchError.message)
         setError(fetchError)
       } else if (data) {
         setLegacySettings(prev => ({ ...prev, ...data }))
         setError(null)
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error('fetchSettings exception:', err.message)
       setError(null) // Or keep error handling as needed, but this removes unused err
     } finally {
       clearTimeout(timeoutId)
@@ -189,16 +189,31 @@ export function useSettings() {
 
       if (upsertError) throw upsertError
       logAction('UPDATE_SETTINGS', { updatedFields: Object.keys(newValues) })
-    } catch {
-      console.error("An error occurred")
-      throw new Error("Update failed")
+    } catch (err) {
+      console.error('updateSettings failed:', err.message)
+      throw new Error('Update failed')
     }
   }
 
   const uploadLogo = async (file) => {
     if (!orgCtx?.orgId) throw new Error('Organization context not found')
     
-    const fileExt = file.name.split('.').pop()
+    // Client-side validation: MIME, extension, size
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']
+    const ALLOWED_EXTS = ['png', 'jpg', 'jpeg', 'svg', 'webp']
+    const MAX_SIZE = 5 * 1024 * 1024 // 5 MB
+
+    const fileExt = (file.name.split('.').pop() || '').toLowerCase()
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new Error(`Invalid file type: ${file.type}. Allowed: PNG, JPEG, SVG, WebP.`)
+    }
+    if (!ALLOWED_EXTS.includes(fileExt)) {
+      throw new Error(`Invalid file extension: .${fileExt}. Allowed: ${ALLOWED_EXTS.join(', ')}.`)
+    }
+    if (file.size > MAX_SIZE) {
+      throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum: 5MB.`)
+    }
+
     const filePath = `org_${orgCtx.orgId}/logo.${fileExt}`
     
     const { error: uploadError } = await supabase.storage

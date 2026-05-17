@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { useOrg } from '../../hooks/useOrg';
 
 // Legal Content based on the drafted documents
@@ -116,7 +117,7 @@ function MarkdownRenderer({ content }) {
         return (
           <div key={index} className="flex gap-3 mb-3 ml-2 group">
             <div className="w-1.5 h-1.5 rounded-full bg-surface-300 mt-2 shrink-0 group-hover:bg-crimson-500 transition-colors" />
-            <p className="text-sm text-surface-50 leading-relaxed" dangerouslySetInnerHTML={{ __html: text }} />
+            <p className="text-sm text-surface-50 leading-relaxed" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(text, { ALLOWED_TAGS: ['strong', 'em'], ALLOWED_ATTR: ['class'] }) }} />
           </div>
         );
       }
@@ -125,7 +126,7 @@ function MarkdownRenderer({ content }) {
       }
       let formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
       formattedLine = formattedLine.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
-      return <p key={index} className="text-sm text-surface-50 mb-5 leading-relaxed" dangerouslySetInnerHTML={{ __html: formattedLine }} />;
+      return <p key={index} className="text-sm text-surface-50 mb-5 leading-relaxed" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formattedLine, { ALLOWED_TAGS: ['strong', 'em'], ALLOWED_ATTR: ['class'] }) }} />;
     });
   };
 

@@ -30,7 +30,7 @@ export function useCheckIn(dateKey) {
         .order('check_in_at', { ascending: false })
 
       if (error) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
         return
       }
 
@@ -67,8 +67,8 @@ export function useCheckIn(dateKey) {
         return ciDate >= today
       })
       setActiveCheckIn(todayCheckIn || null)
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     }
   }, [userProfile?.id, userProfile?.uid, orgId])
 
@@ -91,8 +91,8 @@ export function useCheckIn(dateKey) {
       if (!error) {
         setDailyCheckIns(data || [])
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
     } finally {
       setLoading(false)
     }
@@ -142,7 +142,7 @@ export function useCheckIn(dateKey) {
           fetchActiveCheckIn()
           return
         }
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
         alert('Check-in failed: ' + error.message)
         return
       }
@@ -150,7 +150,7 @@ export function useCheckIn(dateKey) {
       fetchDailyCheckIns()
       return data
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Error checking in: ' + err.message)
     }
   }
@@ -168,14 +168,14 @@ export function useCheckIn(dateKey) {
         .eq('id', activeCheckIn.id)
 
       if (error) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
         alert('Check-out failed: ' + error.message)
         return
       }
       setActiveCheckIn(null)
       fetchDailyCheckIns()
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Error checking out: ' + err.message)
     }
   }
@@ -195,7 +195,7 @@ export function useCheckIn(dateKey) {
       fetchActiveCheckIn()
       return { success: true }
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Update failed: ' + err.message)
       return { success: false, error: err }
     }
@@ -213,7 +213,7 @@ export function useCheckIn(dateKey) {
       fetchActiveCheckIn()
       return { success: true }
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Deletion failed: ' + err.message)
       return { success: false, error: err }
     }

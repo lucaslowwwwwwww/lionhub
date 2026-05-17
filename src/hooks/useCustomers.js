@@ -48,15 +48,15 @@ export function useCustomers(options = {}) {
         .range(from, to)
 
       if (fetchError) {
-        console.error("An error occurred")
+        console.error("Operation failed:", error?.message || "unknown")
         setError(fetchError)
       } else {
         setCustomers(data || [])
         setTotalCount(count || 0)
         setError(null)
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
       setError(null)
     } finally {
       clearTimeout(timeoutId)

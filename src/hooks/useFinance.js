@@ -25,21 +25,21 @@ export function useFinance(troupeId) {
         .select(TABLES.FINANCE)
         .eq('org_id', orgId)
         .order('date', { ascending: false })
-        .limit(100)
 
       if (troupeId && troupeId !== 'all') {
         query = query.eq('troupeid', troupeId)
       }
 
+      // No .limit() — fetch all finance records so stats/totals/exports are complete
       const { data, error } = await query
 
       if (error) {
-        console.error("An error occurred")
+        console.error('fetchTransactions failed:', error.message)
       } else {
         setTransactions(data || [])
       }
-    } catch {
-      console.error("An error occurred")
+    } catch (err) {
+      console.error('fetchTransactions exception:', err.message)
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)
@@ -64,7 +64,7 @@ export function useFinance(troupeId) {
           setTransactions(prev => {
             // Prevent duplicates from optimistic updates
             if (prev.some(t => t.id === newRow.id)) return prev;
-            return [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100)
+            return [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
           })
         } else if (payload.eventType === 'UPDATE') {
           setTransactions(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
@@ -117,7 +117,7 @@ export function useFinance(troupeId) {
     // Optimistic UI Update
     setTransactions(prev => {
       if (prev.some(t => t.id === generatedId)) return prev;
-      return [newRecord, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 100)
+      return [newRecord, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
     })
 
     const { error } = await supabase
@@ -127,6 +127,7 @@ export function useFinance(troupeId) {
     if (error) {
       // Revert if error
       setTransactions(prev => prev.filter(t => t.id !== generatedId))
+      console.error('addTransaction failed:', error.message)
       throw error
     }
     await logAction('ADD_FINANCE_RECORD', { type: data.type, amount: data.amount, date: data.date })
@@ -147,6 +148,7 @@ export function useFinance(troupeId) {
     }
 
     // Optimistic UI Update
+    const prevTransactions = [...transactions]
     setTransactions(prev => prev.map(t => t.id === id ? { ...t, ...updatedFields } : t))
 
     const { error } = await supabase
@@ -155,8 +157,9 @@ export function useFinance(troupeId) {
       .eq('id', id)
 
     if (error) {
-      // Refresh to revert to DB state on error
-      fetchTransactions()
+      // Rollback optimistic update on failure
+      setTransactions(prevTransactions)
+      console.error('updateTransaction failed:', error.message)
       throw error
     }
     await logAction('UPDATE_FINANCE_RECORD', { id, ...data })
@@ -164,6 +167,7 @@ export function useFinance(troupeId) {
 
   const deleteTransaction = async (id) => {
     // Optimistic UI Update
+    const prevTransactions = [...transactions]
     setTransactions(prev => prev.filter(t => t.id !== id))
 
     const { error } = await supabase
@@ -172,8 +176,9 @@ export function useFinance(troupeId) {
       .eq('id', id)
 
     if (error) {
-       // Refresh to revert to DB state on error
-       fetchTransactions()
+       // Rollback optimistic update on failure
+       setTransactions(prevTransactions)
+       console.error('deleteTransaction failed:', error.message)
        throw error
     }
     await logAction('DELETE_FINANCE_RECORD', { id })

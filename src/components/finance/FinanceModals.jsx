@@ -183,7 +183,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
       })
       onClose()
     } catch (err) {
-      console.error("An error occurred")
+      console.error("Operation failed:", err?.message || "unknown")
       alert('Error: ' + (err.message || 'Failed to save transaction'))
     }
   }
