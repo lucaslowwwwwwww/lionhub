@@ -244,17 +244,13 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="min-h-screen bg-surface-950 flex flex-col relative overflow-hidden">
-      {/* Platform Watermark */}
       <div className="fixed inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none z-0 select-none overflow-hidden">
-        <picture>
-          <source srcSet="/lionhub_logo.webp" type="image/webp" />
-          <img 
-            src="/lionhub_logo.png" 
-            alt="Lion Hub" 
-            className="w-[150%] sm:w-[100%] max-w-none h-auto object-contain grayscale"
-            loading="lazy"
-          />
-        </picture>
+        <img 
+          src="/pwa-512x512.png" 
+          alt="Lion Hub Watermark" 
+          className="w-[150vw] sm:w-[85vw] md:w-[70vw] lg:w-[55vw] max-w-[800px] h-auto object-contain grayscale"
+          loading="lazy"
+        />
       </div>
 
       {/* Super Admin Topbar */}
@@ -499,95 +495,97 @@ export default function SuperAdminDashboard() {
       {/* Registration Modal */}
       {showRegisterModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-surface-950/80 backdrop-blur-sm p-4">
-          <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-lg p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between mb-8">
+          <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto p-5 sm:p-7 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="text-xl font-black text-surface-50 uppercase tracking-tight">Register Tenant</h3>
-                <p className="text-[10px] font-black text-surface-500 uppercase tracking-widest mt-1">Scaffold New Association Database</p>
+                <h3 className="text-lg font-black text-surface-50 uppercase tracking-tight">Register Tenant</h3>
+                <p className="text-[9px] font-black text-surface-500 uppercase tracking-widest mt-0.5">Scaffold New Association Database</p>
               </div>
               <button onClick={() => setShowRegisterModal(false)} className="text-surface-500 hover:text-surface-200">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
             {!lastRegistered ? (
-              <form onSubmit={handleRegisterOrg} className="space-y-5">
+              <form onSubmit={handleRegisterOrg} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2">English Name (Required)</label>
+                  <label className="block text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1.5">English Name (Required)</label>
                   <input 
                     type="text" 
                     required
                     value={newOrgData.name_en}
                     onChange={(e) => setNewOrgData({...newOrgData, name_en: e.target.value})}
-                    className="w-full px-4 py-3 bg-surface-950 border border-surface-800 rounded-xl text-surface-50 focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-colors"
+                    className="w-full h-11 px-3 bg-surface-950 border border-surface-800 rounded-xl text-xs text-surface-50 focus:border-crimson-500 focus:ring-0 focus:outline-none transition-colors"
                     placeholder="e.g. Chuan Cheng Lion Dance"
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2">Chinese Name</label>
+                    <label className="block text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1.5">Chinese Name</label>
                     <input 
                       type="text" 
                       value={newOrgData.name_cn}
                       onChange={(e) => setNewOrgData({...newOrgData, name_cn: e.target.value})}
-                      className="w-full px-4 py-3 bg-surface-950 border border-surface-800 rounded-xl text-surface-50 focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-colors"
+                      className="w-full h-11 px-3 bg-surface-950 border border-surface-800 rounded-xl text-xs text-surface-50 focus:border-crimson-500 focus:ring-0 focus:outline-none transition-colors"
                       placeholder="e.g. 传承龙狮"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2">Registration No</label>
+                    <label className="block text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1.5">Reg No</label>
                     <input 
                       type="text" 
                       value={newOrgData.registration_no}
                       onChange={(e) => setNewOrgData({...newOrgData, registration_no: e.target.value})}
-                      className="w-full px-4 py-3 bg-surface-950 border border-surface-800 rounded-xl text-surface-50 focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-colors"
+                      className="w-full h-11 px-3 bg-surface-950 border border-surface-800 rounded-xl text-xs text-surface-50 focus:border-crimson-500 focus:ring-0 focus:outline-none transition-colors"
                       placeholder="e.g. PPM-015-04"
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2">Master Admin Email (Required)</label>
+                    <label className="block text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1.5">Master Email (Required)</label>
                     <input 
                       type="email" 
                       required
                       value={newOrgData.master_email}
                       onChange={(e) => setNewOrgData({...newOrgData, master_email: e.target.value})}
-                      className="w-full px-4 py-3 bg-surface-950 border border-surface-800 rounded-xl text-surface-50 focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-colors"
+                      className="w-full h-11 px-3 bg-surface-950 border border-surface-800 rounded-xl text-xs text-surface-50 focus:border-crimson-500 focus:ring-0 focus:outline-none transition-colors"
                       placeholder="boss@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2">Master Admin Name</label>
+                    <label className="block text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1.5">Master Name</label>
                     <input 
                       type="text" 
                       value={newOrgData.master_name}
                       onChange={(e) => setNewOrgData({...newOrgData, master_name: e.target.value})}
-                      className="w-full px-4 py-3 bg-surface-950 border border-surface-800 rounded-xl text-surface-50 focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-colors"
+                      className="w-full h-11 px-3 bg-surface-950 border border-surface-800 rounded-xl text-xs text-surface-50 focus:border-crimson-500 focus:ring-0 focus:outline-none transition-colors"
                       placeholder="e.g. John Doe"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2">Subscription Start</label>
+                    <label className="block text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1.5">Sub Start</label>
                     <input 
                       type="date" 
                       required
                       value={newOrgData.subscription_start}
                       onChange={(e) => setNewOrgData({...newOrgData, subscription_start: e.target.value})}
-                      className="w-full px-4 py-3 bg-surface-950 border border-surface-800 rounded-xl text-surface-50 focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-colors"
+                      className="w-full h-11 px-3 bg-surface-950 border border-surface-800 rounded-xl text-xs text-surface-50 focus:border-crimson-500 focus:ring-0 focus:outline-none transition-colors appearance-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2">Plan Duration</label>
+                    <label className="block text-[9px] font-black text-surface-400 uppercase tracking-widest mb-1.5">Plan Duration</label>
                     <select 
                       value={newOrgData.subscription_duration}
                       onChange={(e) => setNewOrgData({...newOrgData, subscription_duration: e.target.value})}
-                      className="w-full px-4 py-3 bg-surface-950 border border-surface-800 rounded-xl text-surface-50 focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-colors"
+                      className="w-full h-11 px-3 bg-surface-950 border border-surface-800 rounded-xl text-xs text-surface-50 focus:border-crimson-500 focus:ring-0 focus:outline-none transition-colors"
                     >
                       <option value="1m">1 Month</option>
                       <option value="3m">3 Months</option>
@@ -596,23 +594,22 @@ export default function SuperAdminDashboard() {
                     </select>
                   </div>
                 </div>
-                <p className="text-[9px] text-surface-600 font-bold uppercase tracking-widest">Expiration will be calculated automatically based on start date and duration.</p>
+                <p className="text-[8px] text-surface-600 font-bold uppercase tracking-widest leading-relaxed">Expiration will be calculated automatically based on start date and duration.</p>
 
-
-                <div className="pt-6 border-t border-surface-800/50 flex justify-end gap-3">
+                <div className="pt-4 border-t border-surface-800/50 flex justify-end gap-2.5">
                   <button 
                     type="button"
                     onClick={() => setShowRegisterModal(false)}
-                    className="px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-surface-400 hover:text-surface-200 transition-colors"
+                    className="px-5 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-surface-400 hover:text-surface-200 transition-colors"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit"
                     disabled={registering}
-                    className="px-8 py-3 bg-crimson-600 hover:bg-crimson-500 disabled:opacity-50 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-colors shadow-lg shadow-crimson-600/20"
+                    className="px-6 py-3 bg-crimson-600 hover:bg-crimson-500 disabled:opacity-50 text-white rounded-xl font-black text-[9px] uppercase tracking-widest transition-colors shadow-lg shadow-crimson-600/20"
                   >
-                    {registering ? 'Creating...' : 'Register Tenant'}
+                    {registering ? 'Creating...' : 'Register'}
                   </button>
                 </div>
               </form>
