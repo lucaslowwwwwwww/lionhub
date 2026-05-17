@@ -49,11 +49,21 @@ export function AuthProvider({ children }) {
     }, 30000)
 
     try {
-      const { data: profileData, error } = await supabase
-        .from('users')
-        .select(`${TABLES.USERS}, organizations(status)`)
-        .eq('id', authUser.id)
-        .single()
+      const [userRes, settingsRes] = await Promise.all([
+        supabase
+          .from('users')
+          .select(`${TABLES.USERS}, organizations(status)`)
+          .eq('id', authUser.id)
+          .single(),
+        supabase
+          .from('global_platform_settings')
+          .select('maintenance_mode')
+          .eq('id', 'system')
+          .single()
+      ])
+
+      const { data: profileData, error } = userRes
+      const maintenanceMode = settingsRes.data?.maintenance_mode === true
 
       if (error && error.code !== 'PGRST116') {
         console.error("Operation failed:", error?.message || "unknown")
@@ -63,6 +73,17 @@ export function AuthProvider({ children }) {
       const isSuperAdmin = profileData?.is_super_admin === true
       const isMaster = isSuperAdmin || profileData?.role === 'master'
       const isOrgInactive = profileData?.organizations?.status === 'inactive'
+
+      if (maintenanceMode && !isSuperAdmin) {
+        console.warn('System under maintenance:', authUser.email)
+        sessionStorage.setItem('login_error', "SYSTEM MAINTENANCE: The platform is currently undergoing scheduled updates. Please check back shortly.")
+        await supabase.auth.signOut()
+        setUser(null)
+        setUserProfile(null)
+        setConnectionError(false)
+        setLoading(false)
+        return
+      }
 
       if (isOrgInactive && !isSuperAdmin) {
         console.warn('Organization deactivated:', authUser.email)

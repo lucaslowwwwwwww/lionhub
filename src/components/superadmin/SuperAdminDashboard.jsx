@@ -15,6 +15,7 @@ export default function SuperAdminDashboard() {
   const [orgs, setOrgs] = useState([])
   const [totalUsers, setTotalUsers] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [maintenanceMode, setMaintenanceMode] = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [newOrgData, setNewOrgData] = useState({ 
     name_en: '',
@@ -49,14 +50,18 @@ export default function SuperAdminDashboard() {
 
     async function fetchData() {
       try {
-        const [orgsRes, usersRes] = await Promise.all([
+        const [orgsRes, usersRes, settingsRes] = await Promise.all([
           supabase.from('organizations').select('*, users(count)').order('name_en', { ascending: true }),
-          supabase.from('users').select('*', { count: 'exact', head: true }).neq('role', 'super_admin')
+          supabase.from('users').select('*', { count: 'exact', head: true }).neq('role', 'super_admin'),
+          supabase.from('global_platform_settings').select('maintenance_mode').eq('id', 'system').single()
         ])
 
         if (orgsRes.error) throw orgsRes.error
         setOrgs(orgsRes.data || [])
         setTotalUsers(usersRes.count || 0)
+        if (settingsRes.data) {
+          setMaintenanceMode(settingsRes.data.maintenance_mode)
+        }
       } catch (err) {
         console.error("Operation failed:", err?.message || "unknown")
       } finally {
@@ -87,6 +92,30 @@ export default function SuperAdminDashboard() {
     } catch (err) {
       console.error("Operation failed:", err?.message || "unknown")
       alert('Failed to update organization status.')
+    }
+  }
+
+  const toggleMaintenanceMode = async () => {
+    const newMode = !maintenanceMode
+    const confirmMessage = newMode 
+      ? 'Are you sure you want to ENABLE Maintenance Mode? ALL users across ALL tenants (except you) will be instantly logged out and blocked from logging in. Use this for global system updates.'
+      : 'Are you sure you want to DISABLE Maintenance Mode? Users will be able to log in again.'
+
+    if (!window.confirm(confirmMessage)) return
+
+    try {
+      const { error } = await supabase
+        .from('global_platform_settings')
+        .update({ maintenance_mode: newMode })
+        .eq('id', 'system')
+
+      if (error) throw error
+
+      setMaintenanceMode(newMode)
+      logAction(newMode ? 'SUPER_ADMIN_ENABLE_MAINTENANCE' : 'SUPER_ADMIN_DISABLE_MAINTENANCE', {})
+    } catch (err) {
+      console.error("Operation failed:", err?.message || "unknown")
+      alert('Failed to toggle maintenance mode.')
     }
   }
 
@@ -277,6 +306,17 @@ export default function SuperAdminDashboard() {
         </div>
         
         <div className="flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-2 mr-2">
+            <span className="text-[10px] font-black text-surface-500 uppercase tracking-widest">Maintenance Mode</span>
+            <button 
+              onClick={toggleMaintenanceMode}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${maintenanceMode ? 'bg-crimson-500' : 'bg-surface-700'}`}
+              title="Toggle Global Maintenance Mode"
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${maintenanceMode ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
           <div className="hidden sm:block text-right">
             <p className="text-xs font-bold text-surface-200">{userProfile?.displayname}</p>
             <p className="text-[10px] text-surface-500 uppercase tracking-widest">{userProfile?.email}</p>

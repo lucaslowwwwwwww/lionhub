@@ -80,7 +80,11 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setError(err.message || 'Authentication failed.')
+      if (err.message?.includes('Database error saving new user')) {
+        setError('Unauthorized: Your email address is not registered. Please contact your administrator to be recruited first.')
+      } else {
+        setError(err.message || 'Authentication failed.')
+      }
     } finally {
       setLoading(false)
     }
