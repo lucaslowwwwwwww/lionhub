@@ -59,10 +59,7 @@ export default function LoginPage() {
       if (isRegistering) {
         const { error: authError } = await supabase.auth.signUp({
           email,
-          password,
-          options: {
-            data: { displayname: 'Master Admin' }
-          }
+          password
         })
         if (authError) throw authError
         alert('Registration successful! Please log in.')

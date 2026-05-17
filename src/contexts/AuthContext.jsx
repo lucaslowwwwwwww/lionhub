@@ -292,9 +292,12 @@ export function AuthProvider({ children }) {
   const updateProfile = useCallback(async (newValues) => {
     if (!user) return
     try {
+      // Strip privileged fields — these are protected by DB trigger too,
+      // but defense-in-depth prevents accidental client-side escalation
+      const { role: _role, org_id: _org_id, is_super_admin: _is_super_admin, status: _status, id: _id, uid: _uid, ...safeValues } = newValues
       const { error } = await supabase
         .from('users')
-        .update(newValues)
+        .update(safeValues)
         .eq('id', user.id)
 
       if (error) throw error

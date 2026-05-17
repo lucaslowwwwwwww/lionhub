@@ -68,15 +68,14 @@ export default function SuperAdminDashboard() {
     if (!window.confirm(confirmMessage)) return
 
     try {
-      const { error } = await supabase
-        .from('organizations')
-        .update({ status: newStatus })
-        .eq('id', orgId)
+      const { error } = await supabase.rpc('super_admin_toggle_org_status', {
+        target_org_id: orgId,
+        new_status: newStatus
+      })
 
       if (error) throw error
 
       setOrgs(prev => prev.map(o => o.id === orgId ? { ...o, status: newStatus } : o))
-      logAction('SUPER_ADMIN_TOGGLE_ORG_STATUS', { targetOrgId: orgId, newStatus })
     } catch {
       console.error("An error occurred")
       alert('Failed to update organization status.')
@@ -141,21 +140,20 @@ export default function SuperAdminDashboard() {
     
     setDeleting(true)
     try {
-      const { error } = await supabase
-        .from('organizations')
-        .delete()
-        .eq('id', orgToDelete.id)
+      const { error } = await supabase.rpc('super_admin_delete_org', {
+        target_org_id: orgToDelete.id,
+        confirmed_name: orgToDelete.name_en
+      })
 
       if (error) throw error
 
       setOrgs(prev => prev.filter(o => o.id !== orgToDelete.id))
-      logAction('SUPER_ADMIN_DELETE_ORG', { orgId: orgToDelete.id, orgName: orgToDelete.name_en })
       setShowDeleteModal(false)
       setOrgToDelete(null)
       setDeleteConfirmName('')
-    } catch {
+    } catch (err) {
       console.error("An error occurred")
-      alert('Deletion failed. Ensure you have proper permissions.')
+      alert(err?.message || 'Deletion failed. Ensure you have proper permissions.')
     } finally {
       setDeleting(false)
     }
