@@ -1,6 +1,6 @@
 # Lionhub
 
-Professional performance and itinerary management for Chuan Cheng (传承) Lion Dance.
+Professional performance and itinerary management for Lion Dance.
 
 ## Features
 - Dynamic Daily Reports with Watermarks
