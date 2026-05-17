@@ -29,7 +29,7 @@ DECLARE
 BEGIN
   v_caller_org := internal.get_auth_org_id();
 
-  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id;
+  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id::uuid;
   IF v_stop IS NULL THEN RAISE EXCEPTION 'Stop not found'; END IF;
   IF v_stop.org_id::text != v_caller_org AND NOT internal.is_super_admin() THEN
     RAISE EXCEPTION 'Unauthorized: stop belongs to different org';
@@ -44,7 +44,7 @@ BEGIN
     paymentmethod = p_payment_method,
     completedat = v_now,
     updatedat = v_now
-  WHERE id = p_stop_id;
+  WHERE id = p_stop_id::uuid;
 
   -- Calculate deltas
   IF v_old_status = 'completed' THEN
@@ -71,14 +71,14 @@ BEGIN
     SELECT v_fin_id, 'income', p_actual_amount, 'Performances',
            COALESCE(v_stop.scheduleddate, to_char(v_now, 'YYYY-MM-DD')),
            'Performance: ' || COALESCE(v_stop.householdname, 'Standard Performance') || ' (' || COALESCE(i.troupename, 'Unknown') || ')',
-           p_payment_method, i.troupeid, v_stop.org_id, p_stop_id, v_now
+           p_payment_method, i.troupeid::text, v_stop.org_id, p_stop_id::uuid, v_now
     FROM itineraries i WHERE i.id = v_stop.itinerary_id
     ON CONFLICT (id) DO UPDATE SET
       amount = EXCLUDED.amount,
       paymentmethod = EXCLUDED.paymentmethod,
       description = EXCLUDED.description;
   ELSE
-    DELETE FROM finance WHERE sourcestopid = p_stop_id AND org_id = v_stop.org_id;
+    DELETE FROM finance WHERE sourcestopid = p_stop_id::uuid AND org_id = v_stop.org_id;
   END IF;
 
   RETURN jsonb_build_object('success', true, 'stop_id', p_stop_id, 'old_status', v_old_status);
@@ -108,13 +108,13 @@ DECLARE
   v_rev_delta numeric := 0;
   v_caller_org text;
 BEGIN
-  IF p_new_status NOT IN ('pending', 'performing', 'skipped') THEN
+  IF p_new_status NOT IN ('pending', 'performing', 'skipped', 'in-progress') THEN
     RAISE EXCEPTION 'Invalid status. Use complete_stop for completion.';
   END IF;
 
   v_caller_org := internal.get_auth_org_id();
 
-  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id;
+  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id::uuid;
   IF v_stop IS NULL THEN RAISE EXCEPTION 'Stop not found'; END IF;
   IF v_stop.org_id::text != v_caller_org AND NOT internal.is_super_admin() THEN
     RAISE EXCEPTION 'Unauthorized: stop belongs to different org';
@@ -130,14 +130,14 @@ BEGIN
     status = p_new_status,
     performancestartedat = CASE WHEN p_new_status = 'performing' THEN v_now ELSE performancestartedat END,
     updatedat = v_now
-  WHERE id = p_stop_id;
+  WHERE id = p_stop_id::uuid;
 
   -- Calculate deltas
   IF v_old_status = 'completed' THEN
     v_completed_delta := -1;
     v_rev_delta := -COALESCE(v_stop.actualamount, 0);
     -- Remove finance record
-    DELETE FROM finance WHERE sourcestopid = p_stop_id AND org_id = v_stop.org_id;
+    DELETE FROM finance WHERE sourcestopid = p_stop_id::uuid AND org_id = v_stop.org_id;
   END IF;
   IF v_old_status = 'skipped' THEN v_skipped_delta := -1; END IF;
   IF p_new_status = 'skipped' THEN v_skipped_delta := v_skipped_delta + 1; END IF;
@@ -176,7 +176,7 @@ DECLARE
 BEGIN
   v_caller_org := internal.get_auth_org_id();
 
-  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id;
+  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id::uuid;
   IF v_stop IS NULL THEN RAISE EXCEPTION 'Stop not found'; END IF;
   IF v_stop.org_id::text != v_caller_org AND NOT internal.is_super_admin() THEN
     RAISE EXCEPTION 'Unauthorized';
@@ -191,10 +191,10 @@ BEGIN
   END IF;
 
   -- Delete finance records for this stop (org-scoped)
-  DELETE FROM finance WHERE sourcestopid = p_stop_id AND org_id = v_stop.org_id;
+  DELETE FROM finance WHERE sourcestopid = p_stop_id::uuid AND org_id = v_stop.org_id;
 
   -- Delete the stop
-  DELETE FROM stops WHERE id = p_stop_id;
+  DELETE FROM stops WHERE id = p_stop_id::uuid;
 
   -- Update itinerary counters
   UPDATE itineraries SET
@@ -285,11 +285,13 @@ BEGIN
     p_itinerary_id, v_itin.org_id, v_new_order, 'pending',
     p_stop_data->>'householdname', p_stop_data->>'address', p_stop_data->>'phone',
     (p_stop_data->>'amount')::numeric, p_stop_data->>'scheduledtime', p_stop_data->>'scheduleddate',
-    (p_stop_data->>'lionquantity')::int, p_stop_data->>'lioncolor',
+    (p_stop_data->>'lionquantity')::int, 
+    COALESCE((p_stop_data->'lioncolor'), '[]'::jsonb),
     COALESCE((p_stop_data->>'hasgodofwealth')::boolean, false),
     COALESCE((p_stop_data->>'hasbigheadbuddha')::boolean, false),
     CASE WHEN p_stop_data ? 'extra_characters' THEN (p_stop_data->'extra_characters') ELSE '[]'::jsonb END,
-    p_stop_data->>'pluckingtype', p_stop_data->>'remarks',
+    COALESCE((p_stop_data->'pluckingtype'), '[]'::jsonb), 
+    p_stop_data->>'remarks',
     (p_stop_data->>'duration')::int, p_stop_data->>'maplink',
     p_stop_data->>'createdby', v_now, v_now
   )
@@ -330,7 +332,7 @@ DECLARE
 BEGIN
   v_caller_org := internal.get_auth_org_id();
 
-  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id;
+  SELECT * INTO v_stop FROM stops WHERE id = p_stop_id::uuid;
   IF v_stop IS NULL THEN RAISE EXCEPTION 'Stop not found'; END IF;
   IF v_stop.org_id::text != v_caller_org AND NOT internal.is_super_admin() THEN
     RAISE EXCEPTION 'Unauthorized';
@@ -343,7 +345,7 @@ BEGIN
   IF v_target_itin IS NULL THEN
     INSERT INTO itineraries (id, troupeid, troupename, date, status, attendance, attendancedetails,
                              totalstops, completedstops, skippedstops, totalrevenue, org_id, createdat)
-    VALUES (v_target_itin_id, p_target_troupe_id, COALESCE(p_target_troupe_name, 'Unknown'),
+    VALUES (v_target_itin_id, p_target_troupe_id::uuid, COALESCE(p_target_troupe_name, 'Unknown'),
             p_date, 'published', '[]'::jsonb, '{}'::jsonb, 0, 0, 0, 0,
             v_stop.org_id, v_now)
     RETURNING * INTO v_target_itin;
@@ -358,7 +360,7 @@ BEGIN
   SELECT COALESCE(MAX("order"), -1) + 1 INTO v_target_order FROM stops WHERE itinerary_id = v_target_itin_id;
 
   UPDATE stops SET itinerary_id = v_target_itin_id, "order" = v_target_order, updatedat = v_now
-  WHERE id = p_stop_id;
+  WHERE id = p_stop_id::uuid;
 
   UPDATE itineraries SET
     totalstops = GREATEST(0, totalstops - 1),
@@ -380,7 +382,7 @@ BEGIN
     UPDATE finance SET
       troupeid = p_target_troupe_id,
       description = 'Performance: ' || COALESCE(v_stop.householdname, 'Standard Performance') || ' (' || COALESCE(p_target_troupe_name, 'Unknown') || ')'
-    WHERE sourcestopid = p_stop_id AND org_id = v_stop.org_id;
+    WHERE sourcestopid = p_stop_id::uuid AND org_id = v_stop.org_id;
   END IF;
 
   RETURN jsonb_build_object('success', true, 'stop_id', p_stop_id, 'target_itinerary', v_target_itin_id);
