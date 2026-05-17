@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useFinance } from '../../hooks/useFinance'
 import { useTroupes } from '../../hooks/useTroupes'
@@ -78,12 +78,20 @@ export default function FinancePage() {
     return result
   }, [transactions, filter, period, matchesPeriod])
 
-  // Reset to first page when filters change (moved out of useMemo)
-  useEffect(() => {
-    setTimeout(() => {
-      setCurrentPage(1)
-    }, 0)
-  }, [filter, period, selectedDate, selectedMonth, selectedYear, startDate, endDate])
+  const [prevFilters, setPrevFilters] = useState({ filter, period, selectedDate, selectedMonth, selectedYear, startDate, endDate })
+
+  if (
+    filter !== prevFilters.filter ||
+    period !== prevFilters.period ||
+    selectedDate !== prevFilters.selectedDate ||
+    selectedMonth !== prevFilters.selectedMonth ||
+    selectedYear !== prevFilters.selectedYear ||
+    startDate !== prevFilters.startDate ||
+    endDate !== prevFilters.endDate
+  ) {
+    setPrevFilters({ filter, period, selectedDate, selectedMonth, selectedYear, startDate, endDate })
+    setCurrentPage(1)
+  }
 
   const paginatedTransactions = useMemo(() => {
     if (pageSize === 'all') return filteredTransactions

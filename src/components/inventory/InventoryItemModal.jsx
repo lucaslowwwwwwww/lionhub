@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 /**
  * InventoryItemModal
@@ -20,30 +20,33 @@ export default function InventoryItemModal({
     notes: ''
   })
 
+  const [prevEditingItemId, setPrevEditingItemId] = useState(null)
+  const [prevIsOpen, setPrevIsOpen] = useState(false)
+
   // Pre-populate data if editing
-  useEffect(() => {
-    setTimeout(() => {
-      if (editingItem) {
-        setFormData({
-          name: editingItem.name || editingItem.itemName || '',
-          category: editingItem.category || '',
-          currentquantity: editingItem.currentquantity || editingItem.currentQuantity || 0,
-          lowstockthreshold: editingItem.lowstockthreshold || editingItem.lowStockThreshold || 5,
-          unit: editingItem.unit || 'pcs',
-          notes: editingItem.notes || ''
-        })
-      } else {
-        setFormData({
-          name: '',
-          category: '',
-          currentquantity: 0,
-          lowstockthreshold: 5,
-          unit: 'pcs',
-          notes: ''
-        })
-      }
-    }, 0)
-  }, [editingItem, isOpen])
+  if (isOpen !== prevIsOpen || editingItem?.id !== prevEditingItemId) {
+    setPrevIsOpen(isOpen)
+    setPrevEditingItemId(editingItem?.id)
+    if (editingItem) {
+      setFormData({
+        name: editingItem.name || editingItem.itemName || '',
+        category: editingItem.category || '',
+        currentquantity: editingItem.currentquantity || editingItem.currentQuantity || 0,
+        lowstockthreshold: editingItem.lowstockthreshold || editingItem.lowStockThreshold || 5,
+        unit: editingItem.unit || 'pcs',
+        notes: editingItem.notes || ''
+      })
+    } else {
+      setFormData({
+        name: '',
+        category: '',
+        currentquantity: 0,
+        lowstockthreshold: 5,
+        unit: 'pcs',
+        notes: ''
+      })
+    }
+  }
 
   if (!isOpen) return null
 
