@@ -92,22 +92,22 @@ export default function InventoryPage() {
           </button>
         </div>
       )}
-      <header className="mb-12 pt-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <header className="mb-6 sm:mb-10 pt-4 sm:pt-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-gold-500/10 flex items-center justify-center text-gold-500 shadow-glow-gold">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          <div className="flex items-center gap-2.5 mb-1.5">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gold-500/10 flex items-center justify-center text-gold-500 shadow-glow-gold">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
             </div>
-            <h1 className="text-4xl font-black text-surface-50 tracking-tighter uppercase">Logistics Hub</h1>
+            <h1 className="text-2xl sm:text-4xl font-black text-surface-50 tracking-tighter uppercase">Logistics Hub</h1>
           </div>
-          <p className="text-surface-500 text-[10px] font-black uppercase tracking-[0.3em] ml-1">Stockpile monitoring & resource deployment</p>
+          <p className="text-surface-500 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] ml-1">Stockpile monitoring & resource deployment</p>
         </div>
         
         <button 
           onClick={handleOpenAdd}
-          className="flex items-center gap-3 bg-gold-600 hover:bg-gold-500 text-black px-8 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-gold-500/20 active:scale-95 group shrink-0"
+          className="flex items-center justify-center gap-2 bg-gold-600 hover:bg-gold-500 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] font-black text-[9px] sm:text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-gold-500/20 active:scale-95 group shrink-0"
         >
-          <svg className="w-4 h-4 transition-transform group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <svg className="w-3.5 h-3.5 transition-transform group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           Enroll New Asset
@@ -115,37 +115,37 @@ export default function InventoryPage() {
       </header>
 
       {/* Control Bar */}
-      <section className="bg-surface-900/60 border border-surface-800 p-4 rounded-3xl backdrop-blur-md mb-8 flex flex-col lg:flex-row items-center gap-4">
+      <section className="bg-surface-900/60 border border-surface-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl backdrop-blur-md mb-6 sm:mb-8 flex flex-col lg:flex-row items-center gap-3">
         <div className="relative flex-1 w-full group">
-          <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600 group-focus-within:text-gold-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600 group-focus-within:text-gold-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <input 
             type="text" 
-            placeholder="Search assets by name or batch ID..." 
+            placeholder="Search assets by name..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface-950 border border-surface-800 rounded-2xl h-14 pl-12 pr-6 text-sm text-surface-100 font-bold focus:outline-none focus:border-gold-500/50 transition-all shadow-inner"
+            className="w-full bg-surface-950 border border-surface-800 rounded-xl sm:rounded-2xl h-11 sm:h-13 pl-10 sm:pl-12 pr-4 text-xs sm:text-sm text-surface-100 font-bold focus:outline-none focus:border-gold-500/50 transition-all shadow-inner"
           />
         </div>
 
-        <div className="flex items-center gap-4 w-full lg:w-auto">
+        <div className="flex items-center gap-3 w-full lg:w-auto">
           <select 
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="flex-1 lg:w-48 bg-surface-950 border border-surface-800 rounded-2xl h-14 px-6 pr-12 text-[10px] font-black uppercase text-surface-400 focus:outline-none focus:border-gold-500/50 transition-all shadow-inner cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%223%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%20%2F%3E%3C%2Fsvg%3E')] bg-[length:1rem_1rem] bg-[right_1.25rem_center] bg-no-repeat"
+            className="flex-1 lg:w-48 bg-surface-950 border border-surface-800 rounded-xl sm:rounded-2xl h-11 sm:h-13 px-4 sm:px-6 pr-10 text-[9px] sm:text-[10px] font-black uppercase text-surface-400 focus:outline-none focus:border-gold-500/50 transition-all shadow-inner cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%223%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%20%2F%3E%3C%2Fsvg%3E')] bg-[length:0.8rem_0.8rem] bg-[right_1rem_center] bg-no-repeat"
           >
             {categories.map(cat => <option key={cat} value={cat}>{cat} Group</option>)}
           </select>
 
           <button 
             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-            className={`h-14 px-6 rounded-2xl border flex items-center gap-3 transition-all ${
+            className={`h-11 sm:h-13 px-4 sm:px-6 rounded-xl sm:rounded-2xl border flex items-center justify-center gap-2 flex-1 lg:flex-none transition-all ${
               showLowStockOnly 
                 ? 'bg-crimson-500/10 border-crimson-500/50 text-crimson-400' 
                 : 'bg-surface-950 border-surface-800 text-surface-600 hover:text-surface-400'
             }`}
           >
-            <div className={`w-2 h-2 rounded-full ${showLowStockOnly ? 'bg-crimson-500 animate-pulse shadow-glow-crimson' : 'bg-surface-700'}`} />
-            <span className="text-[10px] font-black uppercase tracking-widest leading-none">Low Stock Only</span>
+            <div className={`w-1.5 h-1.5 rounded-full ${showLowStockOnly ? 'bg-crimson-500 animate-pulse shadow-glow-crimson' : 'bg-surface-700'}`} />
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest leading-none">Low Stock</span>
           </button>
         </div>
       </section>

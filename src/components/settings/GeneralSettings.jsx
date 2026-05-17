@@ -448,7 +448,7 @@ export default function GeneralSettings() {
                             delete updated[year]
                             setLocalSettings({ ...localSettings, cnyoverrides: updated })
                           }}
-                          className="w-10 h-10 rounded-xl bg-surface-900 border border-surface-800 text-surface-600 hover:text-crimson-500 hover:border-crimson-500/30 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                          className="w-10 h-10 rounded-xl bg-surface-900 border border-surface-800 text-surface-400 sm:text-surface-600 hover:text-crimson-500 hover:border-crimson-500/30 flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                         >
                           ✕
                         </button>

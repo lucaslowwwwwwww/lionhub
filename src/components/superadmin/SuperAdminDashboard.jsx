@@ -367,7 +367,7 @@ export default function SuperAdminDashboard() {
                           setShowDeleteModal(true)
                           setDeleteConfirmName('')
                         }}
-                        className="p-2 rounded-lg bg-surface-950 border border-surface-800 text-surface-600 hover:text-crimson-500 hover:border-crimson-500/30 transition-all opacity-0 group-hover:opacity-100"
+                        className="p-2 rounded-lg bg-surface-950 border border-surface-800 text-surface-400 sm:text-surface-600 hover:text-crimson-500 hover:border-crimson-500/30 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                         title="Delete Tenant"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

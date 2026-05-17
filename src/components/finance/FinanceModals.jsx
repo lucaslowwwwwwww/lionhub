@@ -325,7 +325,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
                             <button
                               type="button"
                               onClick={(e) => handleDeleteCategory(e, cat)}
-                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-crimson-950 hover:text-crimson-500 transition-all text-surface-500 ml-2 flex-shrink-0"
+                              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded hover:bg-crimson-950 hover:text-crimson-500 transition-all text-surface-500 ml-2 flex-shrink-0"
                               title="Delete from category list"
                             >
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
