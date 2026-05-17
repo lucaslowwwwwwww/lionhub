@@ -409,13 +409,13 @@ CREATE POLICY "org_update_v11" ON public.organizations
     internal.is_super_admin()
     OR (
       id::text = internal.get_auth_org_id()
-      AND internal.get_auth_role() = 'master'
+      AND internal.get_auth_role() IN ('master', 'admin')
     )
   )
   WITH CHECK (
     internal.is_super_admin()
     OR (
       id::text = internal.get_auth_org_id()
-      AND internal.get_auth_role() = 'master'
+      AND internal.get_auth_role() IN ('master', 'admin')
     )
   );

@@ -267,6 +267,7 @@ export function AuthProvider({ children }) {
               name: userProfile.displayname || userProfile.email,
               role: userProfile.role
             },
+            org_id: userProfile.org_id || null,
             timestamp: new Date().toISOString()
           })
         } catch(e) { console.warn('Failed to audit log account deletion', e) }

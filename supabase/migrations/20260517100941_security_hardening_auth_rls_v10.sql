@@ -263,10 +263,20 @@ CREATE POLICY "org_update_v10" ON public.organizations
 -- 8. Harden storage policies for org-assets:
 --    Only admin/master can write, all org members can read
 -- ──────────────────────────────────────────────────────────────
--- Add a SELECT policy for org-assets (currently missing, reads rely on bucket being public)
 DROP POLICY IF EXISTS "Org Upload Access" ON storage.objects;
 DROP POLICY IF EXISTS "Org Update Access" ON storage.objects;
 DROP POLICY IF EXISTS "Org Delete Access" ON storage.objects;
+DROP POLICY IF EXISTS "org_assets_select_v10" ON storage.objects;
+
+CREATE POLICY "org_assets_select_v10" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'org-assets'
+    AND (
+      internal.is_super_admin()
+      OR (storage.foldername(name))[1] = ('org_' || internal.get_auth_org_id())
+    )
+  );
 
 CREATE POLICY "org_assets_insert_v10" ON storage.objects
   FOR INSERT TO authenticated

@@ -410,9 +410,31 @@ export default function ItineraryPage() {
                <div className={viewMode === 'list' ? 'space-y-1' : 'space-y-4'}>
                  {finishedStops.map((stop, idx) => (
                     viewMode === 'list' ? (
-                      <StopListItem key={stop.id} stop={stop} index={idx} onUpdateStatus={updateStopStatus} onEdit={handleEditStop} onDelete={handleDeleteStop} />
+                      <StopListItem 
+                        key={stop.id} 
+                        stop={stop} 
+                        index={idx} 
+                        onUpdateStatus={updateStopStatus} 
+                        onEdit={handleEditStop} 
+                        onDelete={handleDeleteStop}
+                        isAdmin={isAdmin}
+                        troupes={troupes}
+                        currentTroupeId={activeTroupeId}
+                        onTransfer={transferStop}
+                      />
                     ) : (
-                      <StopCard key={stop.id} stop={stop} index={idx} onUpdateStatus={updateStopStatus} onEdit={handleEditStop} onDelete={handleDeleteStop} />
+                      <StopCard 
+                        key={stop.id} 
+                        stop={stop} 
+                        index={idx} 
+                        onUpdateStatus={updateStopStatus} 
+                        onEdit={handleEditStop} 
+                        onDelete={handleDeleteStop}
+                        isAdmin={isAdmin}
+                        troupes={troupes}
+                        currentTroupeId={activeTroupeId}
+                        onTransfer={transferStop}
+                      />
                     )
                  ))}
                </div>

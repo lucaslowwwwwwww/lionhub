@@ -102,6 +102,7 @@ export function OrgProvider({ children }) {
         .eq('id', effectiveOrgId)
 
       if (error) throw error
+      setOrg(prev => prev ? { ...prev, ...updates } : null)
     } catch (err) {
       console.error("Operation failed:", err?.message || "unknown")
       throw err
