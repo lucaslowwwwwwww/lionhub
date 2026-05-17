@@ -86,28 +86,34 @@ export function useMembers() {
   const addMember = async (memberData) => {
     const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     const id = memberData.uid || safeId
+    // Strip is_super_admin — only DB can set this
+    const { is_super_admin: _sa, ...safeMemberData } = memberData
     const { error } = await supabase
       .from('users')
       .upsert({
         id,
-        ...sanitizeObject(memberData),
-        org_id: orgId || memberData.org_id || null,
+        ...sanitizeObject(safeMemberData),
+        org_id: orgId || safeMemberData.org_id || null,
         createdat: new Date().toISOString()
       })
 
     if (error) throw error
-    await logAction('ADD_MEMBER', { id, ...memberData })
+    await logAction('ADD_MEMBER', { id, ...safeMemberData })
     return id
   }
 
   const updateMember = async (id, data) => {
+    // Strip privileged fields that no client should send —
+    // role/status are allowed because admin/master legitimately change these,
+    // and the DB trigger (protect_role_fields) enforces authorization.
+    const { is_super_admin: _sa, org_id: _org, ...safeData } = data
     const { error } = await supabase
       .from('users')
-      .update({ ...sanitizeObject(data), updatedat: new Date().toISOString() })
+      .update({ ...sanitizeObject(safeData), updatedat: new Date().toISOString() })
       .eq('id', id)
 
     if (error) throw error
-    await logAction('UPDATE_MEMBER', { id, ...data })
+    await logAction('UPDATE_MEMBER', { id, ...safeData })
   }
 
   const deleteMember = async (id) => {
