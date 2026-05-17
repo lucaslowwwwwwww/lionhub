@@ -23,30 +23,16 @@ const SPONSOR_CATEGORIES = [
   'Other'
 ]
 
-export function AddTransactionModal({ isOpen, onClose, onSave, initialData = null, troupes = [], dateTroupes = {}, transactions = [] }) {
+export function AddTransactionModal({ isOpen, onClose, onSave, initialData = null, troupes = [], transactions = [] }) {
   const now = new Date()
   const localDateStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0]
 
-  const [isCustomCategory, setIsCustomCategory] = useState(() => {
-    if (initialData) {
-      const targetType = initialData.type || 'expense'
-      const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
-      const initialCategory = initialData.category || ''
-      return initialCategory !== '' && !activeCats.includes(initialCategory)
-    }
-    return false
-  })
+  const [prevInitialData, setPrevInitialData] = useState(undefined)
+  const [prevIsOpen, setPrevIsOpen] = useState(false)
 
-  const [customCategoryText, setCustomCategoryText] = useState(() => {
-    if (initialData) {
-      const targetType = initialData.type || 'expense'
-      const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
-      const initialCategory = initialData.category || ''
-      const isCustom = initialCategory !== '' && !activeCats.includes(initialCategory)
-      return isCustom ? initialCategory : ''
-    }
-    return ''
-  })
+  const [isCustomCategory, setIsCustomCategory] = useState(false)
+
+  const [customCategoryText, setCustomCategoryText] = useState('')
 
   const [deletedCategories, setDeletedCategories] = useState(() => {
     try {
@@ -60,56 +46,30 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const [formData, setFormData] = useState(() => {
-    const targetType = initialData?.type || 'expense'
-    const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
-    
-    if (initialData) {
-      const initialCategory = initialData.category || ''
-      const isCustom = initialCategory !== '' && !activeCats.includes(initialCategory)
-      
-      return {
-        type: targetType,
-        amount: initialData.amount || '',
-        category: isCustom ? 'CUSTOM' : (initialCategory || activeCats[0]),
-        date: initialData.date || localDateStr,
-        paymentmethod: initialData.paymentmethod || initialData.paymentMethod || 'Cash',
-        description: initialData.description || '',
-        troupeid: initialData.troupeid || initialData.troupeId || ''
-      }
-    }
-    return {
-      type: 'expense',
-      amount: '',
-      category: CATEGORIES[0],
-      date: localDateStr,
-      paymentmethod: 'Cash',
-      description: '',
-      troupeid: ''
-    }
+  const [formData, setFormData] = useState({
+    type: 'expense',
+    amount: '',
+    category: CATEGORIES[0],
+    date: localDateStr,
+    paymentmethod: 'Cash',
+    description: '',
+    troupeid: ''
   })
 
-  useEffect(() => {
+  if (initialData !== prevInitialData || isOpen !== prevIsOpen) {
+    setPrevInitialData(initialData)
+    setPrevIsOpen(isOpen)
+
     const targetType = initialData?.type || 'expense'
     const activeCats = targetType === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
-    
+
     if (initialData) {
       const initialCategory = initialData.category || ''
       const isCustom = initialCategory !== '' && !activeCats.includes(initialCategory)
-      
+
       setIsCustomCategory(isCustom)
       setCustomCategoryText(isCustom ? initialCategory : '')
-      
+
       setFormData({
         type: targetType,
         amount: initialData.amount || '',
@@ -132,12 +92,20 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
         troupeid: ''
       })
     }
-  }, [initialData, isOpen, localDateStr])
+  }
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const showTroupeSelector = true
   const availableTroupes = troupes
-
-  if (!isOpen) return null
 
   const activeCategories = useMemo(() => {
     const baseCategories = formData.type === 'sponsorship' ? SPONSOR_CATEGORIES : CATEGORIES
@@ -219,6 +187,8 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
       alert('Error: ' + (err.message || 'Failed to save transaction'))
     }
   }
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200">

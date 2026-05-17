@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 import { getActualCnyDate } from '../utils/constants'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 
 export function useDashboardStats() {
   const [stats, setStats] = useState({
@@ -196,7 +196,7 @@ export function useDashboardStats() {
       const timeoutId = createFetchTimeout(setLoading, setTimeoutError)
 
       try {
-        const [itinRes, finRes, troupeRes, memberRes] = await Promise.all([
+        const [itinRes, finRes, , memberRes] = await Promise.all([
           supabase.from('itineraries').select(TABLES.ITINERARIES).eq('org_id', orgId).gte('date', startIso),
           supabase.from('finance').select(TABLES.FINANCE).eq('org_id', orgId).gte('date', startIso),
           supabase.from('troupes').select('id', { count: 'exact', head: true }).eq('org_id', orgId),
@@ -211,7 +211,7 @@ export function useDashboardStats() {
 
           totalMembers: memberRes.count || 0
         }))
-      } catch (err) {
+      } catch {
         console.error("An error occurred")
       } finally {
         clearTimeout(timeoutId)

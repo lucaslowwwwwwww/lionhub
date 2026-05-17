@@ -151,7 +151,7 @@ export const loadChineseFont = async () => {
     }
     chineseFontBase64 = window.btoa(binary)
     return chineseFontBase64
-  } catch (error) {
+  } catch {
     console.error("An error occurred")
     return null
   }
@@ -243,7 +243,7 @@ const formatTimeOnly = (isoString) => {
   try {
     const d = new Date(isoString)
     return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
-  } catch (e) {
+  } catch {
     return '-'
   }
 }
@@ -259,7 +259,7 @@ const calcCheckInDuration = (inIso, outIso) => {
     const hours = Math.floor(totalMins / 60)
     const mins = totalMins % 60
     return `${hours}h ${mins}m`
-  } catch (e) {
+  } catch {
     return '-'
   }
 }
@@ -323,7 +323,7 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
       3: { halign: 'center', cellWidth: 40 },
       4: { halign: 'center', cellWidth: 40 }
     },
-    didDrawPage: (data) => {
+    didDrawPage: () => {
       drawWatermarkAndFooter(doc, logoImg, trackedPages)
     }
   })
@@ -387,7 +387,7 @@ export const exportDayReportPDF = async (stops, members, attendanceDetails, sett
       12: { halign: 'center' },
       13: { halign: 'center' }
     },
-    didDrawPage: (data) => {
+    didDrawPage: () => {
       drawWatermarkAndFooter(doc, logoImg, trackedPages)
     }
   })
@@ -533,7 +533,7 @@ export const exportFinancePDF = async (transactions, periodStats, settings, meta
       6: { halign: 'right', cellWidth: 22 },
       7: { halign: 'right', cellWidth: 24 }
     },
-    didDrawPage: (data) => {
+    didDrawPage: () => {
       drawWatermarkAndFooter(doc, logoImg, trackedPages)
     }
   })

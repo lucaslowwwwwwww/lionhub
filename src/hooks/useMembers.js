@@ -3,7 +3,7 @@ import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 
 export function useMembers() {
   const [members, setMembers] = useState([])
@@ -40,7 +40,7 @@ export function useMembers() {
         setMembers(data || [])
         return { data: data || [], count: count || 0 }
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       clearTimeout(timeoutId)

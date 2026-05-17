@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 import { useAuth } from './useAuth'
 
 export function useCheckIn(dateKey) {
@@ -67,7 +67,7 @@ export function useCheckIn(dateKey) {
         return ciDate >= today
       })
       setActiveCheckIn(todayCheckIn || null)
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     }
   }, [userProfile?.id, userProfile?.uid, orgId])
@@ -91,7 +91,7 @@ export function useCheckIn(dateKey) {
       if (!error) {
         setDailyCheckIns(data || [])
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       setLoading(false)

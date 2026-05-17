@@ -7,13 +7,12 @@ import SessionGuard from './components/auth/SessionGuard'
 import SplashScreen from './components/layout/SplashScreen'
 import { useAuth } from './hooks/useAuth'
 import { useSettings } from './hooks/useSettings'
-import { useMembers } from './hooks/useMembers'
 import { useState, useEffect, useContext, useRef, lazy, Suspense } from 'react'
 
 const LoginPage = lazy(() => import('./components/auth/LoginPage'))
 const AppShell = lazy(() => import('./components/layout/AppShell'))
 
-import { OrgContext } from './contexts/OrgContext'
+import { OrgContext } from './contexts/OrgContextObject'
 import './index.css'
 
 const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'))
@@ -84,8 +83,8 @@ function ThemeManager({ children }) {
     const globalTheme = settings?.theme
     const targetTheme = userTheme || globalTheme || localStorage.getItem('ldms-theme') || 'dark'
 
-    if (targetTheme && !hasManualOverride) {
-      setTheme(targetTheme)
+    if (targetTheme && !hasManualOverride && theme !== targetTheme) {
+      Promise.resolve().then(() => setTheme(targetTheme))
     }
 
     window.addEventListener('theme-changed', handleThemeChange)
@@ -146,7 +145,6 @@ function ConnectionOverlay() {
 }
 
 function AppContent() {
-  const { settings } = useSettings()
   const { user, userProfile, loading: authLoading } = useAuth()
   const orgCtx = useContext(OrgContext)
   
@@ -162,8 +160,10 @@ function AppContent() {
   // Detect login transition — re-show splash ONLY after the initial one is done
   useEffect(() => {
     if (initialSplashDone && prevUserRef.current === null && user) {
-      setShowSplash(true)
-      setIsExiting(false)
+      Promise.resolve().then(() => {
+        setShowSplash(true)
+        setIsExiting(false)
+      })
     }
     prevUserRef.current = user ?? null
   }, [user, initialSplashDone])

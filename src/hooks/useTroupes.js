@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 import { useAudit } from './useAudit'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 
 export function useTroupes() {
   const { logAction } = useAudit()
@@ -47,7 +47,7 @@ export function useTroupes() {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
         } catch (e) { console.warn("Troupe cache write failed:", e) }
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       clearTimeout(timeoutId)

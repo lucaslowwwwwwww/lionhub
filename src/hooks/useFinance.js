@@ -3,7 +3,7 @@ import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 
 export function useFinance(troupeId) {
   const [transactions, setTransactions] = useState([])
@@ -38,7 +38,7 @@ export function useFinance(troupeId) {
       } else {
         setTransactions(data || [])
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       clearTimeout(timeoutId)

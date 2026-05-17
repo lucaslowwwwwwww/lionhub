@@ -24,7 +24,7 @@ export function usePresence() {
           .update({ lastactive: new Date().toISOString() })
           .eq('id', userProfile.uid)
         sessionStorage.setItem('last_presence_update', Date.now().toString())
-      } catch (err) {
+      } catch {
         console.error("An error occurred")
       }
     }

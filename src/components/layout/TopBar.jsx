@@ -1,8 +1,8 @@
 import { useAuth } from '../../hooks/useAuth'
 import { useScrollDirection } from '../../hooks/useScrollDirection'
-import { useOrg } from '../../contexts/OrgContext'
+import { useOrg } from '../../hooks/useOrg'
 
-export default function TopBar({ setIsMobileMenuOpen }) {
+export default function TopBar() {
   const { userProfile } = useAuth()
   const scrollDirection = useScrollDirection()
   const { logoUrl, nameCn, nameEn } = useOrg()

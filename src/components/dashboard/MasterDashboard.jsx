@@ -77,6 +77,21 @@ function EmptyChartState({ label }) {
   )
 }
 
+const CarouselIndicators = ({ count, activeIndex, color = 'gold' }) => (
+  <div className="flex justify-center gap-2 mt-4 sm:hidden">
+    {[...Array(count)].map((_, i) => (
+      <div 
+        key={i} 
+        className={`h-1.5 rounded-full transition-all duration-300 ${
+          activeIndex === i 
+            ? `w-6 bg-${color}-500 shadow-[0_0_8px_rgba(var(--color-${color}-500-rgb),0.5)]` 
+            : 'w-1.5 bg-surface-800'
+        }`}
+      />
+    ))}
+  </div>
+)
+
 export default function MasterDashboard({ stats, loading, selectedYear, setSelectedYear, availableYears }) {
   const [viewMode, setViewMode] = useState('monthly')
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false)
@@ -117,21 +132,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
     })
   }
 
-  const CarouselIndicators = ({ count, activeIndex, color = 'gold' }) => (
-    <div className="flex justify-center gap-2 mt-4 sm:hidden">
-      {[...Array(count)].map((_, i) => (
-        <div 
-          key={i} 
-          className={`h-1.5 rounded-full transition-all duration-300 ${
-            activeIndex === i 
-              ? `w-6 bg-${color}-500 shadow-[0_0_8px_rgba(var(--color-${color}-500-rgb),0.5)]` 
-              : 'w-1.5 bg-surface-800'
-          }`}
-        />
-      ))}
-    </div>
-  )
-  
+
   const currentData = viewMode === 'monthly' 
     ? (stats.monthlyData[selectedYear] || []) 
     : stats.yearlyData

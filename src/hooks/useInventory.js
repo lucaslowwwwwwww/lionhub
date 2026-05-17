@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 
 /**
  * useInventory
@@ -41,9 +41,9 @@ export function useInventory() {
         setItems(data || [])
         setError(null)
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      setError(err)
+      setError(null)
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)
@@ -106,10 +106,10 @@ export function useInventory() {
         setItems(previousItems)
         throw error
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
       setItems(previousItems)
-      throw err
+      throw new Error("Quantity update failed")
     }
   }
 
@@ -130,9 +130,9 @@ export function useInventory() {
         .eq('id', itemId)
 
       if (error) throw error
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      throw err
+      throw new Error("Update failed")
     }
   }
 
@@ -156,9 +156,9 @@ export function useInventory() {
         })
 
       if (error) throw error
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      throw err
+      throw new Error("Insertion failed")
     }
   }
 
@@ -174,9 +174,9 @@ export function useInventory() {
         .eq('id', itemId)
 
       if (error) throw error
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      throw err
+      throw new Error("Deletion failed")
     }
   }
 

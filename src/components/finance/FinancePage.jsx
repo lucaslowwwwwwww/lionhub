@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useFinance } from '../../hooks/useFinance'
 import { useTroupes } from '../../hooks/useTroupes'
@@ -12,7 +12,7 @@ export default function FinancePage() {
   const { userProfile } = useAuth()
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
   const troupeid = isAdmin ? 'all' : (userProfile?.troupeid || 'DEMO_TROUPE')
-  const { transactions, loading: loadingF, timeoutError, stats, addTransaction, deleteTransaction, updateTransaction } = useFinance(troupeid)
+  const { transactions, loading: loadingF, timeoutError, addTransaction, deleteTransaction, updateTransaction } = useFinance(troupeid)
   const { troupes, loading: loadingT } = useTroupes()
   const { dateTroupes = {}, loading: loadingD } = useAllPerformanceDates()
   const { settings } = useSettings()
@@ -40,7 +40,7 @@ export default function FinancePage() {
   const isMaster = userProfile?.role === 'master'
 
   // Helper to check if a date string matches a period
-  const matchesPeriod = (dateStr, targetPeriod) => {
+  const matchesPeriod = useCallback((dateStr, targetPeriod) => {
     if (targetPeriod === 'all') return true
     const date = new Date(dateStr)
     
@@ -65,12 +65,9 @@ export default function FinancePage() {
       return transTime >= startMs && transTime <= endMs
     }
     return true
-  }
+  }, [selectedDate, selectedMonth, selectedYear, startDate, endDate])
 
   const filteredTransactions = useMemo(() => {
-    // Reset to first page when filters change
-    setCurrentPage(1)
-    
     let result = transactions
     if (filter !== 'all') {
       result = result.filter(t => t.type === filter)
@@ -79,7 +76,14 @@ export default function FinancePage() {
       result = result.filter(t => matchesPeriod(t.date, period))
     }
     return result
-  }, [transactions, filter, period, selectedDate, selectedMonth, selectedYear, startDate, endDate])
+  }, [transactions, filter, period, matchesPeriod])
+
+  // Reset to first page when filters change (moved out of useMemo)
+  useEffect(() => {
+    setTimeout(() => {
+      setCurrentPage(1)
+    }, 0)
+  }, [filter, period, selectedDate, selectedMonth, selectedYear, startDate, endDate])
 
   const paginatedTransactions = useMemo(() => {
     if (pageSize === 'all') return filteredTransactions
@@ -110,7 +114,7 @@ export default function FinancePage() {
       }
       return acc
     }, { balance: 0, totalIncome: 0, totalExpenses: 0, totalSponsorship: 0 })
-  }, [transactions, period, selectedDate, selectedMonth, selectedYear, startDate, endDate])
+  }, [transactions, period, matchesPeriod])
 
   const confirmDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
@@ -129,17 +133,12 @@ export default function FinancePage() {
   }
 
   const handleSave = async (data) => {
-    try {
-      if (editingTransaction) {
-        await updateTransaction(editingTransaction.id, data)
-      } else {
-        await addTransaction(data)
-      }
-      setEditingTransaction(null)
-    } catch (err) {
-      // Re-throw so the modal can handle it
-      throw err
+    if (editingTransaction) {
+      await updateTransaction(editingTransaction.id, data)
+    } else {
+      await addTransaction(data)
     }
+    setEditingTransaction(null)
   }
 
   const getPeriodLabel = () => {

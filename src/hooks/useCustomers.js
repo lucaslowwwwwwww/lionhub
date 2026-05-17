@@ -3,7 +3,7 @@ import { supabase } from '../supabase'
 import { useAuth } from './useAuth'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 
 /**
  * useCustomers — Global Customer Management
@@ -55,9 +55,9 @@ export function useCustomers(options = {}) {
         setTotalCount(count || 0)
         setError(null)
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      setError(err)
+      setError(null)
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)

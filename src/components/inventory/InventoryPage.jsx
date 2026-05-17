@@ -8,7 +8,7 @@ import InventoryItemModal from './InventoryItemModal'
  * The top-level component that manages inventory counting and states.
  */
 export default function InventoryPage() {
-  const { items, groupedItems, loading, error, timeoutError, updateQuantity, updateItem, addItem, deleteItem } = useInventory()
+  const { groupedItems, loading, error, timeoutError, updateQuantity, updateItem, addItem, deleteItem } = useInventory()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   

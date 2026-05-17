@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useItinerary, useAllPerformanceDates } from '../../hooks/useItinerary'
 import { CNY_DAYS, getActualCnyDate, getDayInfo } from '../../utils/constants'
@@ -13,7 +13,7 @@ import TeamSelectionModal from '../dashboard/TeamSelectionModal'
 import { useSettings } from '../../hooks/useSettings'
 import { useTroupes } from '../../hooks/useTroupes'
 import { useMembers } from '../../hooks/useMembers'
-import { useOrg } from '../../contexts/OrgContext'
+import { useOrg } from '../../hooks/useOrg'
 import { supabase } from '../../supabase'
 import { exportDayReportPDF, exportDayReportExcel } from '../../utils/exportUtils'
 
@@ -28,6 +28,7 @@ export default function ItineraryPage() {
   
   const overrides = settings?.cnyoverrides || {}
 
+  const [prevDateKey, setPrevDateKey] = useState(null)
   const [selectedDay, setSelectedDay] = useState(() => getDayInfo(new Date(), overrides).id)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [activeTroupeId, setActiveTroupeId] = useState(null)
@@ -42,7 +43,7 @@ export default function ItineraryPage() {
     ? `${selectedDay}_${selectedYear}`
     : selectedDay
 
-  const { dates: performanceDates = [], unfinishedDates = [], dateTroupes = {}, dateStopCounts = {}, allItineraries = [], loading: loadingDates } = useAllPerformanceDates()
+  const { dates: performanceDates = [], unfinishedDates = [], dateTroupes = {}, dateStopCounts = {}, allItineraries = [] } = useAllPerformanceDates()
   const activeTroupesOnDate = useMemo(() => {
     const activeIds = dateTroupes[dateKey] || []
     if (activeIds.length === 0) return []
@@ -77,22 +78,27 @@ export default function ItineraryPage() {
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
   const troupeIdToUse = activeTroupeId || (isAdmin ? null : userProfile?.troupeid)
 
-  useEffect(() => {
-    if (activeTroupeId && troupes.some(t => t.id === activeTroupeId)) {
-      return
-    }
-
+  // Adjust activeTroupeId in render phase
+  if (dateKey !== prevDateKey) {
+    setPrevDateKey(dateKey)
     if (activeTroupesOnDate.length > 0) {
       setActiveTroupeId(activeTroupesOnDate[0])
     } else if (troupes.length > 0) {
       const teamA = troupes.find(t => t.name.toLowerCase().includes('team a')) || troupes[0]
-      if (teamA) setActiveTroupeId(teamA.id)
+      setActiveTroupeId(teamA ? teamA.id : null)
     } else {
       setActiveTroupeId(null)
     }
-  }, [activeTroupesOnDate, activeTroupeId, troupes])
+  } else if (activeTroupeId && troupes.length > 0 && !troupes.some(t => t.id === activeTroupeId)) {
+    if (activeTroupesOnDate.length > 0) {
+      setActiveTroupeId(activeTroupesOnDate[0])
+    } else {
+      const teamA = troupes.find(t => t.name.toLowerCase().includes('team a')) || troupes[0]
+      setActiveTroupeId(teamA ? teamA.id : null)
+    }
+  }
 
-  const { itinerary, stops = [], attendance = [], attendanceDetails = {}, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary, transferStop } = useItinerary(troupeIdToUse, dateKey)
+  const { itinerary, stops = [], attendance = [], attendanceDetails = {}, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, transferStop } = useItinerary(troupeIdToUse, dateKey)
 
   const { activeStops, finishedStops } = useMemo(() => {
     const active = stops.filter(s => s.status !== 'completed' && s.status !== 'skipped')

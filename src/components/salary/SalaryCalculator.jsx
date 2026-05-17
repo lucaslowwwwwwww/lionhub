@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useMembers } from '../../hooks/useMembers'
-import { useOrg } from '../../contexts/OrgContext'
+import { useOrg } from '../../hooks/useOrg'
 import { useSettings } from '../../hooks/useSettings'
 import { supabase } from '../../supabase'
 import { exportSalaryReportPDF } from '../../utils/exportUtils'
@@ -39,7 +39,7 @@ export default function SalaryCalculator() {
   const [memberAdjustments, setMemberAdjustments] = useState({})
 
   // Fetch check-ins inside the date range
-  const fetchCheckIns = async () => {
+  const fetchCheckIns = useCallback(async () => {
     if (!orgId || !startDate || !endDate) return
     setLoadingC(true)
     try {
@@ -53,16 +53,16 @@ export default function SalaryCalculator() {
       if (!error) {
         setCheckIns(data || [])
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       setLoadingC(false)
     }
-  }
+  }, [orgId, startDate, endDate])
 
   useEffect(() => {
     fetchCheckIns()
-  }, [orgId, startDate, endDate])
+  }, [fetchCheckIns])
 
   // Helper: Calculate duration in hours from check_in_at & check_out_at
   const calcCheckInHours = (inIso, outIso, checkInDate) => {
@@ -70,7 +70,6 @@ export default function SalaryCalculator() {
     const start = new Date(inIso).getTime()
     
     let end
-    let incomplete = false
     if (outIso) {
       end = new Date(outIso).getTime()
     } else {
@@ -280,7 +279,7 @@ export default function SalaryCalculator() {
           return { ...prev, logs: updatedLogs }
         })
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       setModalActionLoading(false)
@@ -309,7 +308,7 @@ export default function SalaryCalculator() {
           return { ...prev, logs: updatedLogs }
         })
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       setModalActionLoading(false)
@@ -335,7 +334,7 @@ export default function SalaryCalculator() {
           return { ...prev, logs: updatedLogs }
         })
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       setModalActionLoading(false)
@@ -372,7 +371,7 @@ export default function SalaryCalculator() {
         setNewLogCheckIn('09:00')
         setNewLogCheckOut('18:00')
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       setModalActionLoading(false)

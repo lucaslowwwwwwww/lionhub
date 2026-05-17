@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
-import { useOrg } from '../../contexts/OrgContext'
+import { useOrg } from '../../hooks/useOrg'
 import { useAuth } from '../../hooks/useAuth'
 import { useAudit } from '../../hooks/useAudit'
 
@@ -49,7 +49,7 @@ export default function SuperAdminDashboard() {
         if (orgsRes.error) throw orgsRes.error
         setOrgs(orgsRes.data || [])
         setTotalUsers(usersRes.count || 0)
-      } catch (err) {
+      } catch {
         console.error("An error occurred")
       } finally {
         setLoading(false)
@@ -77,7 +77,7 @@ export default function SuperAdminDashboard() {
 
       setOrgs(prev => prev.map(o => o.id === orgId ? { ...o, status: newStatus } : o))
       logAction('SUPER_ADMIN_TOGGLE_ORG_STATUS', { targetOrgId: orgId, newStatus })
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
       alert('Failed to update organization status.')
     }
@@ -128,7 +128,7 @@ export default function SuperAdminDashboard() {
         subscription_duration: '1y'
       })
       logAction('SUPER_ADMIN_CREATE_ORG', { newOrgId: data.id, orgName: data.name_en, masterEmail: data.master_email })
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
       alert('Registration failed.')
     } finally {
@@ -153,7 +153,7 @@ export default function SuperAdminDashboard() {
       setShowDeleteModal(false)
       setOrgToDelete(null)
       setDeleteConfirmName('')
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
       alert('Deletion failed. Ensure you have proper permissions.')
     } finally {
@@ -219,7 +219,7 @@ export default function SuperAdminDashboard() {
       logAction('SUPER_ADMIN_RENEW_SUBSCRIPTION', { orgId: data.id, newExpiry: expires_at, duration: renewDuration })
       setShowRenewModal(false)
       setOrgToRenew(null)
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
       alert('Renewal failed.')
     } finally {

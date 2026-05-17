@@ -40,7 +40,6 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
   const [conflict, setConflict] = useState(null)
   const [addressOptions, setAddressOptions] = useState([])
   const [phoneOptions, setPhoneOptions] = useState([])
-  const [saving, setSaving] = useState(false)
 
   const handleSelectCustomer = (inputValue) => {
     const matchedCustomer = customers.find(c => {
@@ -138,51 +137,53 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
       document.body.style.overflow = 'hidden'
       const colors = settings?.lioncolors || []
       
-      if (stop) {
-        // Normalize lioncolor to array
-        let initialColors = []
-        if (Array.isArray(stop.lioncolor || stop.lionColor)) {
-          initialColors = stop.lioncolor || stop.lionColor
-        } else if (stop.lioncolor || stop.lionColor) {
-          initialColors = [stop.lioncolor || stop.lionColor]
-        } else {
-          initialColors = [colors[0] || '']
-        }
+      setTimeout(() => {
+        if (stop) {
+          // Normalize lioncolor to array
+          let initialColors = []
+          if (Array.isArray(stop.lioncolor || stop.lionColor)) {
+            initialColors = stop.lioncolor || stop.lionColor
+          } else if (stop.lioncolor || stop.lionColor) {
+            initialColors = [stop.lioncolor || stop.lionColor]
+          } else {
+            initialColors = [colors[0] || '']
+          }
 
-        setFormData({
-          householdname: stop.householdname || '',
-          address: stop.address || '',
-          phone: stop.phone || '',
-          amount: stop.amount || '',
-          scheduledtime: stop.scheduledtime || '',
-          duration: stop.duration || 30,
-          lioncolor: initialColors,
-          lionquantity: stop.lionquantity || initialColors.length || 1,
-          extra_characters: Array.isArray(stop.extra_characters) ? stop.extra_characters : (
-            [stop.hasgodofwealth && '财神爷', stop.hasbigheadbuddha && '大头佛'].filter(Boolean)
-          ),
-          pluckingtype: Array.isArray(stop.pluckingtype) ? stop.pluckingtype : (stop.pluckingtype ? [stop.pluckingtype] : []),
-          remarks: stop.remarks || '',
-          maplink: stop.maplink || ''
-        })
-      } else {
-        setFormData({
-          householdname: '',
-          address: '',
-          phone: '',
-          amount: '',
-          scheduledtime: '',
-          duration: settings?.defaultduration || 30,
-          lioncolor: [colors[0] || '', colors[0] || ''],
-          lionquantity: 2,
-          extra_characters: [],
-          pluckingtype: [],
-          remarks: '',
-          maplink: ''
-        })
-        setAddressOptions([])
-        setPhoneOptions([])
-      }
+          setFormData({
+            householdname: stop.householdname || '',
+            address: stop.address || '',
+            phone: stop.phone || '',
+            amount: stop.amount || '',
+            scheduledtime: stop.scheduledtime || '',
+            duration: stop.duration || 30,
+            lioncolor: initialColors,
+            lionquantity: stop.lionquantity || initialColors.length || 1,
+            extra_characters: Array.isArray(stop.extra_characters) ? stop.extra_characters : (
+              [stop.hasgodofwealth && '财神爷', stop.hasbigheadbuddha && '大头佛'].filter(Boolean)
+            ),
+            pluckingtype: Array.isArray(stop.pluckingtype) ? stop.pluckingtype : (stop.pluckingtype ? [stop.pluckingtype] : []),
+            remarks: stop.remarks || '',
+            maplink: stop.maplink || ''
+          })
+        } else {
+          setFormData({
+            householdname: '',
+            address: '',
+            phone: '',
+            amount: '',
+            scheduledtime: '',
+            duration: settings?.defaultduration || 30,
+            lioncolor: [colors[0] || '', colors[0] || ''],
+            lionquantity: 2,
+            extra_characters: [],
+            pluckingtype: [],
+            remarks: '',
+            maplink: ''
+          })
+          setAddressOptions([])
+          setPhoneOptions([])
+        }
+      }, 0)
     } else {
       document.body.style.overflow = 'unset'
     }
@@ -191,37 +192,39 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
   // Real-time Conflict Detection
   useEffect(() => {
-    if (!formData.scheduledtime || stops.length === 0) {
-      setConflict(null)
-      return
-    }
+    setTimeout(() => {
+      if (!formData.scheduledtime || stops.length === 0) {
+        setConflict(null)
+        return
+      }
 
-    const newMinutes = parseTimeToMinutes(formData.scheduledtime)
-    if (newMinutes === null) {
-      setConflict(null)
-      return
-    }
+      const newMinutes = parseTimeToMinutes(formData.scheduledtime)
+      if (newMinutes === null) {
+        setConflict(null)
+        return
+      }
 
-    const found = stops.find(s => {
-      if (stop && s.id === stop.id) return false
-      const existingMinutes = parseTimeToMinutes(s.scheduledtime)
-      if (existingMinutes === null) return false
-      const diff = Math.abs(newMinutes - existingMinutes)
-      return diff < 45 // 45 min threshold
-    })
-
-    if (found) {
-      const isExact = parseTimeToMinutes(found.scheduledtime) === newMinutes
-      setConflict({
-        type: isExact ? 'CRASH' : 'TIGHT',
-        stop: found,
-        message: isExact 
-          ? `⚠️ TIME CRASH: Already at ${found.scheduledtime} (${found.householdname})`
-          : `⚠️ TIGHT GAP: Near ${found.scheduledtime} (${found.householdname}). Min 45m recom.`
+      const found = stops.find(s => {
+        if (stop && s.id === stop.id) return false
+        const existingMinutes = parseTimeToMinutes(s.scheduledtime)
+        if (existingMinutes === null) return false
+        const diff = Math.abs(newMinutes - existingMinutes)
+        return diff < 45 // 45 min threshold
       })
-    } else {
-      setConflict(null)
-    }
+
+      if (found) {
+        const isExact = parseTimeToMinutes(found.scheduledtime) === newMinutes
+        setConflict({
+          type: isExact ? 'CRASH' : 'TIGHT',
+          stop: found,
+          message: isExact 
+            ? `⚠️ TIME CRASH: Already at ${found.scheduledtime} (${found.householdname})`
+            : `⚠️ TIGHT GAP: Near ${found.scheduledtime} (${found.householdname}). Min 45m recom.`
+        })
+      } else {
+        setConflict(null)
+      }
+    }, 0)
   }, [formData.scheduledtime, stops, stop])
 
   if (!isOpen) return null

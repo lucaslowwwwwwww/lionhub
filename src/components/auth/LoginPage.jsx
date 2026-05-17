@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabase'
-import { useSettings } from '../../hooks/useSettings'
 
 export default function LoginPage() {
-  const { settings } = useSettings()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -14,7 +11,6 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [activePolicyModal, setActivePolicyModal] = useState(null)
-  const navigate = useNavigate()
 
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault()

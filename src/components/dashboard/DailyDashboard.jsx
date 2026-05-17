@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useItinerary, useAllPerformanceDates } from '../../hooks/useItinerary'
 import CountUp from '../common/CountUp'
 import { useMembers } from '../../hooks/useMembers'
@@ -10,7 +10,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { supabase } from '../../supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCheckIn } from '../../hooks/useCheckIn'
-import { useOrg } from '../../contexts/OrgContext'
+import { useOrg } from '../../hooks/useOrg'
 import CheckInEditModal from './CheckInEditModal'
 
 function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel" }) {
@@ -82,8 +82,9 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
   const { members, loading: loadingM } = useMembers()
   const { troupes, loading: loadingT } = useTroupes()
   const { orgId } = useOrg()
-  const overrides = settings?.cnyOverrides || {}
+  const overrides = useMemo(() => settings?.cnyoverrides || {}, [settings?.cnyoverrides])
 
+  const [prevDateKey, setPrevDateKey] = useState(null)
   const [activeTroupeId, setActiveTroupeId] = useState(null)
   const [isActivateModalOpen, setIsActivateModalOpen] = useState(false)
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false)
@@ -110,7 +111,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     : selectedDay
 
   const { userProfile } = useAuth()
-  const { activeCheckIn, dailyCheckIns, checkIn, checkOut, updateCheckIn, deleteCheckIn, loading: loadingC } = useCheckIn(dateKey)
+  const { activeCheckIn, dailyCheckIns, checkIn, checkOut, updateCheckIn, deleteCheckIn } = useCheckIn(dateKey)
 
   // ISSUE-5: Scope timesheet to active troupe tab
   const filteredCheckIns = useMemo(() => {
@@ -171,7 +172,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
       generalExpenses,
       netProfit: grossRevenue - totalExpenses
     }
-  }, [allItineraries, transactions, dateKey])
+  }, [allItineraries, transactions, dateKey, localIsoDate])
 
   const { busyMemberIds } = useMemo(() => {
     const busyIds = new Set()
@@ -190,18 +191,21 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     }
   }, [allItineraries, dateKey, activeTroupeId])
 
-  useEffect(() => {
+  // Adjust activeTroupeId state in render when dateKey or activeTroupesOnDate changes
+  if (dateKey !== prevDateKey) {
+    setPrevDateKey(dateKey)
     if (activeTroupesOnDate.length > 0) {
-      // If no troupe is selected, or the current selected troupe is not in the active list, 
-      // default to the first active troupe.
-      if (!activeTroupeId || !activeTroupesOnDate.includes(activeTroupeId)) {
-        setActiveTroupeId(activeTroupesOnDate[0])
-      }
+      setActiveTroupeId(activeTroupesOnDate[0])
     } else {
-      // No teams are active on this date.
       setActiveTroupeId(null)
     }
-  }, [activeTroupesOnDate, isAdmin, troupes])
+  } else if (activeTroupeId && activeTroupesOnDate.length > 0 && !activeTroupesOnDate.includes(activeTroupeId)) {
+    setActiveTroupeId(activeTroupesOnDate[0])
+  } else if (!activeTroupeId && activeTroupesOnDate.length > 0) {
+    setActiveTroupeId(activeTroupesOnDate[0])
+  } else if (activeTroupeId && activeTroupesOnDate.length === 0) {
+    setActiveTroupeId(null)
+  }
 
   const handleActivateTroupe = async (tId) => {
     try {
@@ -225,7 +229,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
           createdat: new Date().toISOString()
         })
       setActiveTroupeId(tId)
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     }
   }
@@ -238,7 +242,7 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
       await deleteFullItinerary()
       setActiveTroupeId(null)
       if (refreshDates) await refreshDates()
-    } catch (err) {
+    } catch {
       alert("Failed to delete deployment")
     }
   }

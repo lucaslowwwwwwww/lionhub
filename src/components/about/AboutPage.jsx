@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useOrg } from '../../contexts/OrgContext';
+import { useOrg } from '../../hooks/useOrg';
 
 // Legal Content based on the drafted documents
 const TERMS_CONTENT = `

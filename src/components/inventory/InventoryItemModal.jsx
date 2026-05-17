@@ -22,25 +22,27 @@ export default function InventoryItemModal({
 
   // Pre-populate data if editing
   useEffect(() => {
-    if (editingItem) {
-      setFormData({
-        name: editingItem.name || editingItem.itemName || '',
-        category: editingItem.category || '',
-        currentquantity: editingItem.currentquantity || editingItem.currentQuantity || 0,
-        lowstockthreshold: editingItem.lowstockthreshold || editingItem.lowStockThreshold || 5,
-        unit: editingItem.unit || 'pcs',
-        notes: editingItem.notes || ''
-      })
-    } else {
-      setFormData({
-        name: '',
-        category: '',
-        currentquantity: 0,
-        lowstockthreshold: 5,
-        unit: 'pcs',
-        notes: ''
-      })
-    }
+    setTimeout(() => {
+      if (editingItem) {
+        setFormData({
+          name: editingItem.name || editingItem.itemName || '',
+          category: editingItem.category || '',
+          currentquantity: editingItem.currentquantity || editingItem.currentQuantity || 0,
+          lowstockthreshold: editingItem.lowstockthreshold || editingItem.lowStockThreshold || 5,
+          unit: editingItem.unit || 'pcs',
+          notes: editingItem.notes || ''
+        })
+      } else {
+        setFormData({
+          name: '',
+          category: '',
+          currentquantity: 0,
+          lowstockthreshold: 5,
+          unit: 'pcs',
+          notes: ''
+        })
+      }
+    }, 0)
   }, [editingItem, isOpen])
 
   if (!isOpen) return null

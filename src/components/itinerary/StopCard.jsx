@@ -38,7 +38,9 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
       if (startMs && endMs) {
         recordedMinutes = Math.max(1, Math.round((endMs - startMs) / 60000))
       }
-    } catch(e) {}
+    } catch {
+      // Ignored
+    }
   }
 
   const renderNavModal = () => {
@@ -458,7 +460,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
                 onClick={async () => {
                   setIsGenerating(true)
                   try { await generateAndShareReceipt(stop, settings, userProfile) }
-                  catch (e) { alert("Could not generate receipt.") }
+                  catch { alert("Could not generate receipt.") }
                   finally { setIsGenerating(false) }
                 }}
                 disabled={isGenerating}

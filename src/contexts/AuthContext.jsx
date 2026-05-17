@@ -1,8 +1,7 @@
-import { createContext, useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
-
-export const AuthContext = createContext(null)
+import { AuthContext } from './AuthContextObject'
 
 /**
  * AuthProvider — wraps the app and provides:
@@ -105,7 +104,7 @@ export function AuthProvider({ children }) {
         setUserProfile(null)
       }
       setConnectionError(false)
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
       if (shouldShowLoading) {
         setConnectionError(true)
@@ -247,13 +246,13 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await supabase.auth.signOut()
     setUser(null)
     setUserProfile(null)
-  }
+  }, [])
 
-  const deleteAccount = async () => {
+  const deleteAccount = useCallback(async () => {
     if (!user) return
     const uid = user.id
     try {
@@ -284,13 +283,13 @@ export function AuthProvider({ children }) {
       
       setUser(null)
       setUserProfile(null)
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      throw err
+      throw new Error("Deletion failed")
     }
-  }
+  }, [user, userProfile])
 
-  const updateProfile = async (newValues) => {
+  const updateProfile = useCallback(async (newValues) => {
     if (!user) return
     try {
       const { error } = await supabase
@@ -300,11 +299,11 @@ export function AuthProvider({ children }) {
 
       if (error) throw error
       // Local state is updated via the realtime subscription
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      throw err
+      throw new Error("Update failed")
     }
-  }
+  }, [user])
 
   const value = useMemo(() => ({ 
     user, 
@@ -315,7 +314,7 @@ export function AuthProvider({ children }) {
     deleteAccount, 
     updateProfile,
     refreshProfile: () => user && fetchProfile(user, true) 
-  }), [user, userProfile, loading, connectionError])
+  }), [user, userProfile, loading, connectionError, logout, deleteAccount, updateProfile])
 
   return (
     <AuthContext.Provider value={value}>
@@ -388,7 +387,9 @@ function RecoveryModal({ onClose }) {
                   const url = new URL(window.location.href)
                   url.searchParams.delete('type')
                   window.history.replaceState({}, document.title, url.pathname)
-                } catch(e) {}
+                } catch {
+                  // Ignore
+                }
                 onClose()
               }}
               className="w-full py-4 bg-crimson-600 hover:bg-crimson-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-crimson-600/20 transition-all"

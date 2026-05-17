@@ -1,7 +1,7 @@
-import { getDayInfo, getActualCnyDate } from '../../utils/constants'
+import { getDayInfo } from '../../utils/constants'
 import { useRef, useEffect, useMemo } from 'react'
 
-export default function DaySelector({ selectedDay, selectedYear, onSelectDay, performanceDates = [], unfinishedDates = [], openScheduleList, cnyOverrides = {} }) {
+export default function DaySelector({ selectedDay, onSelectDay, performanceDates = [], unfinishedDates = [], openScheduleList, cnyOverrides = {} }) {
   const scrollContainerRef = useRef(null)
   const activeItemRef = useRef(null)
 

@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
-import { useToast } from '../contexts/ToastContext'
+import { useToast } from './useToast'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
-import { useOrg } from '../contexts/OrgContext'
+import { useOrg } from './useOrg'
 
 export function useItinerary(troupeId, date) {
   const [itinerary, setItinerary] = useState(null)
@@ -39,12 +39,12 @@ export function useItinerary(troupeId, date) {
       } else {
         setStops(data || [])
       }
-    } catch (err) {
+    } catch { 
       console.error("An error occurred")
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [orgId])
 
   const fetchItinerary = useCallback(async () => {
     if (!troupeId || !date || !orgId) return
@@ -83,7 +83,7 @@ export function useItinerary(troupeId, date) {
         setAttendanceDetails({})
         setLoading(false)
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
       setLoading(false)
     } finally {
@@ -240,7 +240,7 @@ export function useItinerary(troupeId, date) {
     if (newStatus !== 'completed' && oldStatus === 'completed') {
       try {
         await supabase.from('finance').delete().eq('sourcestopid', stopId)
-      } catch (err) { console.error("An error occurred") }
+      } catch { console.error("An error occurred") }
     }
 
     // 💰 Deterministic Finance Recording
@@ -626,7 +626,7 @@ export function useItinerary(troupeId, date) {
               description: `Performance: ${stopData.householdname || 'Standard Performance'} (${targetTroupeName || 'Unknown'})`
             })
             .eq('id', financeId)
-        } catch (err) {
+        } catch {
           console.error("An error occurred")
         }
       }
@@ -645,7 +645,7 @@ export function useItinerary(troupeId, date) {
   return { itinerary, stops, attendance, attendanceDetails, loading, timeoutError, updateStopStatus, updateStop, addStop, createItinerary, deleteStop, reorderStops, updateAttendance, deleteFullItinerary, transferStop, refresh: fetchItinerary }
 }
 
-export function useAllPerformanceDates(troupeId) {
+export function useAllPerformanceDates() {
   const { orgId } = useOrg()
   const CACHE_KEY = `liondance_cache_perf_dates_${orgId || 'none'}`
   const CACHE_EXPIRY = 5 * 60 * 1000 // 5 minutes
@@ -690,7 +690,9 @@ export function useAllPerformanceDates(troupeId) {
   useEffect(() => {
     if (!orgId) return
 
-    fetchItineraries()
+    setTimeout(() => {
+      fetchItineraries()
+    }, 0)
 
     // Subscribe to realtime changes on itineraries
     const allItinSafeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)

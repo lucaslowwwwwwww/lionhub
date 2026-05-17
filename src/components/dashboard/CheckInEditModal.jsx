@@ -1,24 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export default function CheckInEditModal({ isOpen, onClose, checkInRecord, onSave, onDelete }) {
+  const [prevRecordId, setPrevRecordId] = useState(null)
   const [checkInTime, setCheckInTime] = useState('')
   const [checkOutTime, setCheckOutTime] = useState('')
 
-  useEffect(() => {
-    if (checkInRecord) {
-      // Convert ISO strings to local datetime-local format (YYYY-MM-DDTHH:mm)
-      const formatToLocal = (iso) => {
-        if (!iso) return ''
-        const date = new Date(iso)
-        const tzOffset = date.getTimezoneOffset() * 60000
-        const localISOTime = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16)
-        return localISOTime
-      }
-
-      setCheckInTime(formatToLocal(checkInRecord.check_in_at))
-      setCheckOutTime(formatToLocal(checkInRecord.check_out_at))
+  if (checkInRecord && checkInRecord.id !== prevRecordId) {
+    setPrevRecordId(checkInRecord.id)
+    const formatToLocal = (iso) => {
+      if (!iso) return ''
+      const date = new Date(iso)
+      const tzOffset = date.getTimezoneOffset() * 60000
+      const localISOTime = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16)
+      return localISOTime
     }
-  }, [checkInRecord])
+    setCheckInTime(formatToLocal(checkInRecord.check_in_at))
+    setCheckOutTime(formatToLocal(checkInRecord.check_out_at))
+  }
 
   if (!isOpen || !checkInRecord) return null
 

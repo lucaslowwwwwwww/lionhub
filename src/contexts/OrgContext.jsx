@@ -1,8 +1,7 @@
-import { createContext, useState, useEffect, useRef, useMemo, useContext, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../hooks/useAuth'
-
-export const OrgContext = createContext(null)
+import { OrgContext } from './OrgContextObject'
 
 /**
  * OrgProvider — provides the current organization's identity, branding,
@@ -40,7 +39,7 @@ export function OrgProvider({ children }) {
       } else if (data) {
         setOrg(data)
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
     } finally {
       setLoading(false)
@@ -148,15 +147,4 @@ export function OrgProvider({ children }) {
       {children}
     </OrgContext.Provider>
   )
-}
-
-/**
- * useOrg — convenience hook to access OrgContext
- */
-export function useOrg() {
-  const ctx = useContext(OrgContext)
-  if (!ctx) {
-    throw new Error('useOrg must be used within an OrgProvider')
-  }
-  return ctx
 }

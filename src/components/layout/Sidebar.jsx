@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { useOrg } from '../../contexts/OrgContext'
+import { useOrg } from '../../hooks/useOrg'
 import { Haptics } from '../../utils/haptics'
 
 const NAV_GROUPS = [

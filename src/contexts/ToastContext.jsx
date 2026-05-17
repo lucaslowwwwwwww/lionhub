@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import Toast from '../components/common/Toast'
-
-const ToastContext = createContext()
+import { ToastContext } from './ToastContextObject'
 
 /**
  * ToastProvider
@@ -38,13 +37,4 @@ export function ToastProvider({ children }) {
       </div>
     </ToastContext.Provider>
   )
-}
-
-export const useToast = () => {
-  const context = useContext(ToastContext)
-  if (!context) {
-    // Fallback to console if used outside provider
-    return { showToast: (msg) => console.error("Toast outside provider:", msg) }
-  }
-  return context
 }

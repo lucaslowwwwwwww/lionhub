@@ -1,37 +1,22 @@
 import { useState, useEffect, useMemo } from 'react'
-import { createClient } from '@supabase/supabase-js'
 import { useTroupes } from '../../hooks/useTroupes'
 import { useMembers } from '../../hooks/useMembers'
 import { useAudit } from '../../hooks/useAudit'
 import { useAuth } from '../../hooks/useAuth'
-import { supabase } from '../../supabase'
-
-// Helper to create a one-time non-persistent client for admin creation
-const createAuthClient = () => createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      storageKey: `auth-temp-${Math.random().toString(36).substring(7)}`
-    }
-  }
-)
 
 // ─── Add Troupe Modal ───
 function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
+  const [prevEditData, setPrevEditData] = useState(undefined)
+  const [prevIsOpen, setPrevIsOpen] = useState(false)
   const [name, setName] = useState('')
   const [vehiclePlate, setVehiclePlate] = useState('')
 
-  // Sync with editData when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setName(editData?.name || '')
-      setVehiclePlate(editData?.vehicleplate || '')
-    }
-  }, [isOpen, editData])
+  if (editData !== prevEditData || isOpen !== prevIsOpen) {
+    setPrevEditData(editData)
+    setPrevIsOpen(isOpen)
+    setName(editData?.name || '')
+    setVehiclePlate(editData?.vehicleplate || '')
+  }
 
   if (!isOpen) return null
 
@@ -72,10 +57,9 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
 }
 
 // ─── Add Member Modal ───
-function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
+function AddMemberModal({ isOpen, onClose, onAdd }) {
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('member')
   const [error, setError] = useState('')
@@ -87,7 +71,6 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
   const handleClose = () => {
     setDisplayName('')
     setEmail('')
-    setPassword('')
     setPhone('')
     setRole('member')
     setError('')
@@ -120,9 +103,9 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
       })
 
       setRecruitedUser({ displayName, email, role })
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      setError(err.message || 'Failed to create account. Please try again.')
+      setError('Failed to create account. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -226,11 +209,10 @@ function AddMemberModal({ isOpen, onClose, onAdd, troupes }) {
 }
 
 // ─── Edit Member Modal ───
-function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster }) {
+function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
   const { logAction } = useAudit()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('member')
   const [error, setError] = useState('')
@@ -243,7 +225,6 @@ function EditMemberModal({ isOpen, onClose, member, onSave, troupes, isMaster })
       setEmail(member.email || '')
       setPhone(member.phone || '')
       setRole(member.role || 'member')
-      setPassword('')
       setError('')
     }
   }, [member])
@@ -388,9 +369,10 @@ export default function TeamPage() {
     timeoutError: timeoutM, 
     addMember, 
     updateMember, 
-    deleteMember,
-    refresh
+    deleteMember
   } = useMembers()
+
+  const [nowMs] = useState(() => Date.now())
 
 
 
@@ -424,16 +406,15 @@ export default function TeamPage() {
     if (!lastActive) return false
     try {
       const ms = lastActive.toMillis ? lastActive.toMillis() : new Date(lastActive).getTime()
-      return (Date.now() - ms) < 300000 // 5 minutes
-    } catch(e) { return false }
+      return (nowMs - ms) < 300000 // 5 minutes
+    } catch { return false }
   }
 
   const formatLastActive = (lastActive) => {
     if (!lastActive) return 'Never'
     try {
       const date = lastActive.toDate ? lastActive.toDate() : new Date(lastActive)
-      const now = new Date()
-      const diffMs = now - date
+      const diffMs = nowMs - date.getTime()
       const diffMins = Math.floor(diffMs / 60000)
       const diffHours = Math.floor(diffMins / 60)
       const diffDays = Math.floor(diffHours / 24)
@@ -443,7 +424,7 @@ export default function TeamPage() {
       if (diffHours < 24) return `${diffHours}h ago`
       if (diffDays === 1) return 'Yesterday'
       return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-    } catch(e) { return 'Unknown' }
+    } catch { return 'Unknown' }
   }
 
   return (
@@ -874,8 +855,8 @@ export default function TeamPage() {
         onSave={(data, id) => id ? updateTroupe(id, data) : addTroupe(data)} 
         editData={editingTroupe}
       />
-      <AddMemberModal isOpen={showMemberModal} onClose={() => setShowMemberModal(false)} onAdd={addMember} troupes={troupes} />
-      <EditMemberModal isOpen={!!editingMember} onClose={() => setEditingMember(null)} member={editingMember} onSave={updateMember} troupes={troupes} isMaster={isMaster} />
+      <AddMemberModal isOpen={showMemberModal} onClose={() => setShowMemberModal(false)} onAdd={addMember} />
+      <EditMemberModal isOpen={!!editingMember} onClose={() => setEditingMember(null)} member={editingMember} onSave={updateMember} isMaster={isMaster} />
     </div>
   )
 }

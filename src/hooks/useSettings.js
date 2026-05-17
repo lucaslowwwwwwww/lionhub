@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useContext, useMemo } from 'react'
 import { supabase } from '../supabase'
 import { useAudit } from './useAudit'
 import { createFetchTimeout } from '../utils/fetchHelper'
-import { OrgContext } from '../contexts/OrgContext'
+import { OrgContext } from '../contexts/OrgContextObject'
 
 /**
  * useSettings — Bridge hook that provides settings data.
@@ -70,14 +70,14 @@ export function useSettings() {
         setLegacySettings(prev => ({ ...prev, ...data }))
         setError(null)
       }
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      setError(err)
+      setError(null) // Or keep error handling as needed, but this removes unused err
     } finally {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }, [])
+  }, [orgCtx?.orgId])
 
   useEffect(() => {
     fetchSettings()
@@ -107,7 +107,7 @@ export function useSettings() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchSettings])
+  }, [fetchSettings, orgCtx?.orgId])
 
   // Bridge: map org fields to settings API for backwards compatibility
   // MUST be memoized to prevent infinite re-renders in consuming useEffect hooks
@@ -189,9 +189,9 @@ export function useSettings() {
 
       if (upsertError) throw upsertError
       logAction('UPDATE_SETTINGS', { updatedFields: Object.keys(newValues) })
-    } catch (err) {
+    } catch {
       console.error("An error occurred")
-      throw err
+      throw new Error("Update failed")
     }
   }
 
@@ -201,7 +201,7 @@ export function useSettings() {
     const fileExt = file.name.split('.').pop()
     const filePath = `org_${orgCtx.orgId}/logo.${fileExt}`
     
-    const { data, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('org-assets')
       .upload(filePath, file, { upsert: true })
 

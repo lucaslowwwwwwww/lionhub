@@ -5,17 +5,13 @@ import { supabase } from '../../supabase'
 import CreateDocModal from './CreateDocModal'
 import { generateBillingPDF, formatPerformanceDescription } from '../../utils/billingUtils'
 import { TABLES } from '../../utils/fetchHelper'
-import { useOrg } from '../../contexts/OrgContext'
+import { useOrg } from '../../hooks/useOrg'
 
 
 export default function BillingPage() {
   const { userProfile } = useAuth()
   const { settings } = useSettings()
   const { orgId } = useOrg()
-  
-  // History Docs
-  const [docs, setDocs] = useState([])
-  const [loadingDocs, setLoadingDocs] = useState(true)
   
   // Itinerary Sync
   const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'))
@@ -24,10 +20,6 @@ export default function BillingPage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // 1. Fetch History (Removed but keeping cleanup for safety)
-  useEffect(() => {
-    setLoadingDocs(false)
-  }, [])
 
   // 2. Fetch Itinerary Stops for selected date (flat table)
   useEffect(() => {
@@ -44,7 +36,7 @@ export default function BillingPage() {
 
         if (error) throw error
         setItineraryStops(data || [])
-      } catch (err) {
+      } catch {
         console.error("An error occurred")
       } finally {
         setLoadingStops(false)
@@ -53,9 +45,6 @@ export default function BillingPage() {
     fetchStops()
   }, [selectedDate, orgId])
 
-  const handleDownload = (doc) => {
-    generateBillingPDF(doc, settings, userProfile, doc.type)
-  }
 
   const handleQuickGenerate = async (stop, type) => {
     const data = {
@@ -71,7 +60,7 @@ export default function BillingPage() {
     
     try {
       await generateBillingPDF(data, settings, userProfile, type)
-    } catch (err) {
+    } catch {
       alert("Failed to generate " + type)
     }
   }

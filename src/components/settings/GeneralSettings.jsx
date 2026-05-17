@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth'
  * Refactored for Multi-Tenant SaaS alignment.
  */
 export default function GeneralSettings() {
-  const { settings, loading, timeoutError, updateSettings, uploadLogo } = useSettings()
+  const { settings, loading, updateSettings, uploadLogo } = useSettings()
   const { userProfile, deleteAccount, updateProfile } = useAuth()
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
 
@@ -83,7 +83,7 @@ export default function GeneralSettings() {
       await uploadLogo(file)
       setSaveMessage('Success: Logo updated.')
       setTimeout(() => setSaveMessage(''), 3000)
-    } catch (err) {
+    } catch {
       setSaveMessage('Error: Upload failed.')
     } finally {
       setIsUploading(false)
@@ -112,7 +112,7 @@ export default function GeneralSettings() {
 
       setSaveMessage('Success: Configuration saved.')
       setTimeout(() => setSaveMessage(''), 3000)
-    } catch (err) {
+    } catch {
       setSaveMessage('Error: Save failed.')
     } finally {
       setIsSaving(false)
@@ -123,7 +123,7 @@ export default function GeneralSettings() {
     setIsDeleting(true)
     try {
       await deleteAccount()
-    } catch (err) {
+    } catch {
       setSaveMessage('Error: Deletion failed.')
       setIsDeleting(false)
       setShowDeleteConfirm(false)
