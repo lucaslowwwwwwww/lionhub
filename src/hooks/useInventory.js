@@ -35,7 +35,7 @@ export function useInventory() {
         .order('name', { ascending: true })
 
       if (fetchError) {
-        console.error("Operation failed:", error?.message || "unknown")
+        console.error("Operation failed:", fetchError?.message || "unknown")
         setError(fetchError)
       } else {
         setItems(data || [])
@@ -96,15 +96,15 @@ export function useInventory() {
 
     try {
       // 3. Atomic Database Update (Prevents race conditions)
-      const { error } = await supabase.rpc('increment_inventory', { 
+      const { error: rpcError } = await supabase.rpc('increment_inventory', { 
         row_id: itemId, 
         amt: delta 
       })
 
-      if (error) {
-        console.error("Operation failed:", error?.message || "unknown")
+      if (rpcError) {
+        console.error("Operation failed:", rpcError?.message || "unknown")
         setItems(previousItems)
-        throw error
+        throw rpcError
       }
     } catch (err) {
       console.error("Operation failed:", err?.message || "unknown")
@@ -119,7 +119,7 @@ export function useInventory() {
    */
   const updateItem = async (itemId, itemData) => {
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('inventory')
         .update({
           ...sanitizeObject(itemData),
@@ -129,7 +129,7 @@ export function useInventory() {
         })
         .eq('id', itemId)
 
-      if (error) throw error
+      if (updateError) throw updateError
     } catch (err) {
       console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Update failed")
@@ -142,7 +142,7 @@ export function useInventory() {
    */
   const addItem = async (itemData) => {
     try {
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('inventory')
         .insert({
           ...sanitizeObject(itemData),
@@ -155,7 +155,7 @@ export function useInventory() {
           lastupdated: new Date().toISOString()
         })
 
-      if (error) throw error
+      if (insertError) throw insertError
     } catch (err) {
       console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Insertion failed")
@@ -168,12 +168,12 @@ export function useInventory() {
    */
   const deleteItem = async (itemId) => {
     try {
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('inventory')
         .delete()
         .eq('id', itemId)
 
-      if (error) throw error
+      if (deleteError) throw deleteError
     } catch (err) {
       console.error("Operation failed:", err?.message || "unknown")
       throw new Error("Deletion failed")

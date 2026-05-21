@@ -460,7 +460,7 @@ export function useAllPerformanceDates() {
 
     const { data, error: fetchError } = await supabase
       .from('itineraries')
-      .select(TABLES.ITINERARIES)
+      .select(TABLES.ITINERARIES_LIGHT)
       .eq('org_id', orgId)
 
     if (fetchError) {

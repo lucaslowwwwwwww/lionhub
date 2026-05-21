@@ -5,12 +5,20 @@ import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 import { useOrg } from './useOrg'
 
-export function useFinance(troupeId) {
+export function useFinance(troupeId, options = {}) {
+  const { date } = options
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [timeoutError, setTimeoutError] = useState(false)
   const { logAction } = useAudit()
   const { orgId } = useOrg()
+
+  const dateStr = useMemo(() => {
+    if (Array.isArray(date)) {
+      return [...date].sort().join(',')
+    }
+    return date || ''
+  }, [date])
 
   const fetchTransactions = useCallback(async () => {
     if (!orgId) return;
@@ -30,6 +38,15 @@ export function useFinance(troupeId) {
         query = query.eq('troupeid', troupeId)
       }
 
+      if (dateStr) {
+        const datesArray = dateStr.split(',')
+        if (datesArray.length > 1) {
+          query = query.in('date', datesArray)
+        } else {
+          query = query.eq('date', datesArray[0])
+        }
+      }
+
       // No .limit() — fetch all finance records so stats/totals/exports are complete
       const { data, error } = await query
 
@@ -44,7 +61,7 @@ export function useFinance(troupeId) {
       clearTimeout(timeoutId)
       setLoading(false)
     }
-  }, [troupeId, orgId])
+  }, [troupeId, orgId, dateStr])
 
   useEffect(() => {
     fetchTransactions()
@@ -61,13 +78,30 @@ export function useFinance(troupeId) {
           const newRow = payload.new
           if (troupeId && troupeId !== 'all' && newRow.troupeid !== troupeId) return
           
+          if (dateStr) {
+            const datesArray = dateStr.split(',')
+            if (!datesArray.includes(newRow.date)) return
+          }
+
           setTransactions(prev => {
             // Prevent duplicates from optimistic updates
             if (prev.some(t => t.id === newRow.id)) return prev;
             return [newRow, ...prev].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
           })
         } else if (payload.eventType === 'UPDATE') {
-          setTransactions(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
+          const updatedRow = payload.new
+          if (troupeId && troupeId !== 'all' && updatedRow.troupeid !== troupeId) {
+            setTransactions(prev => prev.filter(t => t.id !== updatedRow.id))
+            return
+          }
+          if (dateStr) {
+            const datesArray = dateStr.split(',')
+            if (!datesArray.includes(updatedRow.date)) {
+              setTransactions(prev => prev.filter(t => t.id !== updatedRow.id))
+              return
+            }
+          }
+          setTransactions(prev => prev.map(t => t.id === updatedRow.id ? updatedRow : t))
         } else if (payload.eventType === 'DELETE') {
           setTransactions(prev => prev.filter(t => t.id !== payload.old.id))
         }
@@ -77,7 +111,7 @@ export function useFinance(troupeId) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchTransactions, troupeId, orgId])
+  }, [fetchTransactions, troupeId, orgId, dateStr])
 
   const stats = useMemo(() => {
     let income = 0

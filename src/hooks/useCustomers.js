@@ -48,7 +48,7 @@ export function useCustomers(options = {}) {
         .range(from, to)
 
       if (fetchError) {
-        console.error("Operation failed:", error?.message || "unknown")
+        console.error("Operation failed:", fetchError?.message || "unknown")
         setError(fetchError)
       } else {
         setCustomers(data || [])

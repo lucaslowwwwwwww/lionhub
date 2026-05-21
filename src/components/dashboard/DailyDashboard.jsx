@@ -136,7 +136,8 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
   const isToday = localIsoDate === todayIso
 
   const { dateTroupes = {}, allItineraries = [], loading: loadingDates, refresh: refreshDates } = useAllPerformanceDates()
-  const { transactions } = useFinance('all')
+  const financeDateFilter = useMemo(() => [dateKey, localIsoDate], [dateKey, localIsoDate])
+  const { transactions } = useFinance('all', { date: financeDateFilter })
   const activeTroupesOnDate = useMemo(() => {
     const activeIds = dateTroupes[dateKey] || []
     if (activeIds.length === 0) return []
