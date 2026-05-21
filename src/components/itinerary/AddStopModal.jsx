@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useSettings } from '../../hooks/useSettings'
 import { useCustomers } from '../../hooks/useCustomers'
 
@@ -250,10 +251,10 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
     onClose()
   }
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[95vh]">
-        <div className="px-6 py-4 border-b border-surface-800 flex justify-between items-center bg-surface-950/50 shrink-0 rounded-t-2xl">
+  const modalContent = (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 md:p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[95dvh] md:max-h-[90vh] overflow-hidden">
+        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-surface-800 flex justify-between items-center bg-surface-950/50 shrink-0">
           <h3 className="text-xl font-bold text-surface-100">{stop ? 'Edit Stop' : 'Add New Stop'}</h3>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-100 transition-colors">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -262,8 +263,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 custom-scrollbar overscroll-contain">
           <div>
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Household Name</label>
             <input 
@@ -556,7 +557,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
           </div>
 
-          <div className="p-6 pt-2 border-t border-surface-800 bg-surface-900 flex gap-3 shrink-0">
+          <div className="p-3 md:p-6 md:pt-2 border-t border-surface-800 bg-surface-900 flex gap-3 shrink-0 rounded-b-2xl safe-area-bottom">
             <button 
               type="button"
               onClick={onClose}
@@ -575,4 +576,6 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
       </div>
     </div>
   )
+
+  return createPortal(modalContent, document.body)
 }

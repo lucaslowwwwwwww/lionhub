@@ -34,5 +34,6 @@ export const TABLES = {
   ITINERARIES: 'id, date, troupeid, status, totalstops, completedstops, skippedstops, totalrevenue, troupename, attendance, attendancedetails, org_id',
   ITINERARIES_LIGHT: 'id, date, troupeid, status, totalstops, completedstops, skippedstops, totalrevenue, troupename, attendance, org_id',
   STOPS: 'id, itinerary_id, order, householdname, address, phone, amount, actualamount, scheduledtime, scheduleddate, status, lionquantity, lioncolor, hasgodofwealth, hasbigheadbuddha, extra_characters, pluckingtype, remarks, duration, maplink, performancestartedat, completedat, paymentmethod, org_id',
-  FINANCE: 'id, type, amount, category, date, description, paymentmethod, troupeid, sourcestopid, createdat, org_id'
+  FINANCE: 'id, type, amount, category, date, description, paymentmethod, troupeid, sourcestopid, createdat, org_id',
+  CALENDAR_EVENTS: 'id, org_id, title, description, start_time, end_time, color, created_by, created_at, updated_at'
 };

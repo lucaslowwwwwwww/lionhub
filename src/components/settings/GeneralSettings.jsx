@@ -39,8 +39,6 @@ export default function GeneralSettings() {
   const [newColor, setNewColor] = useState('')
   const [newCaiQing, setNewCaiQing] = useState('')
   const [newChar, setNewChar] = useState('')
-  const [newCnyYear, setNewCnyYear] = useState(new Date().getFullYear())
-  const [newCnyDate, setNewCnyDate] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -149,9 +147,6 @@ export default function GeneralSettings() {
       )},
       { id: 'financial', label: 'Financial', icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-      )},
-      { id: 'calendar', label: 'Calendar', icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
       )},
     ] : []),
     { id: 'security', label: 'Appearance & Security', icon: (
@@ -423,94 +418,6 @@ export default function GeneralSettings() {
           </div>
         )}
         
-        {activeTab === 'calendar' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-            <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
-              <header className="mb-6">
-                <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] pl-1">Lunar Year Cycles</h3>
-                <p className="text-[10px] text-surface-600 font-bold uppercase tracking-widest mt-1 pl-1">Define the Day 1 start date for the Lunar New Year to calibrate the 15-day CNY performance window.</p>
-              </header>
-
-              <div className="space-y-6">
-                {/* Year Overrides List */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {Object.entries(localSettings.cnyoverrides || {})
-                    .sort(([a], [b]) => Number(b) - Number(a))
-                    .map(([year, date]) => (
-                      <div key={year} className="flex items-center justify-between p-4 bg-surface-950 border border-surface-800 rounded-2xl group">
-                        <div>
-                          <div className="text-[10px] font-black text-crimson-500 uppercase tracking-widest mb-1">{year} Lunar Cycle</div>
-                          <div className="text-sm font-bold text-surface-100 uppercase tracking-tight">Starts: {new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}</div>
-                        </div>
-                        <button 
-                          onClick={() => {
-                            const updated = { ...localSettings.cnyoverrides }
-                            delete updated[year]
-                            setLocalSettings({ ...localSettings, cnyoverrides: updated })
-                          }}
-                          className="w-10 h-10 rounded-xl bg-surface-900 border border-surface-800 text-surface-400 sm:text-surface-600 hover:text-crimson-500 hover:border-crimson-500/30 flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  
-                  {Object.keys(localSettings.cnyoverrides || {}).length === 0 && (
-                    <div className="sm:col-span-2 py-8 border-2 border-dashed border-surface-800 rounded-3xl flex flex-col items-center justify-center text-surface-600">
-                      <svg className="w-8 h-8 mb-2 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
-                      <span className="text-[10px] font-black uppercase tracking-widest">No Cycles Configured</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="h-px bg-surface-800 my-8" />
-
-                {/* Add New Cycle */}
-                <div className="bg-surface-950/50 border border-surface-800 rounded-2xl p-6">
-                  <h4 className="text-[10px] font-black text-surface-400 uppercase tracking-widest mb-4">Add Lunar Cycle Overwrite</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                    <div>
-                      <label className="block text-[8px] font-black text-surface-500 uppercase tracking-widest mb-2 ml-1">Calendar Year</label>
-                      <input 
-                        type="number" 
-                        value={newCnyYear} 
-                        onChange={(e) => setNewCnyYear(Number(e.target.value))}
-                        className="w-full bg-surface-900 border border-surface-800 rounded-xl px-4 h-12 text-sm text-surface-100 focus:outline-none focus:border-crimson-500/50" 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[8px] font-black text-surface-500 uppercase tracking-widest mb-2 ml-1">CNY Day 1 Date</label>
-                      <input 
-                        type="date" 
-                        value={newCnyDate} 
-                        onChange={(e) => setNewCnyDate(e.target.value)}
-                        className="w-full bg-surface-900 border border-surface-800 rounded-xl px-4 h-12 text-sm text-surface-100 focus:outline-none focus:border-crimson-500/50" 
-                      />
-                    </div>
-                    <button 
-                      onClick={() => {
-                        if (newCnyYear && newCnyDate) {
-                          setLocalSettings({
-                            ...localSettings,
-                            cnyoverrides: {
-                              ...localSettings.cnyoverrides,
-                              [newCnyYear]: newCnyDate
-                            }
-                          })
-                          setNewCnyDate('')
-                        }
-                      }}
-                      className="h-12 bg-surface-800 text-surface-100 text-[10px] font-black uppercase rounded-xl hover:bg-surface-700 transition-all shadow-lg active:scale-95"
-                    >
-                      Record Cycle
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-        )}
-
         {activeTab === 'security' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
             <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">

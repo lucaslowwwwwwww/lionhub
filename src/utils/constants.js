@@ -37,9 +37,27 @@ export const CNY_DAYS = [
   { id: 'day15', label: 'Day 15', subLabel: '十五' },
 ]
 
-// Mapping of CNY Day 1 Start Dates (YYYY-MM-DD)
-// REMOVED: Users now set this manually in Settings
-export const CNY_START_DATES = {}
+// Known Chinese New Year Day 1 dates (astronomically determined)
+// Manual overrides from Settings take priority over these defaults
+export const CNY_START_DATES = {
+  2024: '2024-02-10',
+  2025: '2025-01-29',
+  2026: '2026-02-17',
+  2027: '2027-02-06',
+  2028: '2028-01-26',
+  2029: '2029-02-13',
+  2030: '2030-02-03',
+  2031: '2031-01-23',
+  2032: '2032-02-11',
+  2033: '2033-01-31',
+  2034: '2034-02-19',
+  2035: '2035-02-08',
+  2036: '2036-01-28',
+  2037: '2037-02-15',
+  2038: '2038-02-04',
+  2039: '2039-01-24',
+  2040: '2040-02-12',
+}
 
 /**
  * Calculates the actual calendar date for a CNY performance day
