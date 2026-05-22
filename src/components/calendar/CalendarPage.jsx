@@ -214,7 +214,7 @@ export default function CalendarPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-black text-surface-100 tracking-tight">Calendar</h1>
-          <p className="text-sm text-surface-400 mt-0.5">Performances & events at a glance</p>
+          <p className="text-sm text-surface-400 mt-0.5">Performances & Events at a Glance</p>
         </div>
 
         {isAdmin && (
