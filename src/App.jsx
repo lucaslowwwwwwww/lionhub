@@ -8,7 +8,6 @@ import SplashScreen from './components/layout/SplashScreen'
 import { useAuth } from './hooks/useAuth'
 import { useSettings } from './hooks/useSettings'
 import ReloadPrompt from './components/layout/ReloadPrompt'
-import { PwaProvider } from './contexts/PwaContext'
 import { useState, useEffect, useContext, useRef, lazy, Suspense } from 'react'
 
 const LoginPage = lazy(() => import('./components/auth/LoginPage'))
@@ -325,18 +324,16 @@ function WatermarkOverlay() {
 
 function App() {
   return (
-    <PwaProvider>
-      <Router>
-        <AuthProvider>
-          <OrgProvider>
-            <ToastProvider>
-              <AppContent />
-              <ReloadPrompt />
-            </ToastProvider>
-          </OrgProvider>
-        </AuthProvider>
-      </Router>
-    </PwaProvider>
+    <Router>
+      <AuthProvider>
+        <OrgProvider>
+          <ToastProvider>
+            <AppContent />
+            <ReloadPrompt />
+          </ToastProvider>
+        </OrgProvider>
+      </AuthProvider>
+    </Router>
   )
 }
 

@@ -1,7 +1,35 @@
-import { usePwa } from '../../contexts/PwaContext'
+import { useRegisterSW } from 'virtual:pwa-register/react'
 
 export default function ReloadPrompt() {
-  const { needRefresh, offlineReady, updateServiceWorker, dismissRefresh, dismissOfflineReady } = usePwa()
+  const {
+    needRefresh: [needRefresh],
+    offlineReady: [offlineReady, setOfflineReady],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegistered(r) {
+      if (r) {
+        // Check for service worker updates every 10 minutes
+        setInterval(() => {
+          r.update().catch(err => console.error('Failed to update SW', err))
+        }, 10 * 60 * 1000)
+
+        // Check for updates when PWA is resumed/brought back to foreground
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            r.update().catch(err => console.error('Failed to update SW on visibility change', err))
+          }
+        })
+      }
+    },
+    onRegisterError(error) {
+      console.error('SW registration error', error)
+    },
+  })
+
+  // Auto-close offline ready toast after 4 seconds
+  if (offlineReady) {
+    setTimeout(() => setOfflineReady(false), 4000)
+  }
 
   return (
     <>
@@ -17,24 +45,14 @@ export default function ReloadPrompt() {
             <p className="text-xs font-black text-surface-100 uppercase tracking-widest">Offline Ready</p>
             <p className="text-[11px] text-surface-400 mt-0.5">App cached successfully. You can now use it offline!</p>
           </div>
-          <button 
-            onClick={dismissOfflineReady} 
-            className="p-1 rounded-lg hover:bg-surface-800 text-surface-400 hover:text-surface-200 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
       )}
 
-      {/* Need Refresh / Update Available Overlay Sheet */}
+      {/* Update Available — single action, no dismiss */}
       {needRefresh && (
         <div className="fixed inset-0 z-[99999] flex items-end md:items-center justify-center p-4">
-          {/* Blur backdrop overlay */}
           <div className="absolute inset-0 bg-black/50 backdrop-blur-md animate-fade-in" />
           
-          {/* Beautiful dialog card */}
           <div className="relative w-full max-w-md bg-surface-900 border border-surface-800 rounded-t-3xl md:rounded-2xl p-6 shadow-2xl animate-slide-up flex flex-col gap-5 pb-safe">
             <div className="w-12 h-12 bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500 mx-auto">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -45,24 +63,16 @@ export default function ReloadPrompt() {
             <div className="text-center">
               <h2 className="text-lg font-black text-surface-100 uppercase tracking-wider">System Update Available</h2>
               <p className="text-xs text-surface-400 mt-2 leading-relaxed">
-                A new version of Lionhub is ready. Reload now to apply updates, access new features, and ensure system stability.
+                A new version of Lionhub is ready. Tap below to apply updates and access new features.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 mt-2">
-              <button
-                onClick={() => updateServiceWorker(true)}
-                className="flex-1 py-3 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-black uppercase tracking-widest text-[11px] rounded-xl transition-all active:scale-95 shadow-lg shadow-rose-600/20"
-              >
-                Update Now
-              </button>
-              <button
-                onClick={dismissRefresh}
-                className="flex-1 py-3 bg-surface-800 hover:bg-surface-700 text-surface-300 font-bold uppercase tracking-widest text-[11px] rounded-xl transition-all active:scale-95"
-              >
-                Later
-              </button>
-            </div>
+            <button
+              onClick={() => updateServiceWorker(true)}
+              className="w-full py-3.5 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-black uppercase tracking-widest text-[11px] rounded-xl transition-all active:scale-95 shadow-lg shadow-rose-600/20"
+            >
+              Update Now
+            </button>
           </div>
         </div>
       )}
