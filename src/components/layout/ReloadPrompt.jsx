@@ -53,7 +53,7 @@ export default function ReloadPrompt() {
         <div className="fixed inset-0 z-[99999] flex items-end md:items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-md animate-fade-in" />
           
-          <div className="relative w-full max-w-md bg-surface-900 border border-surface-800 rounded-t-3xl md:rounded-2xl p-6 shadow-2xl animate-slide-up flex flex-col gap-5 pb-safe">
+          <div className="relative w-full max-w-md bg-surface-900 border border-surface-800 rounded-t-3xl md:rounded-2xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:p-8 shadow-2xl animate-slide-up flex flex-col gap-5">
             <div className="w-12 h-12 bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500 mx-auto">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
