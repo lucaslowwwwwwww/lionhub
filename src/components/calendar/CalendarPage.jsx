@@ -63,6 +63,11 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState(null)
   const [addDate, setAddDate] = useState(null)
 
+  // Day events sheet state (mobile)
+  const [dayEventsOpen, setDayEventsOpen] = useState(false)
+  const [dayEventsDate, setDayEventsDate] = useState(null)
+  const [dayEventsList, setDayEventsList] = useState([])
+
   // ─── Navigation ───
   const goToPrevMonth = () => {
     if (currentMonth === 0) {
@@ -153,8 +158,22 @@ export default function CalendarPage() {
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   // ─── Handlers ───
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+  const openDayEventsSheet = (dateKey, evts) => {
+    setDayEventsDate(dateKey)
+    setDayEventsList(evts)
+    setDayEventsOpen(true)
+  }
+
   const handleCellClick = (cell) => {
     if (!cell.isCurrentMonth) return
+    const cellEvts = eventsByDate[cell.dateKey] || []
+    // On mobile, if cell has events, show day events sheet
+    if (isMobile && cellEvts.length > 0) {
+      openDayEventsSheet(cell.dateKey, cellEvts)
+      return
+    }
     if (!isAdmin) return
     setAddDate(cell.dateKey)
     setEditingEvent(null)
@@ -298,16 +317,16 @@ export default function CalendarPage() {
                     <div
                       key={idx}
                       onClick={() => handleCellClick(cell)}
-                      className={`min-h-[80px] md:min-h-[100px] p-1.5 border-b border-r border-surface-800/50 transition-colors ${
+                      className={`min-h-[64px] md:min-h-[100px] p-1 md:p-1.5 border-b border-r border-surface-800/50 transition-colors overflow-hidden ${
                         cell.isCurrentMonth
-                          ? isAdmin ? 'hover:bg-surface-800/40 cursor-pointer' : ''
+                          ? (isAdmin || hasEvents) ? 'hover:bg-surface-800/40 cursor-pointer' : ''
                           : 'opacity-30'
                       } ${isToday ? 'bg-blue-500/5' : ''} ${cnyInfo && cell.isCurrentMonth ? 'bg-crimson-500/[0.03]' : ''}`}
                     >
-                      {/* Day number + CNY label */}
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                      {/* Day number row */}
+                      <div className="flex items-center justify-between mb-0.5 md:mb-1">
+                        <div className="flex items-center gap-1 md:gap-1.5">
+                          <span className={`w-6 h-6 md:w-7 md:h-7 flex items-center justify-center rounded-full text-[11px] md:text-xs font-bold transition-colors shrink-0 ${
                             isToday
                               ? 'bg-blue-500 text-white'
                               : cell.isCurrentMonth
@@ -316,24 +335,30 @@ export default function CalendarPage() {
                           }`}>
                             {cell.day}
                           </span>
+                          {/* CNY label — desktop: inline next to date */}
                           {cnyInfo && cell.isCurrentMonth && (
-                            <span className="text-[9px] font-bold text-crimson-400 tracking-wide">
+                            <span className="hidden md:inline text-[9px] font-bold text-crimson-400 tracking-wide">
                               {cnyInfo.subLabel}
                             </span>
                           )}
                         </div>
                         {/* Mobile dot indicators */}
                         {hasEvents && (
-                          <div className="flex gap-0.5 md:hidden">
+                          <div className="flex gap-0.5 md:hidden shrink-0">
                             {cellEvents.slice(0, 3).map((evt, i) => (
-                              <div key={i} className={`w-1.5 h-1.5 rounded-full ${getColorClasses(evt.color).dot}`} />
+                              <div key={i} className={`w-1.5 h-1.5 rounded-full shrink-0 ${getColorClasses(evt.color).dot}`} />
                             ))}
-                            {cellEvents.length > 3 && (
-                              <span className="text-[9px] text-surface-500 font-bold">+{cellEvents.length - 3}</span>
-                            )}
                           </div>
                         )}
                       </div>
+                      {/* CNY label — mobile: own row below date */}
+                      {cnyInfo && cell.isCurrentMonth && (
+                        <div className="md:hidden -mt-0.5 mb-0.5 pl-0.5">
+                          <span className="text-[8px] font-bold text-crimson-400 leading-none">
+                            {cnyInfo.subLabel}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Event chips (desktop) */}
                       <div className="hidden md:flex flex-col gap-0.5">
@@ -351,24 +376,37 @@ export default function CalendarPage() {
                           )
                         })}
                         {cellEvents.length > 3 && (
-                          <span className="text-[9px] text-surface-500 font-bold pl-1.5">+{cellEvents.length - 3} more</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openDayEventsSheet(cell.dateKey, cellEvents) }}
+                            className="text-[9px] text-surface-500 hover:text-surface-300 font-bold pl-1.5 text-left transition-colors"
+                          >
+                            +{cellEvents.length - 3} more
+                          </button>
                         )}
                       </div>
 
-                      {/* Event list (mobile — click on cell to view) */}
-                      <div className="md:hidden flex flex-col gap-0.5">
+                      {/* Event list (mobile — each event is independently clickable) */}
+                      <div className="md:hidden flex flex-col gap-0.5 overflow-hidden">
                         {cellEvents.slice(0, 2).map((evt) => {
                           const colors = getColorClasses(evt.color)
                           return (
                             <button
                               key={evt.id}
                               onClick={(e) => handleEventClick(e, evt)}
-                              className={`w-full text-left px-1 py-px rounded text-[8px] font-semibold truncate border ${colors.chip}`}
+                              className={`w-full text-left px-1 py-px rounded text-[7px] font-semibold truncate border ${colors.chip}`}
                             >
                               {evt.title}
                             </button>
                           )
                         })}
+                        {cellEvents.length > 2 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openDayEventsSheet(cell.dateKey, cellEvents) }}
+                            className="text-[7px] text-surface-500 font-bold px-0.5 text-left"
+                          >
+                            +{cellEvents.length - 2} more
+                          </button>
+                        )}
                       </div>
                     </div>
                   )
@@ -447,6 +485,87 @@ export default function CalendarPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Day Events Bottom Sheet (mobile) */}
+      {dayEventsOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setDayEventsOpen(false)}>
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          {/* Sheet */}
+          <div
+            className="relative w-full max-w-lg bg-surface-900 border-t border-surface-700 rounded-t-2xl p-5 pb-8 animate-slide-up max-h-[70vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <div className="flex justify-center mb-4">
+              <div className="w-10 h-1 rounded-full bg-surface-700" />
+            </div>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-black text-surface-100">
+                {dayEventsDate && new Date(dayEventsDate + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+              </h3>
+              <button
+                onClick={() => setDayEventsOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-surface-800 text-surface-400 hover:text-surface-200 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {/* Event list */}
+            <div className="flex-1 overflow-y-auto space-y-2 -mx-1 px-1">
+              {dayEventsList.map(evt => {
+                const colors = getColorClasses(evt.color)
+                return (
+                  <button
+                    key={evt.id}
+                    onClick={() => {
+                      setDayEventsOpen(false)
+                      setSelectedEvent(evt)
+                      setIsDetailModalOpen(true)
+                    }}
+                    className="w-full text-left p-3 bg-surface-800/60 hover:bg-surface-800 rounded-xl transition-all group flex items-center gap-3"
+                  >
+                    <div className={`w-1.5 h-8 rounded-full shrink-0 ${colors.dot}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-surface-200 truncate group-hover:text-surface-100 transition-colors">
+                        {evt.type === 'performance' ? '🦁 ' : ''}{evt.title}
+                      </p>
+                      <p className="text-[11px] text-surface-500 mt-0.5">
+                        {evt.type === 'event'
+                          ? new Date(evt.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+                          : 'All day'}
+                      </p>
+                    </div>
+                    <svg className="w-4 h-4 text-surface-600 group-hover:text-surface-400 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )
+              })}
+            </div>
+            {/* Add event button for admins */}
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setDayEventsOpen(false)
+                  setAddDate(dayEventsDate)
+                  setEditingEvent(null)
+                  setIsAddModalOpen(true)
+                }}
+                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Event
+              </button>
+            )}
           </div>
         </div>
       )}
