@@ -85,7 +85,7 @@ export default function CustomersPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-surface-800 pb-6 mb-6">
         <div>
           <h2 className="text-3xl font-extrabold text-surface-100 tracking-tight">Customer Directory</h2>
-          <p className="text-surface-400 mt-1 font-medium">Manage your repeating clients, sponsors, and households.</p>
+          <p className="text-surface-400 mt-1 font-medium">MANAGE YOUR REPEATING CLIENTS, SPONSORS, AND HOUSEHOLDS.</p>
         </div>
         
         {isAdmin && (
