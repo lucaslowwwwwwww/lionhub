@@ -1,47 +1,7 @@
-import { useEffect } from 'react'
-import { useRegisterSW } from 'virtual:pwa-register/react'
+import { usePwa } from '../../contexts/PwaContext'
 
 export default function ReloadPrompt() {
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    offlineReady: [offlineReady, setOfflineReady],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(r) {
-      if (r) {
-        console.log('SW registered successfully')
-        // Check for service worker updates every 10 minutes
-        setInterval(() => {
-          r.update().catch(err => console.error('Failed to update SW', err))
-        }, 10 * 60 * 1000)
-
-        // Check for updates when PWA is resumed/brought back to foreground
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') {
-            r.update().catch(err => console.error('Failed to update SW on visibility change', err))
-          }
-        })
-      }
-    },
-    onRegisterError(error) {
-      console.error('SW registration error', error)
-    },
-  })
-
-  const close = () => {
-    setOfflineReady(false)
-    setNeedRefresh(false)
-  }
-
-  // Auto-close offline ready toast after 4 seconds
-  useEffect(() => {
-    if (offlineReady) {
-      const timer = setTimeout(() => {
-        setOfflineReady(false)
-      }, 4000)
-      return () => clearTimeout(timer)
-    }
-  }, [offlineReady, setOfflineReady])
+  const { needRefresh, offlineReady, updateServiceWorker, dismissRefresh, dismissOfflineReady } = usePwa()
 
   return (
     <>
@@ -58,7 +18,7 @@ export default function ReloadPrompt() {
             <p className="text-[11px] text-surface-400 mt-0.5">App cached successfully. You can now use it offline!</p>
           </div>
           <button 
-            onClick={close} 
+            onClick={dismissOfflineReady} 
             className="p-1 rounded-lg hover:bg-surface-800 text-surface-400 hover:text-surface-200 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -75,7 +35,7 @@ export default function ReloadPrompt() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-md animate-fade-in" />
           
           {/* Beautiful dialog card */}
-          <div className="relative w-full max-w-md bg-surface-900 border border-surface-800 rounded-t-3xl md:rounded-2xl p-6 shadow-2xl animate-slide-up md:animate-scale-in flex flex-col gap-5 pb-safe">
+          <div className="relative w-full max-w-md bg-surface-900 border border-surface-800 rounded-t-3xl md:rounded-2xl p-6 shadow-2xl animate-slide-up flex flex-col gap-5 pb-safe">
             <div className="w-12 h-12 bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500 mx-auto">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
@@ -97,7 +57,7 @@ export default function ReloadPrompt() {
                 Update Now
               </button>
               <button
-                onClick={close}
+                onClick={dismissRefresh}
                 className="flex-1 py-3 bg-surface-800 hover:bg-surface-700 text-surface-300 font-bold uppercase tracking-widest text-[11px] rounded-xl transition-all active:scale-95"
               >
                 Later

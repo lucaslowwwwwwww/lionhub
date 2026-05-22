@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSettings } from '../../hooks/useSettings'
 import { useAuth } from '../../hooks/useAuth'
+import { usePwa } from '../../contexts/PwaContext'
 
 /**
  * GeneralSettings
@@ -11,6 +12,7 @@ export default function GeneralSettings() {
   const { settings, loading, updateSettings, uploadLogo } = useSettings()
   const { userProfile, deleteAccount, updateProfile } = useAuth()
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
+  const { needRefresh, checking, lastChecked, updateServiceWorker, checkForUpdate } = usePwa()
 
   const [activeTab, setActiveTab] = useState(isAdmin ? 'club' : 'security')
   const [isUploading, setIsUploading] = useState(false)
@@ -435,6 +437,71 @@ export default function GeneralSettings() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </section>
+
+            {/* System Update Section */}
+            <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
+              <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">System Update</h3>
+              
+              {/* Status indicator */}
+              <div className="flex items-center gap-4 mb-5">
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                  needRefresh ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'
+                }`}>
+                  {needRefresh ? (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-surface-200">
+                    {needRefresh ? 'Update Available' : 'System Up to Date'}
+                  </p>
+                  <p className="text-[11px] text-surface-500 mt-0.5">
+                    {needRefresh
+                      ? 'A new version is ready to install. Tap below to apply.'
+                      : lastChecked
+                        ? `Last checked: ${lastChecked.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })}`
+                        : 'Automatically checks for updates periodically.'
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3">
+                {needRefresh ? (
+                  <button
+                    onClick={() => updateServiceWorker(true)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg shadow-rose-600/20"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Install Update
+                  </button>
+                ) : (
+                  <button
+                    onClick={checkForUpdate}
+                    disabled={checking}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${
+                      checking
+                        ? 'bg-surface-800 text-surface-500 cursor-not-allowed'
+                        : 'bg-surface-800 hover:bg-surface-700 text-surface-200'
+                    }`}
+                  >
+                    <svg className={`w-4 h-4 ${checking ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    {checking ? 'Checking...' : 'Check for Updates'}
+                  </button>
+                )}
               </div>
             </section>
 
