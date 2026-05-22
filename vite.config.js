@@ -15,8 +15,8 @@ export default defineConfig({
       ext: '.br',
     }),
     VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'inline',
+      registerType: 'prompt',
+      injectRegister: 'auto',
       includeAssets: ['favicon-32x32.png', 'apple-icon-lionhub.png', 'pwa-192x192.png', 'pwa-512x512.png', 'lionhub_logo.png', 'NotoSansSC.ttf'],
       manifest: {
         name: 'Lionhub',
