@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 const CATEGORIES = [
   'Performances',
@@ -107,19 +108,10 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
-      const scrollY = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.left = '0'
-      document.body.style.right = '0'
+      const originalOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
       return () => {
-        document.body.style.position = ''
-        document.body.style.top = ''
-        document.body.style.left = ''
-        document.body.style.right = ''
-        document.body.style.overflow = ''
-        window.scrollTo(0, scrollY)
+        document.body.style.overflow = originalOverflow
       }
     }
   }, [isOpen])
@@ -210,7 +202,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md max-h-[85dvh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         {/* Sticky Header */}
@@ -482,6 +474,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
