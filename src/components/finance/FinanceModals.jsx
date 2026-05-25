@@ -108,10 +108,11 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
       return () => {
-        document.body.style.overflow = originalOverflow
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
       }
     }
   }, [isOpen])
@@ -224,7 +225,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
 
         <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
           {/* Scrollable Form Body */}
-          <div className="p-6 space-y-5 overflow-y-auto flex-1 min-h-0">
+          <div className="p-6 space-y-5 overflow-y-auto overscroll-contain flex-1 min-h-0 touch-pan-y">
           {/* Type Toggle */}
           <div className="flex bg-surface-950/50 p-1 rounded-2xl border border-surface-800 shadow-inner">
             <button
