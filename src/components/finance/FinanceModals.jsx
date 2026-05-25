@@ -192,7 +192,7 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md max-h-[85dvh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         {/* Sticky Header */}
         <div className="p-6 border-b border-surface-800 flex justify-between items-center shrink-0">
           <h2 className="text-xl font-bold text-surface-50 flex items-center gap-2">
