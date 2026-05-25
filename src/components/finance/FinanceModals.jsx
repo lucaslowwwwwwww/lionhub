@@ -192,8 +192,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-surface-800 flex justify-between items-center">
+      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+        {/* Sticky Header */}
+        <div className="p-6 border-b border-surface-800 flex justify-between items-center shrink-0">
           <h2 className="text-xl font-bold text-surface-50 flex items-center gap-2">
             <span className="p-2 rounded-xl bg-crimson-600/10 text-crimson-500">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -209,7 +210,9 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          {/* Scrollable Form Body */}
+          <div className="p-6 space-y-5 overflow-y-auto flex-1 min-h-0">
           {/* Type Toggle */}
           <div className="flex bg-surface-950/50 p-1 rounded-2xl border border-surface-800 shadow-inner">
             <button
@@ -439,7 +442,10 @@ export function AddTransactionModal({ isOpen, onClose, onSave, initialData = nul
             </div>
           )}
 
-          <div className="pt-2 flex gap-3">
+          </div>
+
+          {/* Sticky Footer */}
+          <div className="p-6 pt-4 border-t border-surface-800 flex gap-3 shrink-0 bg-surface-900">
             <button
               type="button"
               onClick={onClose}

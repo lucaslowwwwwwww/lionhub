@@ -11,7 +11,7 @@ import { useSettings } from '../../hooks/useSettings'
 export default function FinancePage() {
   const { userProfile } = useAuth()
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
-  const troupeid = isAdmin ? 'all' : (userProfile?.troupeid || 'DEMO_TROUPE')
+  const troupeid = isAdmin ? 'all' : (userProfile?.troupeid || null)
   const { transactions, loading: loadingF, timeoutError, addTransaction, deleteTransaction, updateTransaction } = useFinance(troupeid)
   const { troupes, loading: loadingT } = useTroupes()
   const { dateTroupes = {}, loading: loadingD } = useAllPerformanceDates()

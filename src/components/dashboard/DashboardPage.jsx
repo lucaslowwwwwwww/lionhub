@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const { stats, availableYears, loading, timeoutError } = useDashboardStats()
   const { pathname } = useLocation()
 
-  const troupeId = userProfile?.troupeid || 'DEMO_TROUPE'
+  const troupeId = userProfile?.troupeid || null
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
   
   const getActiveView = () => {
