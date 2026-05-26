@@ -107,6 +107,8 @@ export default function CustomersPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input 
+          id="search-customers"
+          name="search_customers"
           type="text"
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}
@@ -287,6 +289,8 @@ export default function CustomersPage() {
               <div className="flex flex-col items-end">
                 <span className="text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1 pr-1">Show Results</span>
                 <select 
+                  id="customer-page-size"
+                  name="customer_page_size"
                   value={pageSize}
                   onChange={(e) => {
                     setPageSize(Number(e.target.value))

@@ -232,7 +232,7 @@ export default function GeneralSettings() {
                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                      </svg>
                      Replace Asset
-                     <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={isUploading} />
+                     <input type="file" id="settings-logo-upload" name="settings_logo_upload" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={isUploading} />
                    </label>
                 </div>
               </div>
@@ -243,27 +243,27 @@ export default function GeneralSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Registration Name (EN)</label>
-                  <input type="text" value={localSettings.clubnameen} onChange={(e) => setLocalSettings({ ...localSettings, clubnameen: e.target.value })}
+                  <input type="text" id="settings-club-name-en" name="settings_club_name_en" value={localSettings.clubnameen} onChange={(e) => setLocalSettings({ ...localSettings, clubnameen: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Registration Name (CN)</label>
-                  <input type="text" value={localSettings.clubnamecn} onChange={(e) => setLocalSettings({ ...localSettings, clubnamecn: e.target.value })}
+                  <input type="text" id="settings-club-name-cn" name="settings_club_name_cn" value={localSettings.clubnamecn} onChange={(e) => setLocalSettings({ ...localSettings, clubnamecn: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Official Address</label>
-                  <textarea rows={2} value={localSettings.clubaddress} onChange={(e) => setLocalSettings({ ...localSettings, clubaddress: e.target.value })}
+                  <textarea rows={2} id="settings-club-address" name="settings_club_address" value={localSettings.clubaddress} onChange={(e) => setLocalSettings({ ...localSettings, clubaddress: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-4 text-surface-200 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none text-sm leading-relaxed" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Reg Number</label>
-                  <input type="text" value={localSettings.clubregistrationno} onChange={(e) => setLocalSettings({ ...localSettings, clubregistrationno: e.target.value })}
+                  <input type="text" id="settings-reg-number" name="settings_reg_number" value={localSettings.clubregistrationno} onChange={(e) => setLocalSettings({ ...localSettings, clubregistrationno: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Contact Hotline</label>
-                  <input type="text" value={localSettings.clubphone} onChange={(e) => setLocalSettings({ ...localSettings, clubphone: e.target.value })}
+                  <input type="text" id="settings-contact-hotline" name="settings_contact_hotline" value={localSettings.clubphone} onChange={(e) => setLocalSettings({ ...localSettings, clubphone: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
               </div>
@@ -278,12 +278,12 @@ export default function GeneralSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">HQ / Dispatch Address</label>
-                  <textarea rows={2} value={localSettings.baselocation} onChange={(e) => setLocalSettings({ ...localSettings, baselocation: e.target.value })}
+                  <textarea rows={2} id="settings-hq-address" name="settings_hq_address" value={localSettings.baselocation} onChange={(e) => setLocalSettings({ ...localSettings, baselocation: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-4 text-surface-200 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none text-sm leading-relaxed" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Standard Duration (Mins)</label>
-                  <input type="number" value={localSettings.defaultduration} onChange={(e) => setLocalSettings({ ...localSettings, defaultduration: e.target.value })}
+                  <input type="number" id="settings-standard-duration" name="settings_standard_duration" value={localSettings.defaultduration} onChange={(e) => setLocalSettings({ ...localSettings, defaultduration: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
               </div>
@@ -304,7 +304,7 @@ export default function GeneralSettings() {
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <input type="text" placeholder="e.g. 黑|Black" value={newColor} onChange={(e) => setNewColor(e.target.value)}
+                    <input type="text" id="settings-new-lion-color" name="settings_new_lion_color" placeholder="e.g. 黑|Black" value={newColor} onChange={(e) => setNewColor(e.target.value)}
                       className="flex-1 bg-surface-950 border border-surface-800 rounded-xl px-4 h-12 text-sm text-surface-100 focus:outline-none focus:border-crimson-500/50 transition-all" />
                     <button onClick={() => { 
                       if (newColor.trim() && newColor.includes('|')) { 
@@ -331,7 +331,7 @@ export default function GeneralSettings() {
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <input type="text" placeholder="e.g. 步步高升|Soaring High" value={newCaiQing} onChange={(e) => setNewCaiQing(e.target.value)}
+                    <input type="text" id="settings-new-caiqing" name="settings_new_caiqing" placeholder="e.g. 步步高升|Soaring High" value={newCaiQing} onChange={(e) => setNewCaiQing(e.target.value)}
                       className="flex-1 bg-surface-950 border border-surface-800 rounded-xl px-4 h-12 text-sm text-surface-100 focus:outline-none focus:border-crimson-500/50 transition-all" />
                     <button onClick={() => { 
                       if (newCaiQing.trim() && newCaiQing.includes('|')) { 
@@ -358,7 +358,7 @@ export default function GeneralSettings() {
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <input type="text" placeholder="e.g. 财神爷|God of Wealth" value={newChar} onChange={(e) => setNewChar(e.target.value)}
+                    <input type="text" id="settings-new-extra-char" name="settings_new_extra_char" placeholder="e.g. 财神爷|God of Wealth" value={newChar} onChange={(e) => setNewChar(e.target.value)}
                       className="flex-1 bg-surface-950 border border-surface-800 rounded-xl px-4 h-12 text-sm text-surface-100 focus:outline-none focus:border-crimson-500/50 transition-all" />
                     <button onClick={() => { 
                       if (newChar.trim() && newChar.includes('|')) { 
@@ -384,12 +384,12 @@ export default function GeneralSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Receipt Prepared By</label>
-                  <input type="text" value={localSettings.receiptpreparedby} onChange={(e) => setLocalSettings({ ...localSettings, receiptpreparedby: e.target.value })}
+                  <input type="text" id="settings-receipt-prepared-by" name="settings_receipt_prepared_by" value={localSettings.receiptpreparedby} onChange={(e) => setLocalSettings({ ...localSettings, receiptpreparedby: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Signatory Phone</label>
-                  <input type="text" value={localSettings.signatoryphone} onChange={(e) => setLocalSettings({ ...localSettings, signatoryphone: e.target.value })}
+                  <input type="text" id="settings-signatory-phone" name="settings_signatory_phone" value={localSettings.signatoryphone} onChange={(e) => setLocalSettings({ ...localSettings, signatoryphone: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
               </div>
@@ -400,17 +400,17 @@ export default function GeneralSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Beneficiary Name</label>
-                  <input type="text" value={localSettings.bankname} onChange={(e) => setLocalSettings({ ...localSettings, bankname: e.target.value })}
+                  <input type="text" id="settings-beneficiary-name" name="settings_beneficiary_name" value={localSettings.bankname} onChange={(e) => setLocalSettings({ ...localSettings, bankname: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Bank Institution</label>
-                  <input type="text" value={localSettings.banktype} onChange={(e) => setLocalSettings({ ...localSettings, banktype: e.target.value })}
+                  <input type="text" id="settings-bank-institution" name="settings_bank_institution" value={localSettings.banktype} onChange={(e) => setLocalSettings({ ...localSettings, banktype: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Account Number</label>
-                  <input type="text" value={localSettings.banknumber} onChange={(e) => setLocalSettings({ ...localSettings, banknumber: e.target.value })}
+                  <input type="text" id="settings-account-number" name="settings_account_number" value={localSettings.banknumber} onChange={(e) => setLocalSettings({ ...localSettings, banknumber: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
               </div>

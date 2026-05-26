@@ -85,6 +85,8 @@ export default function InventoryItemModal({
             <div>
               <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Asset Name</label>
               <input 
+                id="asset-name"
+                name="asset_name"
                 required
                 type="text" 
                 value={formData.name}
@@ -97,6 +99,8 @@ export default function InventoryItemModal({
             <div>
               <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Category & Group</label>
               <input 
+                id="asset-category"
+                name="asset_category"
                 required
                 type="text" 
                 list="inventory-categories"
@@ -114,6 +118,8 @@ export default function InventoryItemModal({
               <div>
                 <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Current Qty</label>
                 <input 
+                  id="asset-quantity"
+                  name="asset_quantity"
                   required
                   type="number"
                   min="0"
@@ -125,6 +131,8 @@ export default function InventoryItemModal({
               <div>
                 <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Low Limit</label>
                 <input 
+                  id="asset-low-threshold"
+                  name="asset_low_threshold"
                   required
                   type="number"
                   min="0"
@@ -136,6 +144,8 @@ export default function InventoryItemModal({
               <div>
                 <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Unit</label>
                 <input 
+                  id="asset-unit"
+                  name="asset_unit"
                   required
                   type="text"
                   value={formData.unit}
@@ -149,6 +159,8 @@ export default function InventoryItemModal({
             <div>
               <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Technical Notes</label>
               <textarea 
+                id="asset-notes"
+                name="asset_notes"
                 rows={3}
                 value={formData.notes}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}

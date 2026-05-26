@@ -410,6 +410,8 @@ export default function SalaryCalculator() {
           <div className="flex items-center gap-2 bg-surface-950 border border-surface-800 rounded-2xl px-4 py-2.5 w-full sm:w-auto">
             <span className="text-[10px] font-black text-surface-500 uppercase tracking-wider">From:</span>
             <input 
+              id="salary-start-date"
+              name="salary_start_date"
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
@@ -419,6 +421,8 @@ export default function SalaryCalculator() {
           <div className="flex items-center gap-2 bg-surface-950 border border-surface-800 rounded-2xl px-4 py-2.5 w-full sm:w-auto">
             <span className="text-[10px] font-black text-surface-500 uppercase tracking-wider">To:</span>
             <input 
+              id="salary-end-date"
+              name="salary_end_date"
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
@@ -464,6 +468,8 @@ export default function SalaryCalculator() {
             {/* Search Input */}
             <div className="relative w-full sm:w-64">
               <input 
+                id="salary-search-member"
+                name="salary_search_member"
                 type="text"
                 placeholder="Search member..."
                 value={searchTerm}
@@ -497,6 +503,8 @@ export default function SalaryCalculator() {
             <div className="flex items-center gap-2 bg-surface-950 border border-surface-800 rounded-xl px-3 py-1.5 w-full sm:w-auto justify-between sm:justify-start">
               <span className="text-[9px] font-black text-surface-500 uppercase tracking-wider">Default Rate (RM):</span>
               <input 
+                id="salary-default-rate"
+                name="salary_default_rate"
                 type="number"
                 value={defaultRate}
                 onChange={(e) => setDefaultRate(Math.max(0, Number(e.target.value)))}
@@ -598,6 +606,8 @@ export default function SalaryCalculator() {
                           {/* Rate Input */}
                           <td className="px-6 py-4 text-center">
                             <input 
+                              id={`member-rate-${m.id}`}
+                              name={`member_rate_${m.id}`}
                               type="number"
                               placeholder={`${defaultRate}`}
                               value={adj.rate}
@@ -611,6 +621,8 @@ export default function SalaryCalculator() {
                           {/* Bonus Input */}
                           <td className="px-6 py-4 text-center">
                             <input 
+                              id={`member-bonus-${m.id}`}
+                              name={`member_bonus_${m.id}`}
                               type="number"
                               placeholder="0"
                               value={adj.bonus}
@@ -622,6 +634,8 @@ export default function SalaryCalculator() {
                           {/* Deduction Input */}
                           <td className="px-6 py-4 text-center">
                             <input 
+                              id={`member-deduction-${m.id}`}
+                              name={`member_deduction_${m.id}`}
                               type="number"
                               placeholder="0"
                               value={adj.deduction}
@@ -703,6 +717,8 @@ export default function SalaryCalculator() {
                         <div className="flex flex-col gap-1">
                           <span className="text-[8px] font-black text-surface-500 uppercase tracking-wider text-center">Rate (RM/{rateMode === 'hourly' ? 'Hr' : 'Day'})</span>
                           <input 
+                            id={`member-rate-mobile-${m.id}`}
+                            name={`member_rate_mobile_${m.id}`}
                             type="number"
                             placeholder={`${defaultRate}`}
                             value={adj.rate}
@@ -715,6 +731,8 @@ export default function SalaryCalculator() {
                         <div className="flex flex-col gap-1">
                           <span className="text-[8px] font-black text-surface-500 uppercase tracking-wider text-center">Bonus (RM)</span>
                           <input 
+                            id={`member-bonus-mobile-${m.id}`}
+                            name={`member_bonus_mobile_${m.id}`}
                             type="number"
                             placeholder="0"
                             value={adj.bonus}
@@ -725,6 +743,8 @@ export default function SalaryCalculator() {
                         <div className="flex flex-col gap-1">
                           <span className="text-[8px] font-black text-surface-500 uppercase tracking-wider text-center">Deduct (RM)</span>
                           <input 
+                            id={`member-deduction-mobile-${m.id}`}
+                            name={`member_deduction_mobile_${m.id}`}
                             type="number"
                             placeholder="0"
                             value={adj.deduction}
@@ -789,6 +809,8 @@ export default function SalaryCalculator() {
                           <div className="flex flex-col gap-1">
                             <span className="text-[8px] font-black text-surface-500 uppercase tracking-wider">Date:</span>
                             <input 
+                              id={`log-edit-date-${log.id}`}
+                              name={`log_edit_date_${log.id}`}
                               type="date"
                               value={log.date}
                               onChange={(e) => handleUpdateLogField(log.id, 'date', e.target.value)}
@@ -800,6 +822,8 @@ export default function SalaryCalculator() {
                           <div className="flex flex-col gap-1">
                             <span className="text-[8px] font-black text-surface-500 uppercase tracking-wider">Check In:</span>
                             <input 
+                              id={`log-edit-checkin-${log.id}`}
+                              name={`log_edit_checkin_${log.id}`}
                               type="time"
                               value={getLocalTimeStr(log.check_in_at)}
                               onChange={(e) => handleUpdateLogTime(log, 'check_in_at', e.target.value)}
@@ -811,6 +835,8 @@ export default function SalaryCalculator() {
                           <div className="flex flex-col gap-1">
                             <span className="text-[8px] font-black text-surface-500 uppercase tracking-wider">Check Out:</span>
                             <input 
+                              id={`log-edit-checkout-${log.id}`}
+                              name={`log_edit_checkout_${log.id}`}
                               type="time"
                               value={getLocalTimeStr(log.check_out_at)}
                               placeholder="Active"
@@ -847,6 +873,8 @@ export default function SalaryCalculator() {
                   <div className="flex flex-col gap-1.5">
                     <span className="text-[9px] font-black text-surface-400 uppercase tracking-wider">Select Date:</span>
                     <input 
+                      id="log-new-date"
+                      name="log_new_date"
                       type="date"
                       value={newLogDate}
                       onChange={(e) => setNewLogDate(e.target.value)}
@@ -856,6 +884,8 @@ export default function SalaryCalculator() {
                   <div className="flex flex-col gap-1.5">
                     <span className="text-[9px] font-black text-surface-400 uppercase tracking-wider">Check In Time:</span>
                     <input 
+                      id="log-new-checkin"
+                      name="log_new_checkin"
                       type="time"
                       value={newLogCheckIn}
                       onChange={(e) => setNewLogCheckIn(e.target.value)}
@@ -865,6 +895,8 @@ export default function SalaryCalculator() {
                   <div className="flex flex-col gap-1.5">
                     <span className="text-[9px] font-black text-surface-400 uppercase tracking-wider">Check Out Time:</span>
                     <input 
+                      id="log-new-checkout"
+                      name="log_new_checkout"
                       type="time"
                       value={newLogCheckOut}
                       onChange={(e) => setNewLogCheckOut(e.target.value)}

@@ -116,6 +116,8 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
           <div>
             <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Subject *</label>
             <input
+              id="event-title"
+              name="event_title"
               type="text"
               value={formData.title}
               onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
@@ -130,6 +132,8 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
           <div>
             <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Description</label>
             <textarea
+              id="event-description"
+              name="event_description"
               value={formData.description}
               onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Optional details..."
@@ -144,6 +148,8 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
               <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Start *</label>
               <div className="w-full bg-surface-800 border border-surface-700 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all">
                 <input
+                  id="event-start-time"
+                  name="event_start_time"
                   type="datetime-local"
                   value={formData.start_time}
                   onChange={e => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
@@ -156,6 +162,8 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
               <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">End *</label>
               <div className="w-full bg-surface-800 border border-surface-700 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all">
                 <input
+                  id="event-end-time"
+                  name="event_end_time"
                   type="datetime-local"
                   value={formData.end_time}
                   onChange={e => setFormData(prev => ({ ...prev, end_time: e.target.value }))}

@@ -119,6 +119,8 @@ export default function InventoryPage() {
         <div className="relative flex-1 w-full group">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600 group-focus-within:text-gold-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <input 
+            id="search-assets"
+            name="search_assets"
             type="text" 
             placeholder="Search assets by name..." 
             value={searchQuery}
@@ -129,6 +131,8 @@ export default function InventoryPage() {
 
         <div className="flex items-center gap-3 w-full lg:w-auto">
           <select 
+            id="filter-asset-category"
+            name="filter_asset_category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="flex-1 lg:w-48 bg-surface-950 border border-surface-800 rounded-xl sm:rounded-2xl h-11 sm:h-13 px-4 sm:px-6 pr-10 text-[9px] sm:text-[10px] font-black uppercase text-surface-400 focus:outline-none focus:border-gold-500/50 transition-all shadow-inner cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%223%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%20%2F%3E%3C%2Fsvg%3E')] bg-[length:0.8rem_0.8rem] bg-[right_1rem_center] bg-no-repeat"

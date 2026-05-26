@@ -404,6 +404,8 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
                            <div>
                               <p className="text-[10px] font-black text-brand-400 uppercase tracking-widest pl-1 mb-2">Final RM</p>
                               <input 
+                                id={`stop-final-amount-${stop.id}`}
+                                name={`stop_final_amount_${stop.id}`}
                                 type="number"
                                 value={receivedAmount}
                                 onChange={(e) => setReceivedAmount(e.target.value)}

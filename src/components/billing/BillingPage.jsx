@@ -97,6 +97,8 @@ export default function BillingPage() {
              </div>
           </div>
           <input 
+            id="billing-date"
+            name="billing_date"
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}

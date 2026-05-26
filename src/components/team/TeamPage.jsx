@@ -36,13 +36,13 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Troupe Name</label>
-            <input required type="text" value={name} onChange={e => setName(e.target.value)}
+            <input id="troupe-name" name="troupe_name" required type="text" value={name} onChange={e => setName(e.target.value)}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all font-bold"
               placeholder="e.g. Troupe Alpha" autoFocus />
           </div>
           <div>
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Vehicle Plate (Optional)</label>
-            <input type="text" value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)}
+            <input id="troupe-vehicle-plate" name="troupe_vehicle_plate" type="text" value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all font-bold"
               placeholder="e.g. ABC 1234" />
           </div>

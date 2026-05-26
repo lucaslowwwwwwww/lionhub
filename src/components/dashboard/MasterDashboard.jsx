@@ -498,7 +498,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     </div>
                   </div>
                   <div className="h-64 sm:h-[350px] w-full relative">
-                    {stats.categoryData.income.length > 0 ? (
+                    {(stats.categoryData.income.length > 0 && canRender) ? (
                       <>
                         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
                           <PieChart>
@@ -580,7 +580,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                     </div>
                   </div>
                   <div className="h-64 sm:h-[350px] w-full relative">
-                    {stats.categoryData.expense.length > 0 ? (
+                    {(stats.categoryData.expense.length > 0 && canRender) ? (
                       <>
                         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
                           <PieChart>

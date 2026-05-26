@@ -374,6 +374,8 @@ export default function FinancePage() {
               <div className="flex items-center gap-2 px-3 py-1 bg-surface-950/50 rounded-xl border border-surface-800/50">
                 <span className="text-[8px] font-black text-surface-600 uppercase tracking-widest">Show</span>
                 <select 
+                  id="finance-page-size"
+                  name="finance_page_size"
                   value={pageSize}
                   onChange={(e) => {
                     const val = e.target.value
@@ -425,6 +427,8 @@ export default function FinancePage() {
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 px-0.5">
                 {period === 'daily' && (
                   <input 
+                    id="finance-daily-date"
+                    name="finance_daily_date"
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
@@ -435,6 +439,8 @@ export default function FinancePage() {
                 {period === 'monthly' && (
                   <div className="flex items-center gap-2">
                     <select 
+                      id="finance-monthly-month"
+                      name="finance_monthly_month"
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)}
                       className="bg-surface-950 border border-surface-800 rounded-full px-4 py-1.5 text-[9px] font-black text-surface-200 focus:outline-none focus:border-crimson-600 transition-all uppercase tracking-widest h-8"
@@ -444,6 +450,8 @@ export default function FinancePage() {
                       ))}
                     </select>
                     <select 
+                      id="finance-monthly-year"
+                      name="finance_monthly_year"
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(Number(e.target.value))}
                       className="bg-surface-950 border border-surface-800 rounded-full px-4 py-1.5 text-[9px] font-black text-surface-200 focus:outline-none focus:border-crimson-600 transition-all uppercase tracking-widest h-8"
@@ -457,6 +465,8 @@ export default function FinancePage() {
 
                 {period === 'yearly' && (
                   <select 
+                    id="finance-yearly-year"
+                    name="finance_yearly_year"
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(Number(e.target.value))}
                     className="bg-surface-950 border border-surface-800 rounded-full px-4 py-1.5 text-[9px] font-black text-surface-200 focus:outline-none focus:border-crimson-600 transition-all uppercase tracking-widest h-8"
@@ -470,6 +480,8 @@ export default function FinancePage() {
                 {period === 'custom' && (
                   <div className="flex items-center gap-2">
                     <input 
+                      id="finance-custom-start"
+                      name="finance_custom_start"
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
@@ -477,6 +489,8 @@ export default function FinancePage() {
                     />
                     <span className="text-[9px] text-surface-500 font-bold uppercase tracking-widest">TO</span>
                     <input 
+                      id="finance-custom-end"
+                      name="finance_custom_end"
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}

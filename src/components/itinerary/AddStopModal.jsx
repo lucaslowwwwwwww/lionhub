@@ -268,6 +268,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           <div>
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Household Name</label>
             <input 
+              id="stop-household-name"
+              name="stop_household_name"
               required
               type="text" 
               list="customers-list"
@@ -289,6 +291,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Address</label>
             {addressOptions.length > 1 ? (
               <select
+                id="stop-address-picker"
+                name="stop_address_picker"
                 onChange={(e) => {
                   const selectedVal = e.target.value
                   const selectedAddr = addressOptions.find(a => (typeof a === 'object' ? a.value : a) === selectedVal)
@@ -315,6 +319,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               </select>
             ) : (
               <textarea 
+                id="stop-address"
+                name="stop_address"
                 required
                 rows={2}
                 value={formData.address}
@@ -330,6 +336,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Contact Phone</label>
               {phoneOptions.length > 1 ? (
                 <select
+                  id="stop-phone-picker"
+                  name="stop_phone_picker"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-11 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
@@ -341,6 +349,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                 </select>
               ) : (
                 <input 
+                  id="stop-phone"
+                  name="stop_phone"
                   required
                   type="text" 
                   value={formData.phone}
@@ -353,6 +363,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             <div>
               <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Quote (RM)</label>
               <input 
+                id="stop-quote-amount"
+                name="stop_quote_amount"
                 required
                 type="number"
                 min="0"
@@ -369,6 +381,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Scheduled Time</label>
               <div className="w-full bg-surface-950 border border-surface-800 rounded-lg h-12 !h-[50px] overflow-hidden flex items-center focus-within:border-crimson-500 focus-within:ring-1 focus-within:ring-crimson-500 transition-all box-border">
                 <input 
+                  id="stop-scheduled-time"
+                  name="stop_scheduled_time"
                   required
                   type="time" 
                   value={convertTo24h(formData.scheduledtime)}
@@ -381,6 +395,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Est. Duration (Mins)</label>
                <div className="w-full bg-surface-950 border border-surface-800 rounded-lg h-12 !h-[50px] overflow-hidden flex items-center focus-within:border-crimson-500 focus-within:ring-1 focus-within:ring-crimson-500 transition-all box-border">
                  <input 
+                   id="stop-est-duration"
+                   name="stop_est_duration"
                    required
                    type="number" 
                    min="5"
@@ -419,6 +435,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
                   </button>
                   <input 
+                    id="stop-lion-quantity"
+                    name="stop_lion_quantity"
                     type="number" 
                     min="1"
                     max="20"
@@ -446,6 +464,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                          <span className="text-[8px] font-black text-surface-500 bg-surface-900 border border-surface-800 px-1 py-0.5 rounded">#{idx + 1}</span>
                       </div>
                       <select
+                        id={`stop-lion-color-${idx}`}
+                        name={`stop_lion_color_${idx}`}
                         value={color}
                         onChange={(e) => {
                           const newColors = [...formData.lioncolor]
@@ -521,6 +541,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               {(settings?.extra_characters || []).map(char => (
                 <label key={char} className="flex items-center gap-3 cursor-pointer group">
                   <input 
+                    id={`stop-extra-char-${index}`}
+                    name={`stop_extra_char_${index}`}
                     type="checkbox" 
                     checked={formData.extra_characters.includes(char)}
                     onChange={(e) => {
@@ -547,6 +569,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
           <div>
             <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Special Remarks / Requests</label>
             <textarea 
+              id="stop-remarks"
+              name="stop_remarks"
               rows={3}
               value={formData.remarks}
               onChange={(e) => setFormData({...formData, remarks: e.target.value})}
