@@ -83,7 +83,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Customer Name</label>
+              <label htmlFor="doc-customer-name" className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Customer Name</label>
               <input 
                 id="doc-customer-name"
                 name="doc_customer_name"
@@ -100,7 +100,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Address</label>
+              <label htmlFor="doc-customer-address" className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Address</label>
               <textarea 
                 id="doc-customer-address"
                 name="doc_customer_address"
@@ -115,7 +115,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Phone</label>
+                <label htmlFor="doc-customer-phone" className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Phone</label>
                 <input 
                   id="doc-customer-phone"
                   name="doc_customer_phone"
@@ -127,7 +127,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Performance Date</label>
+                <label htmlFor="doc-performance-date" className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Performance Date</label>
                 <input 
                   id="doc-performance-date"
                   name="doc_performance_date"
@@ -141,7 +141,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Item Description</label>
+              <label htmlFor="doc-item-description" className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Item Description</label>
               <textarea 
                 id="doc-item-description"
                 name="doc_item_description"
@@ -155,7 +155,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Quantity</label>
+                <label htmlFor="doc-item-quantity" className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Quantity</label>
                 <input 
                   id="doc-item-quantity"
                   name="doc_item_quantity"
@@ -168,7 +168,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Unit Price (RM)</label>
+                <label htmlFor="doc-item-price" className="block text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Unit Price (RM)</label>
                 <input 
                   id="doc-item-price"
                   name="doc_item_price"

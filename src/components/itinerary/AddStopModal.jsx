@@ -266,7 +266,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
           <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 custom-scrollbar overscroll-contain">
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Household Name</label>
+            <label htmlFor="stop-household-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Household Name</label>
             <input 
               id="stop-household-name"
               name="stop_household_name"
@@ -288,7 +288,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
           {/* Address */}
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Address</label>
+            <label htmlFor={addressOptions.length > 1 ? "stop-address-picker" : "stop-address"} className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Address</label>
             {addressOptions.length > 1 ? (
               <select
                 id="stop-address-picker"
@@ -333,7 +333,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Contact Phone</label>
+              <label htmlFor={phoneOptions.length > 1 ? "stop-phone-picker" : "stop-phone"} className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Contact Phone</label>
               {phoneOptions.length > 1 ? (
                 <select
                   id="stop-phone-picker"
@@ -361,7 +361,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               )}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Quote (RM)</label>
+              <label htmlFor="stop-quote-amount" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Quote (RM)</label>
               <input 
                 id="stop-quote-amount"
                 name="stop_quote_amount"
@@ -378,7 +378,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Scheduled Time</label>
+              <label htmlFor="stop-scheduled-time" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Scheduled Time</label>
               <div className="w-full bg-surface-950 border border-surface-800 rounded-lg h-12 !h-[50px] overflow-hidden flex items-center focus-within:border-crimson-500 focus-within:ring-1 focus-within:ring-crimson-500 transition-all box-border">
                 <input 
                   id="stop-scheduled-time"
@@ -392,7 +392,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
               </div>
             </div>
             <div>
-               <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Est. Duration (Mins)</label>
+               <label htmlFor="stop-est-duration" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Est. Duration (Mins)</label>
                <div className="w-full bg-surface-950 border border-surface-800 rounded-lg h-12 !h-[50px] overflow-hidden flex items-center focus-within:border-crimson-500 focus-within:ring-1 focus-within:ring-crimson-500 transition-all box-border">
                  <input 
                    id="stop-est-duration"
@@ -567,7 +567,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
 
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Special Remarks / Requests</label>
+            <label htmlFor="stop-remarks" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Special Remarks / Requests</label>
             <textarea 
               id="stop-remarks"
               name="stop_remarks"

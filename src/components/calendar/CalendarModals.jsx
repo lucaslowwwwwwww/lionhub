@@ -114,7 +114,7 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
         <form onSubmit={handleSubmit} className="px-4 md:px-6 pb-6 space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Subject *</label>
+            <label htmlFor="event-title" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Subject *</label>
             <input
               id="event-title"
               name="event_title"
@@ -130,7 +130,7 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
 
           {/* Description */}
           <div>
-            <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Description</label>
+            <label htmlFor="event-description" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Description</label>
             <textarea
               id="event-description"
               name="event_description"
@@ -145,7 +145,7 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
           {/* Start Time */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Start *</label>
+              <label htmlFor="event-start-time" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">Start *</label>
               <div className="w-full bg-surface-800 border border-surface-700 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all">
                 <input
                   id="event-start-time"
@@ -159,7 +159,7 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">End *</label>
+              <label htmlFor="event-end-time" className="block text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">End *</label>
               <div className="w-full bg-surface-800 border border-surface-700 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/20 transition-all">
                 <input
                   id="event-end-time"

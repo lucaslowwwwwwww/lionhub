@@ -35,13 +35,13 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Troupe Name</label>
+            <label htmlFor="troupe-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Troupe Name</label>
             <input id="troupe-name" name="troupe_name" required type="text" value={name} onChange={e => setName(e.target.value)}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all font-bold"
               placeholder="e.g. Troupe Alpha" autoFocus />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Vehicle Plate (Optional)</label>
+            <label htmlFor="troupe-vehicle-plate" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Vehicle Plate (Optional)</label>
             <input id="troupe-vehicle-plate" name="troupe_vehicle_plate" type="text" value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all font-bold"
               placeholder="e.g. ABC 1234" />
@@ -162,14 +162,14 @@ function AddMemberModal({ isOpen, onClose, onAdd }) {
             )}
             <div>
               <label htmlFor="add-member-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
-              <input id="add-member-name" name="displayname" required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
+              <input id="add-member-name" name="displayname" required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} autoComplete="name"
                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                 placeholder="e.g. Ah Huat" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="add-member-phone" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
-                <input id="add-member-phone" name="phone" required type="text" value={phone} onChange={e => setPhone(e.target.value)}
+                <input id="add-member-phone" name="phone" required type="text" value={phone} onChange={e => setPhone(e.target.value)} autoComplete="tel"
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                   placeholder="+60 12-345 6789" />
               </div>
@@ -186,7 +186,7 @@ function AddMemberModal({ isOpen, onClose, onAdd }) {
 
             <div>
               <label htmlFor="add-member-email" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
-              <input id="add-member-email" name="email" required type="email" value={email} onChange={e => setEmail(e.target.value)}
+              <input id="add-member-email" name="email" required type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email"
                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                 placeholder="member@example.com" />
             </div>
@@ -296,7 +296,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
 
           <div>
             <label htmlFor="edit-member-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Name</label>
-            <input id="edit-member-name" name="displayname" required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
+            <input id="edit-member-name" name="displayname" required type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} autoComplete="name"
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
               placeholder="e.g. Ah Huat" />
           </div>
@@ -304,7 +304,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="edit-member-phone" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Phone *</label>
-              <input id="edit-member-phone" name="phone" required type="text" value={phone} onChange={e => setPhone(e.target.value)}
+              <input id="edit-member-phone" name="phone" required type="text" value={phone} onChange={e => setPhone(e.target.value)} autoComplete="tel"
                 className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                 placeholder="+60 12-345 6789" />
             </div>
@@ -326,7 +326,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
             <div className="animate-fade-in border-t border-surface-800 pt-4 space-y-1">
               <div>
                 <label htmlFor="edit-member-email" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Email Address *</label>
-                <input id="edit-member-email" name="email" required type="email" value={email} onChange={e => setEmail(e.target.value)}
+                <input id="edit-member-email" name="email" required type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email"
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
                   placeholder="admin@example.com" />
               </div>

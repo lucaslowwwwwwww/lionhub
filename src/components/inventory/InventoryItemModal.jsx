@@ -83,7 +83,7 @@ export default function InventoryItemModal({
         <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-4">
           <div className="space-y-4">
             <div>
-              <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Asset Name</label>
+              <label htmlFor="asset-name" className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Asset Name</label>
               <input 
                 id="asset-name"
                 name="asset_name"
@@ -97,7 +97,7 @@ export default function InventoryItemModal({
             </div>
 
             <div>
-              <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Category & Group</label>
+              <label htmlFor="asset-category" className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Category & Group</label>
               <input 
                 id="asset-category"
                 name="asset_category"
@@ -116,7 +116,7 @@ export default function InventoryItemModal({
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Current Qty</label>
+                <label htmlFor="asset-quantity" className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Current Qty</label>
                 <input 
                   id="asset-quantity"
                   name="asset_quantity"
@@ -129,7 +129,7 @@ export default function InventoryItemModal({
                 />
               </div>
               <div>
-                <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Low Limit</label>
+                <label htmlFor="asset-low-threshold" className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Low Limit</label>
                 <input 
                   id="asset-low-threshold"
                   name="asset_low_threshold"
@@ -142,7 +142,7 @@ export default function InventoryItemModal({
                 />
               </div>
               <div>
-                <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Unit</label>
+                <label htmlFor="asset-unit" className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1 truncate">Unit</label>
                 <input 
                   id="asset-unit"
                   name="asset_unit"
@@ -157,7 +157,7 @@ export default function InventoryItemModal({
             </div>
 
             <div>
-              <label className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Technical Notes</label>
+              <label htmlFor="asset-notes" className="block text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1.5 ml-1">Technical Notes</label>
               <textarea 
                 id="asset-notes"
                 name="asset_notes"

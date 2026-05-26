@@ -162,6 +162,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
               name="name"
               required
               type="text" 
+              autoComplete="organization"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
@@ -224,6 +225,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
                   aria-label={`Full Address for ${addr.type}`}
                   required
                   rows={2}
+                  autoComplete="street-address"
                   value={addr.value}
                   onChange={(e) => handleAddressValueChange(idx, e.target.value)}
                   className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all resize-none"
@@ -269,6 +271,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
                     aria-label={`Phone ${idx + 1}`}
                     required
                     type="text" 
+                    autoComplete="tel"
                     value={p}
                     onChange={(e) => handleFieldChange('phones', idx, e.target.value)}
                     className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all pr-10"
@@ -295,6 +298,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
               id="customer-email"
               name="email"
               type="text" 
+              autoComplete="email"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
