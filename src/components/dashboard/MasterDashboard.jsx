@@ -92,6 +92,32 @@ const CarouselIndicators = ({ count, activeIndex, color = 'gold' }) => (
   </div>
 )
 
+const getAmountTextSize = (text, isMobile) => {
+  const len = text.length
+  if (isMobile) {
+    if (len > 15) return 'text-xs'
+    if (len > 12) return 'text-[13px]'
+    if (len > 10) return 'text-sm'
+    return 'text-base'
+  } else {
+    if (len > 15) return 'text-sm'
+    if (len > 12) return 'text-base'
+    if (len > 10) return 'text-lg'
+    return 'text-xl'
+  }
+}
+
+const getLabelTextSize = (text, isMobile) => {
+  const len = text.length
+  if (isMobile) {
+    if (len > 12) return 'text-[8px]'
+    return 'text-[10px]'
+  } else {
+    if (len > 12) return 'text-[9px]'
+    return 'text-[11px]'
+  }
+}
+
 export default function MasterDashboard({ stats, loading, selectedYear, setSelectedYear, availableYears }) {
   const [viewMode, setViewMode] = useState('monthly')
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false)
@@ -480,8 +506,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                               data={stats.categoryData.income}
                               cx="50%"
                               cy="50%"
-                              innerRadius={isMobile ? 70 : 90}
-                              outerRadius={isMobile ? 85 : 115}
+                              innerRadius={isMobile ? 72 : 92}
+                              outerRadius={isMobile ? 87 : 117}
                               paddingAngle={2}
                               dataKey="value"
                               stroke="none"
@@ -515,14 +541,24 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                           </PieChart>
                         </ResponsiveContainer>
                         {/* Centered Dynamic Info */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
-                          <p className="text-[10px] font-black text-surface-400 uppercase tracking-[0.2em] mb-1">
-                            {hoveredIncome ? hoveredIncome.name : 'Total'}
-                          </p>
-                          <p className={`font-black tabular-nums transition-all ${hoveredIncome ? 'text-2xl text-surface-100' : 'text-xl text-gold-500'}`}>
-                            RM {(hoveredIncome ? hoveredIncome.value : stats.totalRevenue).toLocaleString()}
-                          </p>
-                        </div>
+                        {(() => {
+                          const name = hoveredIncome ? hoveredIncome.name : 'Total'
+                          const amount = `RM ${(hoveredIncome ? hoveredIncome.value : stats.totalRevenue).toLocaleString()}`
+                          const nameSize = getLabelTextSize(name, isMobile)
+                          const amountSize = getAmountTextSize(amount, isMobile)
+                          const amountColor = hoveredIncome ? 'text-surface-100' : 'text-gold-500'
+                          
+                          return (
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300 flex flex-col justify-center items-center max-w-[80%]">
+                              <p className={`font-black text-surface-400 uppercase tracking-[0.2em] mb-1 transition-all ${nameSize} truncate max-w-full`}>
+                                {name}
+                              </p>
+                              <p className={`font-black tabular-nums transition-all ${amountSize} ${amountColor} leading-none whitespace-nowrap`}>
+                                {amount}
+                              </p>
+                            </div>
+                          )
+                        })()}
                       </>
                     ) : (
                       <EmptyChartState label="No income data categorized yet" />
@@ -552,8 +588,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                               data={stats.categoryData.expense}
                               cx="50%"
                               cy="50%"
-                              innerRadius={isMobile ? 70 : 90}
-                              outerRadius={isMobile ? 85 : 115}
+                              innerRadius={isMobile ? 72 : 92}
+                              outerRadius={isMobile ? 87 : 117}
                               paddingAngle={2}
                               dataKey="value"
                               stroke="none"
@@ -587,14 +623,24 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                           </PieChart>
                         </ResponsiveContainer>
                         {/* Centered Dynamic Info */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300">
-                          <p className="text-[10px] font-black text-surface-400 uppercase tracking-[0.2em] mb-1">
-                            {hoveredExpense ? hoveredExpense.name : 'Spent'}
-                          </p>
-                          <p className={`font-black tabular-nums transition-all ${hoveredExpense ? 'text-2xl text-surface-100' : 'text-xl text-crimson-500'}`}>
-                            RM {(hoveredExpense ? hoveredExpense.value : stats.totalExpenses).toLocaleString()}
-                          </p>
-                        </div>
+                        {(() => {
+                          const name = hoveredExpense ? hoveredExpense.name : 'Spent'
+                          const amount = `RM ${(hoveredExpense ? hoveredExpense.value : stats.totalExpenses).toLocaleString()}`
+                          const nameSize = getLabelTextSize(name, isMobile)
+                          const amountSize = getAmountTextSize(amount, isMobile)
+                          const amountColor = hoveredExpense ? 'text-surface-100' : 'text-crimson-500'
+                          
+                          return (
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300 flex flex-col justify-center items-center max-w-[80%]">
+                              <p className={`font-black text-surface-400 uppercase tracking-[0.2em] mb-1 transition-all ${nameSize} truncate max-w-full`}>
+                                {name}
+                              </p>
+                              <p className={`font-black tabular-nums transition-all ${amountSize} ${amountColor} leading-none whitespace-nowrap`}>
+                                {amount}
+                              </p>
+                            </div>
+                          )
+                        })()}
                       </>
                     ) : (
                       <EmptyChartState label="No expense data categorized yet" />
