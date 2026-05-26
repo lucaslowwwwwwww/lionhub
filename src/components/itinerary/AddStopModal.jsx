@@ -538,7 +538,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             </div>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              {(settings?.extra_characters || []).map(char => (
+              {(settings?.extra_characters || []).map((char, index) => (
                 <label key={char} className="flex items-center gap-3 cursor-pointer group">
                   <input 
                     id={`stop-extra-char-${index}`}
