@@ -227,7 +227,7 @@ export default function GeneralSettings() {
                        Upload a high-resolution PNG or SVG. This will be used for splash screens, watermarks, and PDF headers.
                      </p>
                    </div>
-                   <label className="inline-flex items-center gap-2 px-6 py-3 bg-surface-800 hover:bg-surface-700 text-surface-50 text-[10px] font-black uppercase tracking-widest rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg">
+                   <label htmlFor="settings-logo-upload" className="inline-flex items-center gap-2 px-6 py-3 bg-surface-800 hover:bg-surface-700 text-surface-50 text-[10px] font-black uppercase tracking-widest rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg">
                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                      </svg>
@@ -242,27 +242,27 @@ export default function GeneralSettings() {
               <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Association Identity</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Registration Name (EN)</label>
+                  <label htmlFor="settings-club-name-en" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Registration Name (EN)</label>
                   <input type="text" id="settings-club-name-en" name="settings_club_name_en" value={localSettings.clubnameen} onChange={(e) => setLocalSettings({ ...localSettings, clubnameen: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Registration Name (CN)</label>
+                  <label htmlFor="settings-club-name-cn" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Registration Name (CN)</label>
                   <input type="text" id="settings-club-name-cn" name="settings_club_name_cn" value={localSettings.clubnamecn} onChange={(e) => setLocalSettings({ ...localSettings, clubnamecn: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Official Address</label>
+                  <label htmlFor="settings-club-address" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Official Address</label>
                   <textarea rows={2} id="settings-club-address" name="settings_club_address" value={localSettings.clubaddress} onChange={(e) => setLocalSettings({ ...localSettings, clubaddress: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-4 text-surface-200 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none text-sm leading-relaxed" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Reg Number</label>
+                  <label htmlFor="settings-reg-number" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Reg Number</label>
                   <input type="text" id="settings-reg-number" name="settings_reg_number" value={localSettings.clubregistrationno} onChange={(e) => setLocalSettings({ ...localSettings, clubregistrationno: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Contact Hotline</label>
+                  <label htmlFor="settings-contact-hotline" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Contact Hotline</label>
                   <input type="text" id="settings-contact-hotline" name="settings_contact_hotline" value={localSettings.clubphone} onChange={(e) => setLocalSettings({ ...localSettings, clubphone: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
@@ -277,12 +277,12 @@ export default function GeneralSettings() {
               <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Operational Logistics</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">HQ / Dispatch Address</label>
+                  <label htmlFor="settings-hq-address" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">HQ / Dispatch Address</label>
                   <textarea rows={2} id="settings-hq-address" name="settings_hq_address" value={localSettings.baselocation} onChange={(e) => setLocalSettings({ ...localSettings, baselocation: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 py-4 text-surface-200 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner resize-none text-sm leading-relaxed" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Standard Duration (Mins)</label>
+                  <label htmlFor="settings-standard-duration" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Standard Duration (Mins)</label>
                   <input type="number" id="settings-standard-duration" name="settings_standard_duration" value={localSettings.defaultduration} onChange={(e) => setLocalSettings({ ...localSettings, defaultduration: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
@@ -294,7 +294,7 @@ export default function GeneralSettings() {
               <div className="space-y-8">
                 {/* Colors */}
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Standard Lion Colors</label>
+                  <label htmlFor="settings-new-lion-color" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Standard Lion Colors</label>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {localSettings.lioncolors.map((color) => (
                       <div key={color} className="flex items-center gap-2 pl-4 pr-2 h-10 bg-surface-950 border border-surface-800 rounded-xl">
@@ -321,7 +321,7 @@ export default function GeneralSettings() {
 
                 {/* Cai Qing */}
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Cai Qing (采青) Types</label>
+                  <label htmlFor="settings-new-caiqing" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Cai Qing (采青) Types</label>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {localSettings.cai_qing_types.map((type) => (
                       <div key={type} className="flex items-center gap-2 pl-4 pr-2 h-10 bg-surface-950 border border-surface-800 rounded-xl">
@@ -348,7 +348,7 @@ export default function GeneralSettings() {
 
                 {/* Extra Characters */}
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Extra Characters / Mascots</label>
+                  <label htmlFor="settings-new-extra-char" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Extra Characters / Mascots</label>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {localSettings.extra_characters.map((char) => (
                       <div key={char} className="flex items-center gap-2 pl-4 pr-2 h-10 bg-surface-950 border border-surface-800 rounded-xl">
@@ -383,12 +383,12 @@ export default function GeneralSettings() {
               <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Financial Documents</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Receipt Prepared By</label>
+                  <label htmlFor="settings-receipt-prepared-by" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Receipt Prepared By</label>
                   <input type="text" id="settings-receipt-prepared-by" name="settings_receipt_prepared_by" value={localSettings.receiptpreparedby} onChange={(e) => setLocalSettings({ ...localSettings, receiptpreparedby: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Signatory Phone</label>
+                  <label htmlFor="settings-signatory-phone" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Signatory Phone</label>
                   <input type="text" id="settings-signatory-phone" name="settings_signatory_phone" value={localSettings.signatoryphone} onChange={(e) => setLocalSettings({ ...localSettings, signatoryphone: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
@@ -399,17 +399,17 @@ export default function GeneralSettings() {
               <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Settlement Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Beneficiary Name</label>
+                  <label htmlFor="settings-beneficiary-name" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Beneficiary Name</label>
                   <input type="text" id="settings-beneficiary-name" name="settings_beneficiary_name" value={localSettings.bankname} onChange={(e) => setLocalSettings({ ...localSettings, bankname: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Bank Institution</label>
+                  <label htmlFor="settings-bank-institution" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Bank Institution</label>
                   <input type="text" id="settings-bank-institution" name="settings_bank_institution" value={localSettings.banktype} onChange={(e) => setLocalSettings({ ...localSettings, banktype: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Account Number</label>
+                  <label htmlFor="settings-account-number" className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-2 ml-1">Account Number</label>
                   <input type="text" id="settings-account-number" name="settings_account_number" value={localSettings.banknumber} onChange={(e) => setLocalSettings({ ...localSettings, banknumber: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-800 rounded-2xl px-5 h-14 text-surface-100 font-bold focus:outline-none focus:border-crimson-500/50 transition-all shadow-inner" />
                 </div>
@@ -423,7 +423,7 @@ export default function GeneralSettings() {
             <section className="bg-surface-900 border border-surface-800 rounded-3xl p-6 shadow-sm">
               <h3 className="text-xs font-black text-surface-500 uppercase tracking-[0.2em] mb-6 pl-1">Appearance Profile</h3>
               <div>
-                <label className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Interface Mode</label>
+                <div className="block text-[10px] font-black text-surface-400 uppercase tracking-widest mb-3 ml-1">Interface Mode</div>
                 <div className="grid grid-cols-3 gap-3">
                   {['light', 'dark', 'system'].map((theme) => (
                     <button key={theme} onClick={() => handleLocalThemeChange(theme)}
