@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useTroupes } from '../../hooks/useTroupes'
 import { useMembers } from '../../hooks/useMembers'
 import { useAudit } from '../../hooks/useAudit'
@@ -18,6 +19,18 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
     setVehiclePlate(editData?.vehicleplate || '')
   }
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const handleSubmit = (e) => {
@@ -26,7 +39,7 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
     onClose()
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm">
       <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
         <div className="px-6 py-4 border-b border-surface-800 flex justify-between items-center">
@@ -52,7 +65,8 @@ function AddTroupeModal({ isOpen, onClose, onSave, editData }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -65,6 +79,18 @@ function AddMemberModal({ isOpen, onClose, onAdd }) {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [recruitedUser, setRecruitedUser] = useState(null)
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -111,7 +137,7 @@ function AddMemberModal({ isOpen, onClose, onAdd }) {
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-surface-800 flex justify-between items-center sticky top-0 bg-surface-900 z-10">
@@ -204,7 +230,8 @@ function AddMemberModal({ isOpen, onClose, onAdd }) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -228,6 +255,18 @@ function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
       setError('')
     }
   }, [member])
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen || !member) return null
 
@@ -269,7 +308,7 @@ function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm">
       <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
         <div className="px-6 py-4 border-b border-surface-800 flex justify-between items-center">
@@ -345,7 +384,8 @@ function EditMemberModal({ isOpen, onClose, member, onSave, isMaster }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

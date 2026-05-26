@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-
+import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 /**
  * InventoryItemModal
  * Professional modal for creating and editing inventory items with metadata.
@@ -48,6 +48,18 @@ export default function InventoryItemModal({
     }
   }
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const handleSubmit = (e) => {
@@ -57,7 +69,7 @@ export default function InventoryItemModal({
     onClose()
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/90 backdrop-blur-md animate-fade-in">
       <div className="bg-surface-900 border border-surface-800 rounded-[2rem] w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
         {/* Header */}
@@ -187,6 +199,7 @@ export default function InventoryItemModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * AddEventModal — Create or Edit a calendar event
@@ -55,6 +56,18 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
     }
   }, [isOpen, initialData, initialDate])
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const isEdit = Boolean(initialData)
@@ -90,7 +103,7 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
     { value: 'teal', label: 'Teal', class: 'bg-teal-500' },
   ]
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-surface-950/80 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
       <div className="w-full max-w-md bg-surface-900 border border-surface-800 rounded-3xl shadow-2xl overflow-hidden animate-slide-down" onClick={e => e.stopPropagation()}>
         {/* Header */}
@@ -220,7 +233,8 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -230,6 +244,18 @@ export function AddEventModal({ isOpen, onClose, onSave, initialData = null, ini
  */
 export function EventDetailModal({ isOpen, onClose, event, onEdit, onDelete, isAdmin }) {
   const [deleting, setDeleting] = useState(false)
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen || !event) return null
 
@@ -286,7 +312,7 @@ export function EventDetailModal({ isOpen, onClose, event, onEdit, onDelete, isA
   }
   const badgeClass = badgeBgMap[event.color] || 'bg-blue-500/10 text-blue-400'
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-surface-950/80 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
       <div className="w-full max-w-md bg-surface-900 border border-surface-800 rounded-3xl shadow-2xl overflow-hidden animate-slide-down" onClick={e => e.stopPropagation()}>
         {/* Color accent bar */}
