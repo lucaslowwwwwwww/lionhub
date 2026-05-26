@@ -318,4 +318,16 @@
     -ms-user-select: none;
     user-select: none;
   }
+
+  /* Remove blue focus/tap outline from Recharts pie chart SVG elements */
+  .recharts-pie,
+  .recharts-pie-sector,
+  .recharts-sector,
+  .recharts-layer,
+  .recharts-surface,
+  .recharts-wrapper svg,
+  .recharts-wrapper svg * {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
 }
