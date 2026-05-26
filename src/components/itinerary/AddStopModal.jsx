@@ -195,11 +195,11 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
     }
   }, [isOpen])
 
@@ -252,8 +252,8 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
   }
 
   const modalContent = (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 md:p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[95dvh] md:max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[85dvh] overflow-hidden">
         <div className="px-4 md:px-6 py-3 md:py-4 border-b border-surface-800 flex justify-between items-center bg-surface-950/50 shrink-0">
           <h3 className="text-xl font-bold text-surface-100">{stop ? 'Edit Stop' : 'Add New Stop'}</h3>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-100 transition-colors">
@@ -581,17 +581,17 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
           </div>
 
-          <div className="p-3 md:p-6 md:pt-2 border-t border-surface-800 bg-surface-900 flex gap-3 shrink-0 rounded-b-2xl safe-area-bottom">
+          <div className="p-6 border-t border-surface-800 flex gap-3 shrink-0">
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors"
+              className="flex-1 py-4 rounded-2xl bg-surface-800 text-surface-400 font-black text-[10px] uppercase tracking-widest hover:bg-surface-700 transition-all"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="flex-1 py-3 rounded-xl bg-crimson-600 text-white font-bold hover:bg-crimson-500 transition-colors shadow-lg shadow-crimson-500/20"
+              className="flex-1 py-4 rounded-2xl bg-crimson-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-crimson-500 shadow-xl shadow-crimson-900/20 transition-all disabled:opacity-50"
             >
               {stop ? 'Update Stop' : 'Save Stop'}
             </button>

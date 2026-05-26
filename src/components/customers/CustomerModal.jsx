@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer = null }) {
   const [saving, setSaving] = useState(false)
@@ -51,6 +52,18 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
   }, [isOpen, editingCustomer])
 
   if (!isOpen) return null
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
 
   const handleAddField = (field) => {
     if (field === 'addresses') {
@@ -134,9 +147,10 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface-900 border border-surface-800 rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
-        <div className="px-6 py-4 border-b border-surface-800 flex justify-between items-center bg-surface-950/50 shrink-0 rounded-t-2xl">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[85dvh]">
+        <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-950/50 shrink-0">
           <h3 className="text-xl font-bold text-surface-100">
             {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
           </h3>
@@ -147,7 +161,8 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto hidden-scrollbar">
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          <div className="p-6 space-y-5 overflow-y-auto overscroll-contain flex-1 min-h-0 touch-pan-y">
           {error && (
             <div className="bg-crimson-500/10 border border-crimson-500/20 rounded-lg px-4 py-3 text-crimson-400 text-sm font-medium">
               {error}
@@ -318,26 +333,28 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
               className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 py-3 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all resize-none"
               placeholder="e.g. Prefers morning performances"
             />
+            </div>
           </div>
 
-          <div className="pt-4 flex gap-3 sticky bottom-0 bg-surface-900 pb-2">
+          <div className="p-6 border-t border-surface-800 flex gap-3 shrink-0">
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-lg bg-surface-800 text-surface-200 font-bold hover:bg-surface-700 transition-colors"
+              className="flex-1 py-4 rounded-2xl bg-surface-800 text-surface-400 font-black text-[10px] uppercase tracking-widest hover:bg-surface-700 transition-all"
             >
               Cancel
             </button>
             <button 
               type="submit"
               disabled={saving}
-              className="flex-1 py-3 rounded-lg bg-crimson-600 text-white font-bold hover:bg-crimson-500 transition-colors disabled:opacity-50"
+              className="flex-1 py-4 rounded-2xl bg-crimson-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-crimson-500 shadow-xl shadow-crimson-900/20 transition-all disabled:opacity-50"
             >
               {saving ? 'Saving...' : editingCustomer ? 'Update CRM' : 'Save to CRM'}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

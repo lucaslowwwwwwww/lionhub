@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useCustomers } from '../../hooks/useCustomers'
 import { useSettings } from '../../hooks/useSettings'
 import { useAuth } from '../../hooks/useAuth'
@@ -52,10 +53,22 @@ export default function CreateDocModal({ isOpen, onClose }) {
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden my-auto">
-        <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-950/50">
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [isOpen])
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
+      <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85dvh]">
+        <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-950/50 shrink-0">
           <h3 className="text-xl font-black text-surface-50 uppercase tracking-tight">Custom Document</h3>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-100 transition-colors">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -64,8 +77,9 @@ export default function CreateDocModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Type Toggle */}
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          <div className="p-6 space-y-5 overflow-y-auto overscroll-contain flex-1 min-h-0 touch-pan-y">
+            {/* Type Toggle */}
           <div className="grid grid-cols-2 gap-3 bg-surface-950 p-1.5 rounded-2xl border border-surface-800">
             {['QUOTATION', 'INVOICE'].map(t => (
               <button
@@ -185,7 +199,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="p-6 border-t border-surface-800 flex gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
@@ -203,6 +217,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
