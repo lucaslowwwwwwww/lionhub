@@ -51,8 +51,6 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
     }
   }, [isOpen, editingCustomer])
 
-  if (!isOpen) return null
-
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +62,8 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
       }
     }
   }, [isOpen])
+
+  if (!isOpen) return null
 
   const handleAddField = (field) => {
     if (field === 'addresses') {
@@ -146,7 +146,6 @@ export default function CustomerModal({ isOpen, onClose, onSave, editingCustomer
     }
   }
 
-  return (
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[85dvh]">

@@ -198,6 +198,7 @@ export default function CreateDocModal({ isOpen, onClose }) {
               </div>
             </div>
           </div>
+          </div>
 
           <div className="p-6 border-t border-surface-800 flex gap-3 shrink-0">
             <button
