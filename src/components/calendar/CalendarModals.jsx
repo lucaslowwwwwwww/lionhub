@@ -407,6 +407,7 @@ export function EventDetailModal({ isOpen, onClose, event, onEdit, onDelete, isA
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
