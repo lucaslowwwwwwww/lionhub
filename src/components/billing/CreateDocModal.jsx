@@ -51,8 +51,6 @@ export default function CreateDocModal({ isOpen, onClose }) {
     }
   }
 
-  if (!isOpen) return null
-
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +62,8 @@ export default function CreateDocModal({ isOpen, onClose }) {
       }
     }
   }, [isOpen])
+
+  if (!isOpen) return null
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-fade-in">

@@ -134,6 +134,7 @@ export default function SalaryCalculator() {
     const rolePriority = { master: 1, admin: 2, member: 3 }
     const activeMembers = [...members]
       .filter(m => m.status !== 'deleted')
+      .filter(m => memberStats[m.id] && memberStats[m.id].daysWorked > 0)
       .sort((a, b) => {
         const priorityA = rolePriority[a.role?.toLowerCase()] || 4
         const priorityB = rolePriority[b.role?.toLowerCase()] || 4
@@ -545,19 +546,19 @@ export default function SalaryCalculator() {
             <div className="text-center py-20 text-surface-500 text-sm font-bold uppercase tracking-widest">No active personnel found</div>
           ) : (
             <>
-              {/* Desktop Table View (Hidden on Mobile) */}
-              <div className="hidden md:block overflow-x-auto">
+              {/* Desktop Table View (Hidden on Desktop Cards mode) */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-surface-800 bg-surface-950/40 text-[10px] font-black text-surface-500 uppercase tracking-wider">
-                      <th className="px-6 py-4 text-center">#</th>
-                      <th className="px-6 py-4">Name & Role</th>
-                      <th className="px-6 py-4 text-center">Days Worked</th>
-                      <th className="px-6 py-4 text-center">Hours Worked</th>
-                      <th className="px-6 py-4 text-center">Rate (RM/{rateMode === 'hourly' ? 'Hr' : 'Day'})</th>
-                      <th className="px-6 py-4 text-center">Bonus (RM)</th>
-                      <th className="px-6 py-4 text-center">Deduction (RM)</th>
-                      <th className="px-6 py-4 text-right">Net Payout</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6 text-center">#</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6">Name & Role</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6 text-center">Days</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6 text-center">Hours</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6 text-center">Rate</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6 text-center">Bonus</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6 text-center">Deduct</th>
+                      <th className="px-3 py-3 lg:px-4 xl:px-6 text-right">Net Payout</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-surface-800/40 text-sm">
@@ -567,8 +568,8 @@ export default function SalaryCalculator() {
 
                       return (
                         <tr key={m.id} className="hover:bg-surface-900/30 transition-colors">
-                          <td className="px-6 py-4 text-center text-surface-500 font-bold">{idx + 1}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-3 lg:px-4 xl:px-6 text-center text-surface-500 font-bold">{idx + 1}</td>
+                          <td className="px-3 py-3 lg:px-4 xl:px-6">
                             <p className="font-bold text-surface-100">{m.displayname || m.displayName}</p>
                             <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                               <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
@@ -596,15 +597,15 @@ export default function SalaryCalculator() {
                               </button>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-center font-bold text-surface-300">
+                          <td className="px-3 py-3 lg:px-4 xl:px-6 text-center font-bold text-surface-300">
                             {s.daysWorked}
                           </td>
-                          <td className="px-6 py-4 text-center font-bold text-surface-300">
+                          <td className="px-3 py-3 lg:px-4 xl:px-6 text-center font-bold text-surface-300">
                             {s.hoursWorked.toFixed(1)}
                           </td>
                           
                           {/* Rate Input */}
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-3 py-3 lg:px-4 xl:px-6 text-center">
                             <input 
                               id={`member-rate-${m.id}`}
                               name={`member_rate_${m.id}`}
@@ -612,14 +613,14 @@ export default function SalaryCalculator() {
                               placeholder={`${defaultRate}`}
                               value={adj.rate}
                               onChange={(e) => handleAdjustmentChange(m.id, 'rate', e.target.value)}
-                              className={`w-20 bg-surface-950 border rounded-lg px-2 py-1 text-center font-bold text-xs ${
+                              className={`w-14 lg:w-16 xl:w-20 bg-surface-950 border rounded-lg px-2 py-1 text-center font-bold text-xs ${
                                 s.isCustomRate ? 'border-crimson-500 text-crimson-400' : 'border-surface-800 text-surface-300'
                               }`}
                             />
                           </td>
 
                           {/* Bonus Input */}
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-3 py-3 lg:px-4 xl:px-6 text-center">
                             <input 
                               id={`member-bonus-${m.id}`}
                               name={`member_bonus_${m.id}`}
@@ -627,12 +628,12 @@ export default function SalaryCalculator() {
                               placeholder="0"
                               value={adj.bonus}
                               onChange={(e) => handleAdjustmentChange(m.id, 'bonus', e.target.value)}
-                              className="w-20 bg-surface-950 border border-surface-800 rounded-lg px-2 py-1 text-center font-bold text-xs text-emerald-400"
+                              className="w-14 lg:w-16 xl:w-20 bg-surface-950 border border-surface-800 rounded-lg px-2 py-1 text-center font-bold text-xs text-emerald-400"
                             />
                           </td>
 
                           {/* Deduction Input */}
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-3 py-3 lg:px-4 xl:px-6 text-center">
                             <input 
                               id={`member-deduction-${m.id}`}
                               name={`member_deduction_${m.id}`}
@@ -640,12 +641,12 @@ export default function SalaryCalculator() {
                               placeholder="0"
                               value={adj.deduction}
                               onChange={(e) => handleAdjustmentChange(m.id, 'deduction', e.target.value)}
-                              className="w-20 bg-surface-950 border border-surface-800 rounded-lg px-2 py-1 text-center font-bold text-xs text-orange-400"
+                              className="w-14 lg:w-16 xl:w-20 bg-surface-950 border border-surface-800 rounded-lg px-2 py-1 text-center font-bold text-xs text-orange-400"
                             />
                           </td>
 
                           {/* Total Net Pay */}
-                          <td className="px-6 py-4 text-right font-black text-crimson-400">
+                          <td className="px-3 py-3 lg:px-4 xl:px-6 text-right font-black text-crimson-400">
                             RM {s.totalPay.toFixed(2)}
                           </td>
                         </tr>
@@ -656,7 +657,7 @@ export default function SalaryCalculator() {
               </div>
 
               {/* Mobile Card View (Hidden on Desktop) */}
-              <div className="block md:hidden divide-y divide-surface-800/40">
+              <div className="block lg:hidden divide-y divide-surface-800/40">
                 {filteredSalaries.map((s) => {
                   const m = s.member
                   const adj = memberAdjustments[m.id] || { rate: '', bonus: '', deduction: '' }

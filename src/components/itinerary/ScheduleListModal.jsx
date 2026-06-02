@@ -1,8 +1,15 @@
 import { useMemo, useState } from 'react'
-import { getDayInfo } from '../../utils/constants'
+import { getDayInfo, getActualCnyDate } from '../../utils/constants'
 
-export default function ScheduleListModal({ isOpen, onClose, performanceDates = [], unfinishedDates = [], dateStopCounts = {}, onSelectDate }) {
+export default function ScheduleListModal({ isOpen, onClose, performanceDates = [], unfinishedDates = [], dateStopCounts = {}, onSelectDate, cnyOverrides = {} }) {
   const [search, setSearch] = useState('')
+
+  const parseDateKey = (dateKey) => {
+    if (dateKey.startsWith('day')) {
+      return getActualCnyDate(dateKey, null, cnyOverrides)
+    }
+    return new Date(dateKey)
+  }
 
   const sortedDates = useMemo(() => {
     return [...new Set(performanceDates)].sort((a, b) => b.localeCompare(a)) // Newest first
@@ -11,11 +18,12 @@ export default function ScheduleListModal({ isOpen, onClose, performanceDates = 
   const filteredDates = useMemo(() => {
     if (!search) return sortedDates
     return sortedDates.filter(d => {
-      const info = getDayInfo(new Date(d))
+      const parsed = parseDateKey(d)
+      const info = getDayInfo(parsed, cnyOverrides)
       const combined = `${d} ${info.label} ${info.subLabel}`.toLowerCase()
       return combined.includes(search.toLowerCase())
     })
-  }, [sortedDates, search])
+  }, [sortedDates, search, cnyOverrides])
 
   if (!isOpen) return null
 
@@ -57,9 +65,19 @@ export default function ScheduleListModal({ isOpen, onClose, performanceDates = 
             <div className="py-20 text-center text-surface-600 font-bold uppercase tracking-widest text-[10px]">No dates found</div>
           ) : (
             filteredDates.map(date => {
-              const info = getDayInfo(new Date(date))
-              const isUnfinished = unfinishedDates.includes(date)
+              const parsed = parseDateKey(date)
+              const info = getDayInfo(parsed, cnyOverrides)
+              
+              const year = parsed.getFullYear()
+              const monthVal = String(parsed.getMonth() + 1).padStart(2, '0')
+              const dayVal = String(parsed.getDate()).padStart(2, '0')
+              const iso = `${year}-${monthVal}-${dayVal}`
+              
+              const isUnfinished = unfinishedDates.includes(date) || unfinishedDates.includes(iso)
               const count = dateStopCounts[date] || 0
+
+              const dayNum = String(parsed.getDate()).padStart(2, '0')
+              const monthName = parsed.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase()
 
               return (
                 <button 
@@ -73,8 +91,8 @@ export default function ScheduleListModal({ isOpen, onClose, performanceDates = 
                   <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0 border transition-all ${
                     isUnfinished ? 'bg-crimson-500/10 border-crimson-500/30 text-crimson-400' : 'bg-surface-950 border-surface-800 text-surface-400 group-hover:border-surface-700'
                   }`}>
-                    <span className="text-xs font-black leading-none">{date.split('-')[2]}</span>
-                    <span className="text-[7px] font-black uppercase mt-0.5 opacity-70">{date.split('-')[1]}</span>
+                    <span className="text-xs font-black leading-none">{dayNum}</span>
+                    <span className="text-[7px] font-black uppercase mt-0.5 opacity-70">{monthName}</span>
                   </div>
 
                   <div className="flex-1 min-w-0">

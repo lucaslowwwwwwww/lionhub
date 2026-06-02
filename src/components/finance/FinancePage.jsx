@@ -524,22 +524,22 @@ export default function FinancePage() {
         </div>
 
         {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-950/30">
-                <th className="px-6 py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Date</th>
-                <th className="px-6 py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Category</th>
-                <th className="px-6 py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Description</th>
-                <th className="px-6 py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Method</th>
-                <th className="px-6 py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right">Amount</th>
-                <th className="px-6 py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right">Actions</th>
+                <th className="px-3 py-3 xl:px-6 xl:py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Date</th>
+                <th className="px-3 py-3 xl:px-6 xl:py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Category</th>
+                <th className="px-3 py-3 xl:px-6 xl:py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Description</th>
+                <th className="px-3 py-3 xl:px-6 xl:py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest">Method</th>
+                <th className="px-3 py-3 xl:px-6 xl:py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right">Amount</th>
+                <th className="px-3 py-3 xl:px-6 xl:py-4 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-800/50">
               {paginatedTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-20 text-center text-surface-500 font-medium">
+                  <td colSpan="6" className="px-3 py-20 text-center text-surface-500 font-medium">
                     <div className="flex flex-col items-center gap-3 opacity-20">
                       <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                       <p className="text-sm">No transaction records found.</p>
@@ -549,23 +549,23 @@ export default function FinancePage() {
               ) : (
                 paginatedTransactions.map((t) => (
                   <tr key={t.id} className="hover:bg-surface-800/30 transition-colors group">
-                    <td className="px-6 py-5">
+                    <td className="px-3 py-5 xl:px-6">
                       <p className="text-sm font-bold text-surface-200">{new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-3 py-5 xl:px-6">
                       <span className="px-3 py-1.5 rounded-lg bg-surface-950 text-[10px] font-black uppercase tracking-widest text-surface-400 border border-surface-800">
                         {t.category}
                       </span>
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-3 py-5 xl:px-6">
                       <p className="text-sm text-surface-400 font-medium max-w-xs truncate">{t.description || '-'}</p>
                     </td>
-                    <td className="px-6 py-5 text-sm font-bold">
+                    <td className="px-3 py-5 xl:px-6 text-sm font-bold">
                       <span className={`px-2 py-1 rounded text-[10px] uppercase tracking-wider whitespace-nowrap ${t.paymentmethod === 'Bank In' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-surface-800 text-surface-400 border border-surface-700/50'}`}>
                         {t.paymentmethod || 'Cash'}
                       </span>
                     </td>
-                    <td className="px-6 py-5 text-right">
+                    <td className="px-3 py-5 xl:px-6 text-right">
                       <p className={`text-sm font-black ${
                         t.type === 'income' ? 'text-green-400' : 
                         t.type === 'sponsorship' ? 'text-indigo-400' :
@@ -574,7 +574,7 @@ export default function FinancePage() {
                         {t.type === 'expense' ? '-' : '+'} RM {Number(t.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </td>
-                    <td className="px-6 py-5 text-right">
+                    <td className="px-3 py-5 xl:px-6 text-right">
                       <div className="flex justify-end gap-2 transition-opacity">
                         <button 
                           onClick={() => handleEdit(t)}
@@ -602,7 +602,7 @@ export default function FinancePage() {
         </div>
 
         {/* Mobile Card View */}
-        <div className="md:hidden divide-y divide-surface-800/50">
+        <div className="lg:hidden divide-y divide-surface-800/50">
           {paginatedTransactions.length === 0 ? (
             <div className="px-6 py-20 text-center text-surface-500 font-medium">
               <div className="flex flex-col items-center gap-3 opacity-20">

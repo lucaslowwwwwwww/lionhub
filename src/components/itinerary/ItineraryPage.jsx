@@ -460,10 +460,14 @@ export default function ItineraryPage() {
         performanceDates={performanceDates}
         unfinishedDates={unfinishedDates}
         dateStopCounts={dateStopCounts}
+        cnyOverrides={overrides}
         onSelectDate={(date) => {
-          const info = getDayInfo(new Date(date), overrides)
+          const parsed = date.startsWith('day')
+            ? getActualCnyDate(date, null, overrides)
+            : new Date(date)
+          const info = getDayInfo(parsed, overrides)
           setSelectedDay(info.id)
-          if (!info.isCny) setSelectedYear(new Date(date).getFullYear())
+          if (!info.isCny) setSelectedYear(parsed.getFullYear())
         }}
       />
     </div>

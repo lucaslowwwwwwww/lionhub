@@ -5,6 +5,8 @@ import { useToast } from './useToast'
 import { sanitizeObject } from '../utils/sanitize'
 import { createFetchTimeout, TABLES } from '../utils/fetchHelper'
 import { useOrg } from './useOrg'
+import { getActualCnyDate } from '../utils/constants'
+import { useSettings } from './useSettings'
 
 export function useItinerary(troupeId, date) {
   const [itinerary, setItinerary] = useState(null)
@@ -439,6 +441,8 @@ export function useItinerary(troupeId, date) {
 
 export function useAllPerformanceDates() {
   const { orgId } = useOrg()
+  const { settings } = useSettings()
+  const overrides = settings?.cnyoverrides || {}
   const CACHE_KEY = `liondance_cache_perf_dates_${orgId || 'none'}`
   const CACHE_EXPIRY = 5 * 60 * 1000 // 5 minutes
   const [allItineraries, setAllItineraries] = useState(() => {
@@ -451,6 +455,7 @@ export function useAllPerformanceDates() {
     } catch (e) { console.warn('Performance dates cache read failed:', e) }
     return []
   })
+  const [unpaidDates, setUnpaidDates] = useState([])
   const [loading, setLoading] = useState(!allItineraries.length)
   const [error, setError] = useState(null)
 
@@ -473,6 +478,19 @@ export function useAllPerformanceDates() {
     setAllItineraries(data || [])
     setLoading(false)
 
+    // Fetch dates with unpaid ('Pay Later') stops
+    const { data: unpaidData } = await supabase
+      .from('stops')
+      .select('scheduleddate')
+      .eq('org_id', orgId)
+      .eq('status', 'completed')
+      .eq('paymentmethod', 'Pay Later')
+    
+    if (unpaidData) {
+      const uniqueUnpaidDates = [...new Set(unpaidData.map(s => s.scheduleddate).filter(Boolean))]
+      setUnpaidDates(uniqueUnpaidDates)
+    }
+
     // Update Cache
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
@@ -491,15 +509,25 @@ export function useAllPerformanceDates() {
     const channel = supabase
       .channel(`all-itin-${orgId}-${allItinSafeId}`)
       .on(
+         'postgres_changes',
+         { event: '*', schema: 'public', table: 'itineraries', filter: `org_id=eq.${orgId}` },
+         (payload) => {
+           if (payload.eventType === 'INSERT') {
+             setAllItineraries(prev => [...prev, payload.new])
+           } else if (payload.eventType === 'UPDATE') {
+             setAllItineraries(prev => prev.map(i => i.id === payload.new.id ? payload.new : i))
+           } else if (payload.eventType === 'DELETE') {
+             setAllItineraries(prev => prev.filter(i => i.id !== payload.old.id))
+           }
+         }
+      )
+      .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'itineraries', filter: `org_id=eq.${orgId}` },
+        { event: 'UPDATE', schema: 'public', table: 'stops', filter: `org_id=eq.${orgId}` },
         (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setAllItineraries(prev => [...prev, payload.new])
-          } else if (payload.eventType === 'UPDATE') {
-            setAllItineraries(prev => prev.map(i => i.id === payload.new.id ? payload.new : i))
-          } else if (payload.eventType === 'DELETE') {
-            setAllItineraries(prev => prev.filter(i => i.id !== payload.old.id))
+          // Refresh unpaid dates when a stop's payment method changes
+          if (payload.new?.paymentmethod !== payload.old?.paymentmethod) {
+            fetchItineraries()
           }
         }
       )
@@ -509,6 +537,17 @@ export function useAllPerformanceDates() {
       supabase.removeChannel(channel)
     }
   }, [fetchItineraries, orgId])
+
+  const getIsoFromDateKey = (dateKey, overridesMap) => {
+    if (dateKey.startsWith('day')) {
+      const actualDate = getActualCnyDate(dateKey, null, overridesMap)
+      const year = actualDate.getFullYear()
+      const month = String(actualDate.getMonth() + 1).padStart(2, '0')
+      const day = String(actualDate.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    return dateKey
+  }
 
   const { dates, dateStopCounts, unfinishedDates, dateTroupes } = useMemo(() => {
     const counts = {}
@@ -535,14 +574,37 @@ export function useAllPerformanceDates() {
       }
     })
 
-    const filteredDates = [...new Set(allItineraries.map(i => i.date))].filter(d => (counts[d] || 0) > 0)
+    // Also mark dates with unpaid ('Pay Later') stops as unfinished
+    unpaidDates.forEach(unpaidIso => {
+      if (!unpaidIso) return
+      unfinishedSet.add(unpaidIso)
+      
+      allItineraries.forEach(itin => {
+        if (itin.date) {
+          const itinIso = getIsoFromDateKey(itin.date, overrides)
+          if (itinIso === unpaidIso) {
+            unfinishedSet.add(itin.date)
+          }
+        }
+      })
+    })
+
+    const filteredDates = [...new Set(allItineraries.map(i => i.date))].filter(d => {
+      const hasUnfinishedStops = (counts[d] || 0) > 0
+      const hasUnpaidStops = unpaidDates.some(unpaidIso => {
+        const dIso = getIsoFromDateKey(d, overrides)
+        return dIso === unpaidIso
+      })
+      return hasUnfinishedStops || hasUnpaidStops
+    })
+
     return {
       dates: filteredDates,
       dateStopCounts: counts,
       unfinishedDates: Array.from(unfinishedSet),
       dateTroupes: troupesMap
     }
-  }, [allItineraries])
+  }, [allItineraries, unpaidDates, overrides])
 
   return { dates, unfinishedDates, dateTroupes, dateStopCounts, allItineraries, loading, error, refresh: fetchItineraries }
 }

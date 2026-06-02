@@ -9,7 +9,17 @@ export default function DaySelector({ selectedDay, onSelectDay, performanceDates
     return Array.from({ length: 20 }, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() + (i - 2)) // Show 2 days ago + 18 days ahead for better context
-      return getDayInfo(d, cnyOverrides)
+      const info = getDayInfo(d, cnyOverrides)
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const dayVal = String(d.getDate()).padStart(2, '0')
+      const iso = `${year}-${month}-${dayVal}`
+      const dateKey = info.isCny ? `${info.id}_${year}` : info.id
+      return {
+        ...info,
+        iso,
+        dateKey
+      }
     })
   }, [cnyOverrides])
 
@@ -50,11 +60,11 @@ export default function DaySelector({ selectedDay, onSelectDay, performanceDates
               <span className="text-[7px] font-bold uppercase tracking-tighter text-gold-500/70">ALL</span>
             </div>
           </button>
-
+ 
           {/* Render 15-Day Sliding Window */}
           {dateRange.map((day) => {
             const isSelected = selectedDay === day.id
-            const isBooked = performanceDates.includes(day.id)
+            const isBooked = performanceDates.includes(day.dateKey)
             
             return (
               <button
@@ -67,7 +77,10 @@ export default function DaySelector({ selectedDay, onSelectDay, performanceDates
                     : 'bg-surface-950/50 border-surface-800 text-surface-400 hover:bg-surface-800 hover:text-surface-200 hover:border-surface-700'
                 }`}
               >
-                {isBooked && Array.isArray(unfinishedDates) && unfinishedDates.includes(day.id) && (
+                {Array.isArray(unfinishedDates) && (
+                  unfinishedDates.includes(day.dateKey) ||
+                  unfinishedDates.includes(day.iso)
+                ) && (
                   <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-crimson-500 animate-pulse'}`}></div>
                 )}
                 <span className={`text-xl font-bold ${day.isCny ? 'mb-0' : 'mb-0.5'}`}>

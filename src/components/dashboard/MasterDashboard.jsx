@@ -92,30 +92,18 @@ const CarouselIndicators = ({ count, activeIndex, color = 'gold' }) => (
   </div>
 )
 
-const getAmountTextSize = (text, isMobile) => {
+const getAmountTextSize = (text) => {
   const len = text.length
-  if (isMobile) {
-    if (len > 15) return 'text-xs'
-    if (len > 12) return 'text-[13px]'
-    if (len > 10) return 'text-sm'
-    return 'text-base'
-  } else {
-    if (len > 15) return 'text-sm'
-    if (len > 12) return 'text-base'
-    if (len > 10) return 'text-lg'
-    return 'text-xl'
-  }
+  if (len > 15) return 'text-[10px] sm:text-xs md:text-[10px] lg:text-xs xl:text-sm'
+  if (len > 12) return 'text-xs sm:text-[13px] md:text-xs lg:text-[13px] xl:text-base'
+  if (len > 10) return 'text-[13px] sm:text-sm md:text-[13px] lg:text-sm xl:text-lg'
+  return 'text-sm sm:text-base md:text-sm lg:text-base xl:text-xl'
 }
 
-const getLabelTextSize = (text, isMobile) => {
+const getLabelTextSize = (text) => {
   const len = text.length
-  if (isMobile) {
-    if (len > 12) return 'text-[8px]'
-    return 'text-[10px]'
-  } else {
-    if (len > 12) return 'text-[9px]'
-    return 'text-[11px]'
-  }
+  if (len > 12) return 'text-[7px] sm:text-[8px] md:text-[7px] lg:text-[8px] xl:text-[9px]'
+  return 'text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] xl:text-[11px]'
 }
 
 export default function MasterDashboard({ stats, loading, selectedYear, setSelectedYear, availableYears }) {
@@ -487,7 +475,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
            >
               {/* Income Categories */}
               <div className="min-w-full md:min-w-0 snap-center">
-                <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md h-full">
+                <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-5 sm:p-6 lg:p-8 shadow-sm backdrop-blur-md h-full">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="p-3 bg-gold-500/10 text-gold-400 rounded-2xl border border-gold-500/20">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -497,7 +485,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                       <p className="text-[10px] text-surface-400 font-black uppercase tracking-widest">Revenue by Source Category</p>
                     </div>
                   </div>
-                  <div className="h-64 sm:h-[350px] w-full relative">
+                  <div className="h-64 sm:h-[300px] md:h-[220px] lg:h-[300px] xl:h-[350px] w-full relative">
                     {(stats.categoryData.income.length > 0 && canRender) ? (
                       <>
                         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
@@ -506,8 +494,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                               data={stats.categoryData.income}
                               cx="50%"
                               cy="50%"
-                              innerRadius={isMobile ? 72 : 92}
-                              outerRadius={isMobile ? 87 : 117}
+                              innerRadius="65%"
+                              outerRadius="85%"
                               paddingAngle={2}
                               dataKey="value"
                               stroke="none"
@@ -524,32 +512,18 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                                 ][index % 5]} />
                               ))}
                             </Pie>
-                            <Legend 
-                              verticalAlign="bottom" 
-                              align="center"
-                              content={({ payload }) => (
-                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
-                                  {payload.map((entry, index) => (
-                                    <div key={index} className="flex items-center gap-1.5">
-                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                      <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            />
                           </PieChart>
                         </ResponsiveContainer>
                         {/* Centered Dynamic Info */}
                         {(() => {
                           const name = hoveredIncome ? hoveredIncome.name : 'Total'
                           const amount = `RM ${(hoveredIncome ? hoveredIncome.value : stats.totalRevenue).toLocaleString()}`
-                          const nameSize = getLabelTextSize(name, isMobile)
-                          const amountSize = getAmountTextSize(amount, isMobile)
+                          const nameSize = getLabelTextSize(name)
+                          const amountSize = getAmountTextSize(amount)
                           const amountColor = hoveredIncome ? 'text-surface-100' : 'text-gold-500'
                           
                           return (
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300 flex flex-col justify-center items-center max-w-[80%]">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none transition-all duration-300 flex flex-col justify-center items-center max-w-[80%]">
                               <p className={`font-black text-surface-400 uppercase tracking-[0.2em] mb-1 transition-all ${nameSize} truncate max-w-full`}>
                                 {name}
                               </p>
@@ -564,12 +538,32 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                       <EmptyChartState label="No income data categorized yet" />
                     )}
                   </div>
+                  {/* Legend Outside SVG */}
+                  {stats.categoryData.income.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-6">
+                      {stats.categoryData.income.map((entry, index) => {
+                        const color = [
+                          '#f59e0b', // gold-500
+                          '#fbbf24', // gold-400
+                          '#d97706', // gold-600
+                          '#b45309', // gold-700
+                          '#fbcf33', // custom yellow
+                        ][index % 5]
+                        return (
+                          <div key={index} className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                            <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.name}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Expense Categories */}
               <div className="min-w-full md:min-w-0 snap-center">
-                <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-md h-full">
+                <div className="bg-surface-900/40 border border-surface-800/50 rounded-3xl p-5 sm:p-6 lg:p-8 shadow-sm backdrop-blur-md h-full">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="p-3 bg-crimson-500/10 text-crimson-400 rounded-2xl border border-crimson-500/20">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
@@ -579,7 +573,7 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                       <p className="text-[10px] text-surface-400 font-black uppercase tracking-widest">Expenses by Operational Group</p>
                     </div>
                   </div>
-                  <div className="h-64 sm:h-[350px] w-full relative">
+                  <div className="h-64 sm:h-[300px] md:h-[220px] lg:h-[300px] xl:h-[350px] w-full relative">
                     {(stats.categoryData.expense.length > 0 && canRender) ? (
                       <>
                         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200} debounce={50}>
@@ -588,8 +582,8 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                               data={stats.categoryData.expense}
                               cx="50%"
                               cy="50%"
-                              innerRadius={isMobile ? 72 : 92}
-                              outerRadius={isMobile ? 87 : 117}
+                              innerRadius="65%"
+                              outerRadius="85%"
                               paddingAngle={2}
                               dataKey="value"
                               stroke="none"
@@ -606,32 +600,18 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                                 ][index % 5]} />
                               ))}
                             </Pie>
-                            <Legend 
-                              verticalAlign="bottom" 
-                              align="center"
-                              content={({ payload }) => (
-                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-6">
-                                  {payload.map((entry, index) => (
-                                    <div key={index} className="flex items-center gap-1.5">
-                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                      <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.value}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            />
                           </PieChart>
                         </ResponsiveContainer>
                         {/* Centered Dynamic Info */}
                         {(() => {
                           const name = hoveredExpense ? hoveredExpense.name : 'Spent'
                           const amount = `RM ${(hoveredExpense ? hoveredExpense.value : stats.totalExpenses).toLocaleString()}`
-                          const nameSize = getLabelTextSize(name, isMobile)
-                          const amountSize = getAmountTextSize(amount, isMobile)
+                          const nameSize = getLabelTextSize(name)
+                          const amountSize = getAmountTextSize(amount)
                           const amountColor = hoveredExpense ? 'text-surface-100' : 'text-crimson-500'
                           
                           return (
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none -mt-4 transition-all duration-300 flex flex-col justify-center items-center max-w-[80%]">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none transition-all duration-300 flex flex-col justify-center items-center max-w-[80%]">
                               <p className={`font-black text-surface-400 uppercase tracking-[0.2em] mb-1 transition-all ${nameSize} truncate max-w-full`}>
                                 {name}
                               </p>
@@ -646,6 +626,26 @@ export default function MasterDashboard({ stats, loading, selectedYear, setSelec
                       <EmptyChartState label="No expense data categorized yet" />
                     )}
                   </div>
+                  {/* Legend Outside SVG */}
+                  {stats.categoryData.expense.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-6">
+                      {stats.categoryData.expense.map((entry, index) => {
+                        const color = [
+                          '#e11d48', // crimson-600
+                          '#fb7185', // rose-400
+                          '#be123c', // crimson-700
+                          '#f43f5e', // rose-500
+                          '#9f1239', // crimson-800
+                        ][index % 5]
+                        return (
+                          <div key={index} className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                            <span className="text-[9px] font-black text-surface-400 uppercase tracking-widest">{entry.name}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
            </div>
