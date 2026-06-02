@@ -1,6 +1,8 @@
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { useAuth } from '../../hooks/useAuth'
 
 export default function ReloadPrompt() {
+  const { user } = useAuth()
   const {
     needRefresh: [needRefresh],
     offlineReady: [offlineReady, setOfflineReady],
@@ -30,6 +32,8 @@ export default function ReloadPrompt() {
   if (offlineReady) {
     setTimeout(() => setOfflineReady(false), 4000)
   }
+
+  if (!user) return null
 
   return (
     <>
