@@ -489,20 +489,14 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* Day Events Bottom Sheet (mobile) */}
+      {/* Day Events Modal (mobile) */}
       {dayEventsOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setDayEventsOpen(false)}>
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          {/* Sheet */}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-surface-950/80 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setDayEventsOpen(false)}>
+          {/* Modal Content */}
           <div
-            className="relative w-full max-w-lg bg-surface-900 border-t border-surface-700 rounded-t-2xl p-5 pb-8 animate-slide-up max-h-[70vh] flex flex-col"
+            className="relative w-full max-w-md bg-surface-900 border border-surface-800 rounded-3xl p-5 pb-6 shadow-2xl animate-slide-down max-h-[80vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Handle bar */}
-            <div className="flex justify-center mb-4">
-              <div className="w-10 h-1 rounded-full bg-surface-700" />
-            </div>
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-black text-surface-100">

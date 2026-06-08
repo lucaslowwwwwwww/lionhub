@@ -1,5 +1,6 @@
 import StatusBadge from './StatusBadge'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { generateAndShareReceipt } from '../../utils/generateReceipt'
 import { useAuth } from '../../hooks/useAuth'
 import { useSettings } from '../../hooks/useSettings'
@@ -22,6 +23,21 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
   const isEnRoute = stop.status === 'in-progress'
   const isPerforming = stop.status === 'performing'
   const isAdmin = ['admin', 'master'].includes(userProfile?.role)
+
+  // Prevent scrolling when full-screen modals are open
+  useEffect(() => {
+    if (isNavigating || isTransferring) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [isNavigating, isTransferring])
 
   // Calculate duration if completed
   let recordedMinutes = null
@@ -50,9 +66,9 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
     const gmapsLink = `https://www.google.com/maps/search/?api=1&query=${query}`
     const wazeLink = `https://waze.com/ul?q=${query}&navigate=yes`
   
-    return (
-      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={(e) => { e.stopPropagation(); setIsNavigating(false); }}>
-        <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden mt-auto sm:mt-0 transition-transform animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+    return createPortal(
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200 overscroll-none touch-none" onClick={(e) => { e.stopPropagation(); setIsNavigating(false); }}>
+        <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden transition-transform animate-in zoom-in-95 duration-300 touch-auto" onClick={e => e.stopPropagation()}>
            <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-900/50 backdrop-blur-md">
              <h3 className="text-xl font-black text-surface-100 uppercase tracking-tight">Navigate To</h3>
              <button onClick={(e) => { e.stopPropagation(); setIsNavigating(false); }} className="text-surface-400 hover:text-surface-100 transition-colors p-2 hover:bg-surface-800 rounded-full">✕</button>
@@ -80,7 +96,8 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
              </a>
            </div>
         </div>
-      </div>
+      </div>,
+      document.body
     )
   }
 
@@ -88,13 +105,13 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
     if (!isTransferring) return null
     const otherTroupes = (troupes || []).filter(t => t.id !== currentTroupeId)
 
-    return (
+    return createPortal(
       <div 
-        className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200" 
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200 overscroll-none touch-none" 
         onClick={(e) => { e.stopPropagation(); setIsTransferring(false); }}
       >
         <div 
-          className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden mt-auto sm:mt-0 transition-transform animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300" 
+          className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden transition-transform animate-in zoom-in-95 duration-300 touch-auto" 
           onClick={e => e.stopPropagation()}
         >
           <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-900/50 backdrop-blur-md">
@@ -110,7 +127,7 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
             <p className="text-xs text-surface-400 font-medium">
               Transfer <strong className="text-gold-400">{stop.householdname}</strong> to another team:
             </p>
-            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto no-scrollbar">
+            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto no-scrollbar overscroll-contain">
               {otherTroupes.length === 0 ? (
                 <p className="text-xs text-surface-500 font-bold uppercase tracking-widest text-center py-4">No other teams found.</p>
               ) : (
@@ -141,7 +158,8 @@ export default function StopCard({ stop, onUpdateStatus, onEdit, onDelete, index
             </div>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     )
   }
 

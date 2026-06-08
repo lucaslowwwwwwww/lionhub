@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import StatusBadge from './StatusBadge'
 
 export default function StopListItem({ stop, index, onEdit, onDelete, isAdmin, dragHandleProps, troupes = [], currentTroupeId = null, onTransfer = () => {} }) {
@@ -8,17 +9,31 @@ export default function StopListItem({ stop, index, onEdit, onDelete, isAdmin, d
   const isEnRoute = stop.status === 'in-progress'
   const [isTransferring, setIsTransferring] = useState(false)
 
+  useEffect(() => {
+    if (isTransferring) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [isTransferring])
+
   const renderTransferModal = () => {
     if (!isTransferring) return null
     const otherTroupes = (troupes || []).filter(t => t.id !== currentTroupeId)
 
-    return (
+    return createPortal(
       <div 
-        className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200" 
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-200 overscroll-none touch-none" 
         onClick={(e) => { e.stopPropagation(); setIsTransferring(false); }}
       >
         <div 
-          className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden mt-auto sm:mt-0 transition-transform animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300" 
+          className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden transition-transform animate-in zoom-in-95 duration-300 touch-auto" 
           onClick={e => e.stopPropagation()}
         >
           <div className="px-6 py-5 border-b border-surface-800 flex justify-between items-center bg-surface-900/50 backdrop-blur-md">
@@ -34,7 +49,7 @@ export default function StopListItem({ stop, index, onEdit, onDelete, isAdmin, d
             <p className="text-xs text-surface-400 font-medium">
               Transfer <strong className="text-gold-400">{stop.householdname}</strong> to another team:
             </p>
-            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto no-scrollbar">
+            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto no-scrollbar overscroll-contain">
               {otherTroupes.length === 0 ? (
                 <p className="text-xs text-surface-500 font-bold uppercase tracking-widest text-center py-4">No other teams found.</p>
               ) : (
@@ -65,7 +80,8 @@ export default function StopListItem({ stop, index, onEdit, onDelete, isAdmin, d
             </div>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     )
   }
 

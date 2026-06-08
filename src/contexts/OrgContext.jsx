@@ -11,11 +11,16 @@ import { OrgContext } from './OrgContextObject'
  * data (lion colors, cai qing, characters, logo, etc.) reads from here.
  */
 export function OrgProvider({ children }) {
-  const { userProfile } = useAuth()
+  const { userProfile, logout } = useAuth()
   const [org, setOrg] = useState(null)
   const [loading, setLoading] = useState(true)
   const [impersonatedOrgId, setImpersonatedOrgId] = useState(null)
   const channelRef = useRef(null)
+  
+  const isSuperAdminRef = useRef(false)
+  useEffect(() => {
+    isSuperAdminRef.current = userProfile?.is_super_admin === true
+  }, [userProfile?.is_super_admin])
 
   // The effective org_id: impersonated (super admin) or the user's own
   const effectiveOrgId = impersonatedOrgId || userProfile?.org_id
@@ -71,14 +76,19 @@ export function OrgProvider({ children }) {
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
-          table: 'organizations',
-          filter: `id=eq.${effectiveOrgId}`
+          table: 'organizations'
         },
         (payload) => {
-          if (payload.new) {
+          if (payload.new && payload.new.id === effectiveOrgId) {
             setOrg(prev => ({ ...prev, ...payload.new }))
+            
+            // Kick out user immediately if tenant is deactivated
+            if (payload.new.status === 'inactive' && !isSuperAdminRef.current) {
+              sessionStorage.setItem('login_error', "Your association's account is currently inactive. Please contact support.")
+              logout()
+            }
           }
         }
       )

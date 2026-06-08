@@ -41,6 +41,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
   const [addressOptions, setAddressOptions] = useState([])
   const [phoneOptions, setPhoneOptions] = useState([])
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false)
 
   const handleSelectCustomer = (inputValue) => {
     const matchedCustomer = customers.find(c => {
@@ -141,6 +142,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
     setPrevStopId(stop?.id)
     
     if (isOpen) {
+      setSearchQuery('')
       const colors = settings?.lioncolors || []
       
       if (stop) {
@@ -265,58 +267,106 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
           <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 custom-scrollbar overscroll-contain">
-          <div>
+          <div className="relative">
             <label htmlFor="stop-household-name" className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Customer / Household Name</label>
-            <input 
-              id="stop-household-name"
-              name="stop_household_name"
-              required
-              type="text" 
-              list="customers-list"
-              value={formData.householdname}
-              onChange={(e) => handleSelectCustomer(e.target.value)}
-              className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-12 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all box-border"
-              placeholder="Type to search saved customers..."
-            />
-            <datalist id="customers-list">
-              {customers.map(c => {
-                const notesPart = c.notes ? ` (${c.notes})` : ''
-                return <option key={c.id} value={`${c.name}${notesPart}`} />
-              })}
-            </datalist>
+            <div className="relative">
+              <input 
+                id="stop-household-name"
+                name="stop_household_name"
+                required
+                type="text" 
+                autoComplete="off"
+                value={formData.householdname}
+                onChange={(e) => {
+                  handleSelectCustomer(e.target.value)
+                  setShowCustomerDropdown(true)
+                }}
+                onFocus={() => setShowCustomerDropdown(true)}
+                onBlur={() => setTimeout(() => setShowCustomerDropdown(false), 200)}
+                className="w-full bg-surface-950 border border-surface-800 rounded-lg pl-4 pr-10 h-12 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all box-border"
+                placeholder="Type to search saved customers..."
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-surface-500">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
+
+            {showCustomerDropdown && (
+              <div className="absolute z-[100] w-full mt-1 bg-surface-900 border border-surface-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar-thin">
+                {customers
+                  .filter(c => {
+                    const search = formData.householdname.toLowerCase()
+                    if (!search) return true
+                    const notesPart = c.notes ? ` (${c.notes})` : ''
+                    const full = `${c.name}${notesPart}`.toLowerCase()
+                    return full.includes(search)
+                  })
+                  .map(c => {
+                    const notesPart = c.notes ? ` (${c.notes})` : ''
+                    const full = `${c.name}${notesPart}`
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          handleSelectCustomer(full)
+                          setShowCustomerDropdown(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-surface-100 hover:bg-surface-800 border-b border-surface-800/50 last:border-0 transition-colors"
+                      >
+                        <div className="font-bold">{c.name}</div>
+                        {c.notes && <div className="text-[10px] text-surface-400 uppercase tracking-widest mt-0.5">{c.notes}</div>}
+                      </button>
+                    )
+                  })}
+                {customers.filter(c => {
+                    const search = formData.householdname.toLowerCase()
+                    if (!search) return true
+                    const notesPart = c.notes ? ` (${c.notes})` : ''
+                    return `${c.name}${notesPart}`.toLowerCase().includes(search)
+                  }).length === 0 && (
+                  <div className="px-4 py-3 text-xs text-surface-400 text-center italic">No matching customers found. Will be added as new.</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Address */}
           <div>
             <label htmlFor={addressOptions.length > 1 ? "stop-address-picker" : "stop-address"} className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Full Address</label>
             {addressOptions.length > 1 ? (
-              <select
-                id="stop-address-picker"
-                name="stop_address_picker"
-                onChange={(e) => {
-                  const selectedVal = e.target.value
-                  const selectedAddr = addressOptions.find(a => (typeof a === 'object' ? a.value : a) === selectedVal)
-                  setFormData({ 
-                    ...formData, 
-                    address: selectedVal,
-                    maplink: typeof selectedAddr === 'object' ? selectedAddr.mapLink || '' : ''
-                  })
-                }}
-                value={formData.address}
-                className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-12 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-              >
-                <option value="" disabled>Choose a location...</option>
-                {addressOptions.map((addr, idx) => {
-                  const type = typeof addr === 'object' ? addr.type : 'Home'
-                  const val = typeof addr === 'object' ? addr.value : addr
-                  const typeLabel = type === 'Home' ? '住家' : '公司'
-                  return (
-                    <option key={idx} value={val}>
-                      {typeLabel}: {val}
-                    </option>
-                  )
-                })}
-              </select>
+              <div className="relative">
+                <select
+                  id="stop-address-picker"
+                  name="stop_address_picker"
+                  onChange={(e) => {
+                    const selectedVal = e.target.value
+                    const selectedAddr = addressOptions.find(a => (typeof a === 'object' ? a.value : a) === selectedVal)
+                    setFormData({ 
+                      ...formData, 
+                      address: selectedVal,
+                      maplink: typeof selectedAddr === 'object' ? selectedAddr.mapLink || '' : ''
+                    })
+                  }}
+                  value={formData.address}
+                  className="w-full bg-surface-950 border border-surface-800 rounded-lg pl-4 pr-10 h-12 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all appearance-none box-border"
+                >
+                  <option value="" disabled>Choose a location...</option>
+                  {addressOptions.map((addr, idx) => {
+                    const type = typeof addr === 'object' ? addr.type : 'Home'
+                    const val = typeof addr === 'object' ? addr.value : addr
+                    const typeLabel = type === 'Home' ? '住家' : '公司'
+                    return (
+                      <option key={idx} value={val}>
+                        {typeLabel}: {val}
+                      </option>
+                    )
+                  })}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-surface-500">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
             ) : (
               <textarea 
                 id="stop-address"
@@ -335,18 +385,23 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
             <div>
               <label htmlFor={phoneOptions.length > 1 ? "stop-phone-picker" : "stop-phone"} className="block text-xs font-semibold text-surface-400 uppercase tracking-wide mb-1">Contact Phone</label>
               {phoneOptions.length > 1 ? (
-                <select
-                  id="stop-phone-picker"
-                  name="stop_phone_picker"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-11 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
-                >
-                  <option value="" disabled>Pick phone...</option>
-                  {phoneOptions.map((p, idx) => (
-                    <option key={idx} value={p}>{p}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    id="stop-phone-picker"
+                    name="stop_phone_picker"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full bg-surface-950 border border-surface-800 rounded-lg pl-4 pr-10 h-11 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all appearance-none box-border"
+                  >
+                    <option value="" disabled>Pick phone...</option>
+                    {phoneOptions.map((p, idx) => (
+                      <option key={idx} value={p}>{p}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-surface-500">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </div>
+                </div>
               ) : (
                 <input 
                   id="stop-phone"
@@ -355,7 +410,7 @@ export default function AddStopModal({ isOpen, onClose, onAdd, stops = [], stop 
                   type="text" 
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-11 text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all"
+                  className="w-full bg-surface-950 border border-surface-800 rounded-lg px-4 h-11 !h-[50px] text-surface-100 focus:outline-none focus:border-crimson-500 focus:ring-1 focus:ring-crimson-500 transition-all box-border"
                   placeholder="+60 12-345 6789"
                 />
               )}

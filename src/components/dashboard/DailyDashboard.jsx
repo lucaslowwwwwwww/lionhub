@@ -128,11 +128,13 @@ export default function DailyDashboard({ troupeId: initialTroupeId, isAdmin, rea
     return filtered
   }, [dailyCheckIns, isAdmin, userProfile, activeTroupeId])
 
-  const localIsoDate = currentActualDate.toISOString().split('T')[0]
+  const padDate = (n) => (n < 10 ? '0' + n : n);
+  const localIsoDate = `${currentActualDate.getFullYear()}-${padDate(currentActualDate.getMonth() + 1)}-${padDate(currentActualDate.getDate())}`
   const currentDayInfo = getDayInfo(currentActualDate, overrides)
 
   // ISSUE-3: Determine if selected date is today (for check-in gating)
-  const todayIso = new Date().toISOString().split('T')[0]
+  const today = new Date()
+  const todayIso = `${today.getFullYear()}-${padDate(today.getMonth() + 1)}-${padDate(today.getDate())}`
   const isToday = localIsoDate === todayIso
 
   const { dateTroupes = {}, allItineraries = [], loading: loadingDates, refresh: refreshDates } = useAllPerformanceDates()

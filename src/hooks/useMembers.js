@@ -84,7 +84,14 @@ export function useMembers() {
   }, [orgId])
 
   const addMember = async (memberData) => {
-    const safeId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
+    const generateUUID = () => {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    };
+    const safeId = generateUUID();
     const id = memberData.uid || safeId
     // Strip is_super_admin — only DB can set this
     const { is_super_admin: _sa, ...safeMemberData } = memberData
