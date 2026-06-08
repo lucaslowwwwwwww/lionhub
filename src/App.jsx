@@ -175,7 +175,7 @@ function AppContent() {
     if (!showSplash) return
 
     const minTime = 50
-    const maxTime = 500 // Aggressive mobile optimization
+    const maxTime = 5000 // Give enough time for auth profile fetch to prevent spinner flash
     const startTime = Date.now()
 
     const checkLoading = setInterval(() => {

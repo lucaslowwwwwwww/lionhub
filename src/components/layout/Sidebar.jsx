@@ -159,11 +159,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
                 <span className="text-surface-400 text-xs font-black">{displayName.charAt(0)}</span>
               )}
             </div>
-            {!isCollapsed && (
-              <div className="min-w-0 animate-fade-in transition-opacity duration-300">
-                <span className="text-sm font-bold text-surface-5 tracking-tight truncate max-w-[140px] block">{displayName}</span>
-              </div>
-            )}
+            <div className={`min-w-0 animate-fade-in transition-opacity duration-300 ${isCollapsed ? 'md:hidden' : ''}`}>
+              <span className="text-sm font-bold text-surface-5 tracking-tight truncate max-w-[140px] block">{displayName}</span>
+            </div>
           </div>
 
           <button 
@@ -230,21 +228,19 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
                           <span className={`transition-transform duration-200 shrink-0 ${shouldHighlightParent ? '' : 'group-hover:scale-110'}`}>
                             {item.icon}
                           </span>
-                          {!isCollapsed && (
-                            <span className="text-sm whitespace-nowrap animate-fade-in">
-                              {item.name}
-                            </span>
-                          )}
+                          <span className={`text-sm whitespace-nowrap animate-fade-in ${isCollapsed ? 'md:hidden' : ''}`}>
+                            {item.name}
+                          </span>
                         </div>
-                        {hasSubItems && !isCollapsed && (
-                          <svg className={`w-4 h-4 transition-transform duration-300 ${isActiveGroup ? 'rotate-180 text-crimson-400' : 'text-surface-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        {hasSubItems && (
+                          <svg className={`w-4 h-4 transition-transform duration-300 ${isActiveGroup ? 'rotate-180 text-crimson-400' : 'text-surface-500'} ${isCollapsed ? 'md:hidden' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         )}
                       </Link>
 
-                      {hasSubItems && isActiveGroup && !isCollapsed && (
-                        <div className="ml-8 mt-1.5 border-l-2 border-surface-800/60 flex flex-col gap-1 py-1 animate-fade-in origin-top">
+                      {hasSubItems && isActiveGroup && (
+                        <div className={`ml-8 mt-1.5 border-l-2 border-surface-800/60 flex flex-col gap-1 py-1 animate-fade-in origin-top ${isCollapsed ? 'md:hidden' : ''}`}>
                           {item.subItems.filter(sub => !sub.roles || sub.roles.includes(userRole)).map(subItem => {
                              const isSubActive = pathname === subItem.path
                              return (
@@ -283,7 +279,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
               </svg>
-              {!isCollapsed && <span>Quit Impersonation</span>}
+              <span className={isCollapsed ? 'md:hidden' : ''}>Quit Impersonation</span>
             </button>
           </div>
         )}
@@ -300,22 +296,20 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileMenuOpen,
               <p className="text-xs font-semibold text-surface-200 truncate">{userProfile?.displayname || userProfile?.displayName || 'Admin User'}</p>
               <p className="text-[10px] text-surface-500 uppercase tracking-widest truncate">{userProfile?.is_super_admin ? 'Super Admin' : userRole}</p>
             </div>
-            {!isCollapsed && (
-              <button 
-                onClick={handleLogout} 
-                aria-label="Logout"
-                title={impersonatedOrgId ? "Please quit impersonation first to log out" : "Logout"}
-                className={`p-1.5 rounded-lg transition-colors animate-fade-in shrink-0 ${
-                  impersonatedOrgId 
-                    ? 'text-surface-600 hover:text-crimson-400 cursor-not-allowed' 
-                    : 'text-surface-400 hover:text-crimson-400'
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            )}
+            <button 
+              onClick={handleLogout} 
+              aria-label="Logout"
+              title={impersonatedOrgId ? "Please quit impersonation first to log out" : "Logout"}
+              className={`p-1.5 rounded-lg transition-colors animate-fade-in shrink-0 ${
+                impersonatedOrgId 
+                  ? 'text-surface-600 hover:text-crimson-400 cursor-not-allowed' 
+                  : 'text-surface-400 hover:text-crimson-400'
+              } ${isCollapsed ? 'md:hidden' : ''}`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
           </div>
         </div>
       </aside>

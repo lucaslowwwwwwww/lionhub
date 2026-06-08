@@ -67,6 +67,12 @@ export function AuthProvider({ children }) {
 
       if (error && error.code !== 'PGRST116') {
         console.error("Operation failed:", error?.message || "unknown")
+        throw new Error(error.message || "Failed to load profile data")
+      }
+      
+      if (settingsRes.error && settingsRes.error.code !== 'PGRST116') {
+        console.error("Settings fetch failed:", settingsRes.error?.message || "unknown")
+        throw new Error(settingsRes.error.message || "Failed to load settings data")
       }
 
       // Use database-driven flags instead of hardcoded email
