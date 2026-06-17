@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useMembers } from '../../hooks/useMembers'
 import { useTroupes } from '../../hooks/useTroupes'
 
@@ -93,7 +94,7 @@ export default function TeamSelectionModal({
 
   const isLoading = loadingM || loadingT
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface-950/80 backdrop-blur-md">
       <div className="bg-surface-900 border border-surface-800 rounded-3xl w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
         
@@ -192,6 +193,7 @@ export default function TeamSelectionModal({
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
