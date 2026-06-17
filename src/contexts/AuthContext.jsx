@@ -27,6 +27,13 @@ export function AuthProvider({ children }) {
      userProfileRef.current = userProfile
    }, [userProfile])
 
+   // Clear SessionGuard tracker whenever user is unauthenticated
+   useEffect(() => {
+     if (!user) {
+       localStorage.removeItem('lion_dance_session_start')
+     }
+   }, [user])
+
   // Fetch the user profile from the 'users' table with safety timeout
   const fetchProfile = async (authUser, forceLoading = false) => {
     if (!authUser) {
